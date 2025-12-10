@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml" prefHeight="400.0" prefWidth="600.0" fx:controller="com.sajid._207017_chashi_bhai.controllers.AdminSignUpController">
+    <children>
+        <Label layoutX="200.0" layoutY="20.0" text="Admin Sign-Up" textAlignment="CENTER" textFill="BLACK">
+            <font>
+                <Font size="24.0" />
+            </font>
+        </Label>
+        <Label layoutX="50.0" layoutY="80.0" text="Username:" />
+        <TextField fx:id="usernameField" layoutX="150.0" layoutY="80.0" />
+        
+        <Label layoutX="50.0" layoutY="120.0" text="Password:" />
+        <PasswordField fx:id="passwordField" layoutX="150.0" layoutY="120.0" />
+        
+        <Label layoutX="50.0" layoutY="160.0" text="Email:" />
+        <TextField fx:id="emailField" layoutX="150.0" layoutY="160.0" />
+        
+        <Button layoutX="150.0" layoutY="200.0" text="Sign Up" onAction="#handleSignUp" />
+        <Button layoutX="250.0" layoutY="200.0" text="Cancel" onAction="#handleCancel" />
+    </children>
+</AnchorPane>

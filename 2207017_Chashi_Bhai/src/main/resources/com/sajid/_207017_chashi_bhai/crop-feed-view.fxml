@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Button?>
+
+<VBox xmlns:fx="http://javafx.com/fxml" spacing="10" alignment="CENTER">
+    <Label text="Crop Feed" styleClass="header"/>
+    <ListView fx:id="cropListView" prefWidth="300" prefHeight="200"/>
+    <Button text="Back to Home" onAction="#handleBackToHome"/>
+</VBox>
