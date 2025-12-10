@@ -23,26 +23,50 @@ public class ChashiBhaiApp extends Application {
 
     public static void showWelcomeView() throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(ChashiBhaiApp.class.getResource("welcome-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 800, 600);
+        Scene scene = new Scene(fxmlLoader.load());
         primaryStage.setScene(scene);
+        primaryStage.setWidth(900);
+        primaryStage.setHeight(800);
     }
 
     public static void showLoginView() throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(ChashiBhaiApp.class.getResource("login-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 800, 600);
+        Scene scene = new Scene(fxmlLoader.load());
         primaryStage.setScene(scene);
+        primaryStage.setWidth(800);
+        primaryStage.setHeight(700);
     }
 
     public static void showSignupView() throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(ChashiBhaiApp.class.getResource("signup-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 800, 600);
+        Scene scene = new Scene(fxmlLoader.load());
         primaryStage.setScene(scene);
+        primaryStage.setWidth(800);
+        primaryStage.setHeight(750);
     }
 
     public static void showOtpView() throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(ChashiBhaiApp.class.getResource("otp-verification-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 800, 600);
+        Scene scene = new Scene(fxmlLoader.load());
         primaryStage.setScene(scene);
+        primaryStage.setWidth(800);
+        primaryStage.setHeight(750);
+    }
+
+    public static void showResetPinView() throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(ChashiBhaiApp.class.getResource("reset-pin-view.fxml"));
+        Scene scene = new Scene(fxmlLoader.load());
+        primaryStage.setScene(scene);
+        primaryStage.setWidth(800);
+        primaryStage.setHeight(700);
+    }
+
+    public static void showCreatePinView() throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(ChashiBhaiApp.class.getResource("create-pin-view.fxml"));
+        Scene scene = new Scene(fxmlLoader.load());
+        primaryStage.setScene(scene);
+        primaryStage.setWidth(800);
+        primaryStage.setHeight(700);
     }
 
     public static Stage getPrimaryStage() {

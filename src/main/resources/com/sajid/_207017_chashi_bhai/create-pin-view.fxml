@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.control.ScrollPane?>
+
+<ScrollPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.sajid._207017_chashi_bhai.controllers.CreatePinController"
+            fitToWidth="true"
+            style="-fx-background-color: #1a1a2e; -fx-padding: 0; -fx-border-width: 0;">
+
+<VBox alignment="TOP_CENTER" spacing="25.0" style="-fx-background-color: linear-gradient(to bottom, #0f3460 0%, #16213e 30%, #1a1a2e 70%, #0f0f0f 100%);" minHeight="700">
+    <padding>
+        <Insets bottom="40.0" left="40.0" right="40.0" top="30.0"/>
+    </padding>
+
+    <!-- Back Button -->
+    <HBox>
+        <Button text="← Back" onAction="#onBackClick" 
+                style="-fx-background-color: transparent; -fx-text-fill: #4CAF50; -fx-font-size: 14; -fx-font-weight: bold; -fx-cursor: hand;">
+        </Button>
+    </HBox>
+
+    <!-- PIN Form Container -->
+    <VBox alignment="CENTER" spacing="20.0" 
+          style="-fx-background-color: #1a1a2e; -fx-background-radius: 12; -fx-border-color: #4CAF50; -fx-border-width: 1.5; -fx-border-radius: 12;"
+          maxWidth="500">
+        <padding>
+            <Insets bottom="40.0" left="40.0" right="40.0" top="40.0"/>
+        </padding>
+
+        <!-- Header -->
+        <VBox alignment="CENTER" spacing="12.0">
+            <Label text="🔑" style="-fx-font-size: 50px;"/>
+            <Label text="Create Your PIN" style="-fx-text-fill: #4CAF50; -fx-font-weight: bold;">
+                <font>
+                    <Font name="System Bold" size="32.0"/>
+                </font>
+            </Label>
+            <Label text="আপনার পিন তৈরি করুন" style="-fx-text-fill: #81C784; -fx-font-weight: bold;">
+                <font>
+                    <Font size="14.0"/>
+                </font>
+            </Label>
+            <Label text="Secure your account with a strong PIN" style="-fx-text-fill: #b0b0b0;">
+                <font>
+                    <Font size="12.0"/>
+                </font>
+            </Label>
+        </VBox>
+
+        <!-- New PIN -->
+        <VBox spacing="8.0" prefWidth="420.0">
+            <Label text="🔑 New PIN (4-6 digits)" style="-fx-text-fill: #4CAF50; -fx-font-weight: bold;">
+                <font>
+                    <Font size="13.0"/>
+                </font>
+            </Label>
+            <PasswordField fx:id="newPinField" promptText="Create a PIN"
+                          style="-fx-font-size: 15; -fx-pref-height: 45; -fx-background-color: #0a0a0a; -fx-text-fill: #ffffff; -fx-prompt-text-fill: #666666; -fx-padding: 10; -fx-background-radius: 6; -fx-border-color: #4CAF50; -fx-border-width: 1; -fx-border-radius: 6;"
+                          prefWidth="420.0">
+            </PasswordField>
+        </VBox>
+
+        <!-- Confirm PIN -->
+        <VBox spacing="8.0" prefWidth="420.0">
+            <Label text="✓ Confirm PIN" style="-fx-text-fill: #4CAF50; -fx-font-weight: bold;">
+                <font>
+                    <Font size="13.0"/>
+                </font>
+            </Label>
+            <PasswordField fx:id="confirmPinField" promptText="Confirm PIN"
+                          style="-fx-font-size: 15; -fx-pref-height: 45; -fx-background-color: #0a0a0a; -fx-text-fill: #ffffff; -fx-prompt-text-fill: #666666; -fx-padding: 10; -fx-background-radius: 6; -fx-border-color: #4CAF50; -fx-border-width: 1; -fx-border-radius: 6;"
+                          prefWidth="420.0">
+            </PasswordField>
+        </VBox>
+
+        <!-- PIN Guidelines -->
+        <VBox alignment="TOP_LEFT" spacing="6" style="-fx-background-color: rgba(76, 175, 80, 0.08); -fx-padding: 12; -fx-background-radius: 6; -fx-border-color: #4CAF50; -fx-border-width: 0.5; -fx-border-radius: 6;">
+            <Label text="📋 PIN Guidelines:" style="-fx-text-fill: #4CAF50; -fx-font-weight: bold; -fx-font-size: 11;">
+            </Label>
+            <Label text="• Use 4-6 digits" style="-fx-text-fill: #b0b0b0; -fx-font-size: 11;">
+            </Label>
+            <Label text="• Remember it well" style="-fx-text-fill: #b0b0b0; -fx-font-size: 11;">
+            </Label>
+            <Label text="• Never share your PIN" style="-fx-text-fill: #b0b0b0; -fx-font-size: 11;">
+            </Label>
+            <Label text="• Required for every login" style="-fx-text-fill: #b0b0b0; -fx-font-size: 11;">
+            </Label>
+        </VBox>
+
+        <!-- Error Label -->
+        <Label fx:id="errorLabel" style="-fx-text-fill: #FF6B6B; -fx-font-size: 12;" visible="false" wrapText="true" maxWidth="400"/>
+
+        <!-- Create Button -->
+        <Button text="✓ Create PIN" onAction="#onCreatePinClick"
+                style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 0; -fx-cursor: hand;"
+                prefWidth="420.0" prefHeight="48.0">
+            <font>
+                <Font name="System Bold" size="15.0"/>
+            </font>
+        </Button>
+    </VBox>
+</VBox>
+</ScrollPane>

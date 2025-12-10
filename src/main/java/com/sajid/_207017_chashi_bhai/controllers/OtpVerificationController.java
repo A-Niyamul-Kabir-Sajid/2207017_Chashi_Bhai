@@ -17,7 +17,7 @@ import java.util.Random;
 public class OtpVerificationController {
 
     @FXML
-    private Label phoneNumberLabel;
+    private Label phoneLabel;
 
     @FXML
     private TextField otp1, otp2, otp3, otp4, otp5, otp6;
@@ -34,14 +34,19 @@ public class OtpVerificationController {
     private String generatedOtp;
     private int countdown = 60;
     private Timeline timer;
+    private boolean isPinResetMode = false;
 
     @FXML
     public void initialize() {
+        // Check if this is PIN reset mode (supports RESET_PIN, RESET_PIN_FARMER, RESET_PIN_BUYER)
+        String role = SessionManager.getTempRole();
+        isPinResetMode = role != null && role.startsWith("RESET_PIN");
+        
         // Display masked phone number
         String phone = SessionManager.getTempPhone();
         if (phone != null && phone.length() >= 11) {
             String masked = "+880 " + phone.substring(0, 4) + "-XXX-" + phone.substring(phone.length() - 3);
-            phoneNumberLabel.setText(masked);
+            phoneLabel.setText(masked);
         }
 
         // Generate OTP
@@ -158,22 +163,43 @@ public class OtpVerificationController {
             timer.stop();
         }
 
-        if (SessionManager.isLoginMode()) {
-            // TODO: Login user and redirect to dashboard
+        if (isPinResetMode) {
+            // Show success and navigate to Reset PIN screen
+            if (timer != null) {
+                timer.stop();
+            }
+            
+            showSuccess("✅ OTP Verified! Setting up new PIN...");
+            
+            // Navigate to reset PIN screen after 1 second
+            try {
+                Thread.sleep(1000);
+                ChashiBhaiApp.showResetPinView();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            
+        } else if (SessionManager.isLoginMode()) {
+            // This shouldn't happen with new login flow, but keep for safety
             System.out.println("Login successful for: " + SessionManager.getTempPhone());
-            showError("Login successful! (Dashboard not yet implemented)");
+            showSuccess("✅ Login successful! (Dashboard not yet implemented)");
+            
         } else {
-            // TODO: Create user account and redirect to dashboard
-            System.out.println("Signup successful!");
-            System.out.println("Name: " + SessionManager.getTempName());
-            System.out.println("Phone: " + SessionManager.getTempPhone());
-            System.out.println("District: " + SessionManager.getTempDistrict());
-            System.out.println("Role: " + SessionManager.getTempRole());
-            showError("Signup successful! (Dashboard not yet implemented)");
+            // New signup - navigate to Create PIN screen
+            if (timer != null) {
+                timer.stop();
+            }
+            
+            showSuccess("✅ OTP Verified! Now create your PIN...");
+            
+            // Navigate to create PIN screen after 1 second
+            try {
+                Thread.sleep(1000);
+                ChashiBhaiApp.showCreatePinView();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-
-        // Clear session data
-        // SessionManager.clear();
     }
 
     @FXML
@@ -224,6 +250,12 @@ public class OtpVerificationController {
     private void showError(String message) {
         errorLabel.setText(message);
         errorLabel.setStyle("-fx-text-fill: red;");
+        errorLabel.setVisible(true);
+    }
+
+    private void showSuccess(String message) {
+        errorLabel.setText(message);
+        errorLabel.setStyle("-fx-text-fill: green;");
         errorLabel.setVisible(true);
     }
 }
