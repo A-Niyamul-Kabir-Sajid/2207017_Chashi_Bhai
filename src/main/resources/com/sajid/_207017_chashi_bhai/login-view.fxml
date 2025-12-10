@@ -13,23 +13,22 @@
 <ScrollPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.sajid._207017_chashi_bhai.controllers.LoginController"
             fitToWidth="true"
-            style="-fx-background-color: #1a1a2e; -fx-padding: 0; -fx-border-width: 0;">
-    
-<VBox alignment="TOP_CENTER" spacing="30.0" style="-fx-background-color: linear-gradient(to bottom, #0f3460 0%, #16213e 30%, #1a1a2e 70%, #0f0f0f 100%);" minHeight="700">
+            styleClass="scroll-pane">
+
+<VBox alignment="TOP_CENTER" spacing="30.0" styleClass="root" minHeight="700">
     <padding>
         <Insets bottom="40.0" left="40.0" right="40.0" top="30.0"/>
     </padding>
 
     <!-- Back Button -->
     <HBox>
-        <Button text="← Back" onAction="#onBackClick" 
-                style="-fx-background-color: transparent; -fx-text-fill: #4CAF50; -fx-font-size: 14; -fx-font-weight: bold; -fx-cursor: hand;">
+        <Button text="← Back" onAction="#onBackClick" styleClass="back-button">
         </Button>
     </HBox>
 
     <!-- Login Form Container -->
     <VBox alignment="CENTER" spacing="20.0" 
-          style="-fx-background-color: #1a1a2e; -fx-background-radius: 12; -fx-border-color: #4CAF50; -fx-border-width: 1.5; -fx-border-radius: 12;"
+          styleClass="card"
           maxWidth="480">
         <padding>
             <Insets bottom="40.0" left="40.0" right="40.0" top="40.0"/>
@@ -37,76 +36,47 @@
 
         <!-- Header -->
         <VBox alignment="CENTER" spacing="12.0">
-            <Label text="🌾" style="-fx-font-size: 50px;"/>
-            <Label text="Welcome Back" style="-fx-text-fill: #4CAF50; -fx-font-weight: bold;">
-                <font>
-                    <Font name="System Bold" size="32.0"/>
-                </font>
-            </Label>
-            <Label text="লগইন করুন" style="-fx-text-fill: #81C784; -fx-font-weight: bold;">
-                <font>
-                    <Font size="14.0"/>
-                </font>
-            </Label>
+            <Label text="🌾" styleClass="icon-small"/>
+            <Label text="Welcome Back" styleClass="label-title, title-large"/>
+            <Label text="লগইন করুন" styleClass="label-subtitle, subtitle-bengali"/>
         </VBox>
 
         <!-- Role Selection -->
         <VBox spacing="10.0" prefWidth="380.0">
-            <Label text="👥 Login as / হিসাবে লগইন করুন" style="-fx-text-fill: #4CAF50; -fx-font-weight: bold;">
-                <font>
-                    <Font size="13.0"/>
-                </font>
-            </Label>
+            <Label text="👥 Login as / হিসাবে লগইন করুন" styleClass="field-label"/>
             <HBox spacing="15" alignment="CENTER">
                 <Button fx:id="farmerButton" text="👨‍🌾 Farmer / কৃষক" onAction="#onFarmerSelect"
-                        style="-fx-background-color: #2a2a2a; -fx-text-fill: #b0b0b0; -fx-background-radius: 8; -fx-border-color: #444444; -fx-border-width: 1.5; -fx-border-radius: 8; -fx-cursor: hand; -fx-padding: 12 20;"
-                        prefWidth="180">
-                    <font>
-                        <Font size="13.0"/>
-                    </font>
-                </Button>
-                <Button fx:id="buyerButton" text="🛒 Buyer / ক্রেতা" onAction="#onBuyerSelect"
-                        style="-fx-background-color: #2a2a2a; -fx-text-fill: #b0b0b0; -fx-background-radius: 8; -fx-border-color: #444444; -fx-border-width: 1.5; -fx-border-radius: 8; -fx-cursor: hand; -fx-padding: 12 20;"
-                        prefWidth="180">
-                    <font>
-                        <Font size="13.0"/>
-                    </font>
-                </Button>
+                        styleClass="role-button, role-btn-login"
+                        prefWidth="180"/>
+                <Button fx:id="buyerButton" text="🛍 Buyer / ক্রেতা" onAction="#onBuyerSelect"
+                        styleClass="role-button, role-btn-login"
+                        prefWidth="180"/>
             </HBox>
         </VBox>
 
         <!-- Phone Number Input -->
         <VBox spacing="8.0" prefWidth="380.0">
-            <Label text="📱 Phone Number" style="-fx-text-fill: #4CAF50; -fx-font-weight: bold;">
-                <font>
-                    <Font size="13.0"/>
-                </font>
-            </Label>
+            <Label text="📱 Phone Number" styleClass="field-label"/>
             <TextField fx:id="phoneField" promptText="01XXXXXXXXX"
-                       style="-fx-background-color: #0f0f0f; -fx-text-fill: #e0e0e0; -fx-prompt-text-fill: #666666; -fx-font-size: 15; -fx-pref-height: 45; -fx-background-radius: 8; -fx-border-color: #333333; -fx-border-radius: 8; -fx-border-width: 1;"
-                       prefWidth="380.0">
-            </TextField>
+                       styleClass="text-field"
+                       prefWidth="380.0"/>
         </VBox>
 
         <!-- PIN Input -->
         <VBox spacing="8.0" prefWidth="380.0">
-            <Label text="🔐 PIN" style="-fx-text-fill: #4CAF50; -fx-font-weight: bold;">
-                <font>
-                    <Font size="13.0"/>
-                </font>
-            </Label>
+            <Label text="🔐 PIN" styleClass="field-label"/>
             <PasswordField fx:id="pinField" promptText="Enter 4-6 digit PIN"
-                          style="-fx-background-color: #0f0f0f; -fx-text-fill: #e0e0e0; -fx-prompt-text-fill: #666666; -fx-font-size: 15; -fx-pref-height: 45; -fx-background-radius: 8; -fx-border-color: #333333; -fx-border-radius: 8; -fx-border-width: 1;"
+                          styleClass="password-field"
                           prefWidth="380.0">
             </PasswordField>
         </VBox>
 
         <!-- Error Label -->
-        <Label fx:id="errorLabel" style="-fx-text-fill: #FF5252; -fx-font-size: 12;" visible="false" wrapText="true" maxWidth="380"/>
+        <Label fx:id="errorLabel" styleClass="label-error" visible="false" wrapText="true" maxWidth="380"/>
 
         <!-- Login Button -->
         <Button text="📱 Login / লগইন করুন" onAction="#onLoginClick"
-                style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;"
+                styleClass="button-primary"
                 prefWidth="380.0" prefHeight="48.0">
             <font>
                 <Font size="15.0"/>
@@ -115,7 +85,7 @@
 
         <!-- Forgot Password Link -->
         <Button text="🔓 Forgot PIN? / পিন ভুলে গেছেন?" onAction="#onForgotPinClick"
-                style="-fx-background-color: transparent; -fx-text-fill: #FF7043; -fx-underline: true; -fx-cursor: hand;">
+                styleClass="button-link">
             <font>
                 <Font size="12.0"/>
             </font>
@@ -123,23 +93,15 @@
 
         <!-- Divider -->
         <HBox alignment="CENTER" spacing="8.0">
-            <Label text="Don't have an account?" style="-fx-text-fill: #b0b0b0;">
-                <font>
-                    <Font size="12.0"/>
-                </font>
-            </Label>
+            <Label text="Don't have an account?" styleClass="text-muted"/>
             <Button text="Sign Up" onAction="#onSignupLinkClick"
-                    style="-fx-background-color: transparent; -fx-text-fill: #2196F3; -fx-underline: true; -fx-cursor: hand;">
-                <font>
-                    <Font size="12.0"/>
-                </font>
-            </Button>
+                    styleClass="link-signup"/>
         </HBox>
     </VBox>
 
     <!-- Footer -->
     <Label text="© 2025 Chashi Bhai - Secure Login" 
-           style="-fx-text-fill: #555555; -fx-font-size: 10;">
+           styleClass="label-footer">
     </Label>
 </VBox>
 </ScrollPane>

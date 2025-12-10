@@ -12,23 +12,22 @@
 <ScrollPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.sajid._207017_chashi_bhai.controllers.ResetPinController"
             fitToWidth="true"
-            style="-fx-background-color: #1a1a2e; -fx-padding: 0; -fx-border-width: 0;">
+            styleClass="scroll-pane">
 
-<VBox alignment="TOP_CENTER" spacing="25.0" style="-fx-background-color: linear-gradient(to bottom, #0f3460 0%, #16213e 30%, #1a1a2e 70%, #0f0f0f 100%);" minHeight="700">
+<VBox alignment="TOP_CENTER" spacing="25.0" styleClass="root" minHeight="700">
     <padding>
         <Insets bottom="40.0" left="40.0" right="40.0" top="30.0"/>
     </padding>
 
     <!-- Back Button -->
     <HBox>
-        <Button text="← Back" onAction="#onBackClick" 
-                style="-fx-background-color: transparent; -fx-text-fill: #4CAF50; -fx-font-size: 14; -fx-font-weight: bold; -fx-cursor: hand;">
+        <Button text="← Back" onAction="#onBackClick" styleClass="back-button">
         </Button>
     </HBox>
 
     <!-- PIN Form Container -->
     <VBox alignment="CENTER" spacing="20.0" 
-          style="-fx-background-color: #1a1a2e; -fx-background-radius: 12; -fx-border-color: #4CAF50; -fx-border-width: 1.5; -fx-border-radius: 12;"
+          styleClass="card"
           maxWidth="500">
         <padding>
             <Insets bottom="40.0" left="40.0" right="40.0" top="40.0"/>
@@ -36,80 +35,55 @@
 
         <!-- Header -->
         <VBox alignment="CENTER" spacing="12.0">
-            <Label text="🔐" style="-fx-font-size: 50px;"/>
-            <Label text="Reset Your PIN" style="-fx-text-fill: #4CAF50; -fx-font-weight: bold;">
-                <font>
-                    <Font name="System Bold" size="32.0"/>
-                </font>
-            </Label>
-            <Label text="আপনার পিন রিসেট করুন" style="-fx-text-fill: #81C784; -fx-font-weight: bold;">
-                <font>
-                    <Font size="14.0"/>
-                </font>
-            </Label>
+            <Label text="🔐" styleClass="icon-small"/>
+            <Label text="Reset Your PIN" styleClass="label-title, title-large"/>
+            <Label text="আপনার পিন রিসেট করুন" styleClass="label-subtitle, subtitle-bengali"/>
         </VBox>
 
         <!-- Phone Display -->
-        <Label fx:id="phoneLabel" text="" style="-fx-text-fill: #b0b0b0; -fx-font-size: 13;">
-        </Label>
+        <Label fx:id="phoneLabel" text="" styleClass="otp-phone-display"/>
 
         <!-- New PIN -->
         <VBox spacing="8.0" prefWidth="420.0">
-            <Label text="🔑 New PIN (4-6 digits)" style="-fx-text-fill: #4CAF50; -fx-font-weight: bold;">
-                <font>
-                    <Font size="13.0"/>
-                </font>
-            </Label>
+            <Label text="🔑 New PIN (4-6 digits)" styleClass="field-label"/>
             <PasswordField fx:id="newPinField" promptText="Enter new PIN"
-                          style="-fx-font-size: 15; -fx-pref-height: 45; -fx-background-color: #0a0a0a; -fx-text-fill: #ffffff; -fx-prompt-text-fill: #666666; -fx-padding: 10; -fx-background-radius: 6; -fx-border-color: #4CAF50; -fx-border-width: 1; -fx-border-radius: 6;"
+                          styleClass="form-input"
                           prefWidth="420.0">
             </PasswordField>
         </VBox>
 
         <!-- Confirm PIN -->
         <VBox spacing="8.0" prefWidth="420.0">
-            <Label text="✓ Confirm PIN" style="-fx-text-fill: #4CAF50; -fx-font-weight: bold;">
-                <font>
-                    <Font size="13.0"/>
-                </font>
-            </Label>
+            <Label text="✓ Confirm PIN" styleClass="field-label"/>
             <PasswordField fx:id="confirmPinField" promptText="Confirm PIN"
-                          style="-fx-font-size: 15; -fx-pref-height: 45; -fx-background-color: #0a0a0a; -fx-text-fill: #ffffff; -fx-prompt-text-fill: #666666; -fx-padding: 10; -fx-background-radius: 6; -fx-border-color: #4CAF50; -fx-border-width: 1; -fx-border-radius: 6;"
+                          styleClass="form-input"
                           prefWidth="420.0">
             </PasswordField>
         </VBox>
 
         <!-- PIN Requirements -->
-        <VBox alignment="TOP_LEFT" spacing="6" style="-fx-background-color: rgba(76, 175, 80, 0.08); -fx-padding: 12; -fx-background-radius: 6; -fx-border-color: #4CAF50; -fx-border-width: 0.5; -fx-border-radius: 6;">
-            <Label text="📋 PIN Requirements:" style="-fx-text-fill: #4CAF50; -fx-font-weight: bold; -fx-font-size: 11;">
+        <VBox alignment="TOP_LEFT" spacing="6" styleClass="info-box">
+            <Label text="📋 PIN Requirements:" styleClass="field-label-small">
             </Label>
-            <Label text="• 4-6 digits only" style="-fx-text-fill: #b0b0b0; -fx-font-size: 11;">
+            <Label text="• 4-6 digits only" styleClass="text-muted-tiny">
             </Label>
-            <Label text="• Easy to remember" style="-fx-text-fill: #b0b0b0; -fx-font-size: 11;">
+            <Label text="• Easy to remember" styleClass="text-muted-tiny">
             </Label>
-            <Label text="• Don't share with anyone" style="-fx-text-fill: #b0b0b0; -fx-font-size: 11;">
+            <Label text="• Don't share with anyone" styleClass="text-muted-tiny">
             </Label>
         </VBox>
 
         <!-- Error Label -->
-        <Label fx:id="errorLabel" style="-fx-text-fill: #FF6B6B; -fx-font-size: 12;" visible="false" wrapText="true" maxWidth="400"/>
+        <Label fx:id="errorLabel" styleClass="error-text" visible="false" wrapText="true" maxWidth="400"/>
 
         <!-- Reset Button -->
         <Button text="🔄 Reset PIN" onAction="#onResetPinClick"
-                style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 0; -fx-cursor: hand;"
-                prefWidth="420.0" prefHeight="48.0">
-            <font>
-                <Font name="System Bold" size="15.0"/>
-            </font>
-        </Button>
+                styleClass="btn-reset"
+                prefWidth="420.0" prefHeight="48.0"/>
 
         <!-- Back to Login -->
         <Button text="← Back to Login" onAction="#onBackToLoginClick"
-                style="-fx-background-color: transparent; -fx-text-fill: #2196F3; -fx-underline: true; -fx-font-weight: bold; -fx-cursor: hand;">
-            <font>
-                <Font size="12.0"/>
-            </font>
-        </Button>
+                styleClass="link-back"/>
     </VBox>
 </VBox>
 </ScrollPane>
