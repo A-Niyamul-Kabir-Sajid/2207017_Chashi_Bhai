@@ -1,0 +1,340 @@
+/* ========================================
+   CHASHI BHAI - COMPONENTS
+   Reusable UI components: buttons, forms, cards
+   ======================================== */
+
+/* ===== BUTTONS ===== */
+
+/* Base Button */
+.button {
+    -fx-background-color: #2a2a2a;
+    -fx-text-fill: #e0e0e0;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+}
+
+/* /* .button:hover { */ */
+/*     -fx-background-color: #333333; */
+/* } */
+
+.button:pressed {
+    -fx-background-color: #1a1a1a;
+}
+
+/* Primary Button (Green) */
+.button-primary {
+    -fx-background-color: linear-gradient(to bottom, #4CAF50, #45a049);
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 30;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0, 0, 2);
+}
+
+/* /* .button-primary:hover { */ */
+/*     -fx-background-color: linear-gradient(to bottom, #66BB6A, #4CAF50); */
+/* } */
+
+.button-primary:pressed {
+    -fx-background-color: linear-gradient(to bottom, #388E3C, #2E7D32);
+}
+
+/* Secondary Button (Blue) */
+.button-secondary {
+    -fx-background-color: linear-gradient(to bottom, #2196F3, #1976D2);
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 30;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0, 0, 2);
+}
+
+/* /* .button-secondary:hover { */ */
+/*     -fx-background-color: linear-gradient(to bottom, #64B5F6, #2196F3); */
+/* } */
+
+.button-secondary:pressed {
+    -fx-background-color: linear-gradient(to bottom, #1565C0, #0D47A1);
+}
+
+/* Danger Button */
+.button-danger {
+    -fx-background-color: linear-gradient(to bottom, #f44336, #d32f2f);
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 25;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+/* /* .button-danger:hover { */ */
+/*     -fx-background-color: linear-gradient(to bottom, #e57373, #f44336); */
+/* } */
+
+/* Info Button */
+.button-info {
+    -fx-background-color: linear-gradient(to bottom, #00BCD4, #0097A7);
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 25;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+/* Transparent Button */
+.button-transparent {
+    -fx-background-color: transparent;
+    -fx-text-fill: #4CAF50;
+    -fx-cursor: hand;
+}
+
+/* /* .button-transparent:hover { */ */
+/*     -fx-background-color: rgba(76, 175, 80, 0.1); */
+/* } */
+
+/* Link Button */
+.button-link {
+    -fx-background-color: transparent;
+    -fx-text-fill: #2196F3;
+    -fx-underline: true;
+    -fx-cursor: hand;
+}
+
+/* /* .button-link:hover { */ */
+/*     -fx-text-fill: #64B5F6; */
+/* } */
+
+/* Large Button */
+.btn-primary-large {
+    -fx-background-color: linear-gradient(to bottom, #4CAF50, #45a049);
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-padding: 15 40;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+/* /* .btn-primary-large:hover { */ */
+/*     -fx-background-color: linear-gradient(to bottom, #66BB6A, #4CAF50); */
+/* } */
+
+/* Icon Button */
+.icon-button {
+    -fx-background-color: rgba(76, 175, 80, 0.1);
+    -fx-text-fill: #4CAF50;
+    -fx-font-size: 16px;
+    -fx-padding: 8 12;
+    -fx-background-radius: 5;
+    -fx-cursor: hand;
+}
+
+/* /* .icon-button:hover { */ */
+/*     -fx-background-color: rgba(76, 175, 80, 0.2); */
+/* } */
+
+/* ===== FORMS ===== */
+
+/* TextField */
+.text-field {
+    -fx-background-color: #0f0f0f;
+    -fx-text-fill: #e0e0e0;
+    -fx-font-size: 14px;
+    -fx-padding: 12 15;
+    -fx-border-color: #2a2a2a;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-prompt-text-fill: #666666;
+}
+
+.text-field:focused {
+    -fx-border-color: #4CAF50;
+    -fx-background-color: #1a1a1a;
+}
+
+/* PasswordField */
+.password-field {
+    -fx-background-color: #0f0f0f;
+    -fx-text-fill: #e0e0e0;
+    -fx-font-size: 14px;
+    -fx-padding: 12 15;
+    -fx-border-color: #2a2a2a;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-prompt-text-fill: #666666;
+}
+
+.password-field:focused {
+    -fx-border-color: #4CAF50;
+    -fx-background-color: #1a1a1a;
+}
+
+/* OTP Field */
+.otp-field {
+    -fx-background-color: #0f0f0f;
+    -fx-text-fill: #4CAF50;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-padding: 15;
+    -fx-border-color: #2a2a2a;
+    -fx-border-width: 3;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-alignment: center;
+}
+
+.otp-field:focused {
+    -fx-border-color: #4CAF50;
+    -fx-background-color: #1a1a1a;
+}
+
+/* Form Input */
+.form-input {
+    -fx-background-color: #0f0f0f;
+    -fx-text-fill: #e0e0e0;
+    -fx-font-size: 14px;
+    -fx-padding: 12 15;
+    -fx-border-color: #2a2a2a;
+    -fx-border-width: 2;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-prompt-text-fill: #666666;
+}
+
+.form-input:focused {
+    -fx-border-color: #4CAF50;
+    -fx-background-color: #1a1a1a;
+}
+
+/* Field Label */
+.field-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #b0b0b0;
+    -fx-font-weight: bold;
+}
+
+/* Error Text */
+.error-text {
+    -fx-text-fill: #FF5252;
+    -fx-font-size: 13px;
+    -fx-padding: 5 0;
+}
+
+/* ComboBox */
+.combo-box {
+    -fx-background-color: #0f0f0f;
+    -fx-border-color: #2a2a2a;
+    -fx-border-width: 2;
+    -fx-border-radius: 6;
+}
+
+.combo-box .list-cell {
+    -fx-background-color: #0f0f0f;
+    -fx-text-fill: #e0e0e0;
+}
+
+/* /* .combo-box .list-cell:hover { */ */
+/*     -fx-background-color: #2a2a2a; */
+/* } */
+
+.combo-box-popup .list-view {
+    -fx-background-color: #1a1a1a;
+    -fx-border-color: #4CAF50;
+    -fx-border-width: 1;
+}
+
+/* DatePicker */
+.date-picker {
+    -fx-background-color: #0f0f0f;
+    -fx-border-color: #2a2a2a;
+}
+
+/* TextArea */
+.text-area {
+    -fx-background-color: #0f0f0f;
+    -fx-text-fill: #e0e0e0;
+    -fx-border-color: #2a2a2a;
+    -fx-border-width: 2;
+    -fx-border-radius: 6;
+}
+
+.text-area:focused {
+    -fx-border-color: #4CAF50;
+}
+
+.text-area .content {
+    -fx-background-color: #0f0f0f;
+}
+
+/* ===== CARDS ===== */
+
+/* Base Card */
+.card {
+    -fx-background-color: #2a2a2a;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 8, 0, 0, 2);
+}
+
+.card-light {
+    -fx-background-color: #333333;
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5, 0, 0, 2);
+}
+
+/* Feature Card */
+.feature-card {
+    -fx-background-color: #2a2a2a;
+    -fx-background-radius: 12;
+    -fx-border-color: #4CAF50;
+    -fx-border-width: 2;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 10, 0, 0, 3);
+}
+
+/* ===== BADGES ===== */
+
+/* Verified Badge */
+.verified-badge {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 10;
+    -fx-background-radius: 12;
+}
+
+.verified-badge-small {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-padding: 2 8;
+    -fx-background-radius: 10;
+}
+
+.verified-badge-tiny {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-font-size: 8px;
+    -fx-padding: 1 5;
+    -fx-background-radius: 8;
+}
+
+.verified-text {
+    -fx-text-fill: #4CAF50;
+    -fx-font-weight: bold;
+}
+
+/* Progress Indicator */
+.progress-indicator {
+    -fx-progress-color: #4CAF50;
+}

@@ -1,12 +1,10 @@
 package com.sajid._207017_chashi_bhai.controllers;
 
-import com.sajid._207017_chashi_bhai.ChashiBhaiApp;
+import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.utils.SessionManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
-
-import java.io.IOException;
 
 public class CreatePinController {
 
@@ -74,7 +72,7 @@ public class CreatePinController {
         // Redirect to login after 2 seconds
         try {
             Thread.sleep(2000);
-            ChashiBhaiApp.showLoginView();
+            App.loadScene("login-view.fxml", "Login - Chashi Bhai");
             SessionManager.clearTempData();
         } catch (Exception e) {
             e.printStackTrace();
@@ -83,12 +81,8 @@ public class CreatePinController {
 
     @FXML
     protected void onBackClick() {
-        try {
-            ChashiBhaiApp.showWelcomeView();
-            SessionManager.clearTempData();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        App.loadScene("welcome-view.fxml", "Welcome - Chashi Bhai");
+        SessionManager.clearTempData();
     }
 
     private void showError(String message) {

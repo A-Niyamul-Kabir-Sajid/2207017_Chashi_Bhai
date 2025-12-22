@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.MyCropsController" styleClass="root" minHeight="700" minWidth="1024">
+    
+    <!-- Top Navigation -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20" styleClass="nav-bar">
+            <padding>
+                <Insets top="15" bottom="15" left="20" right="20"/>
+            </padding>
+            <Button text="←" styleClass="back-button" fx:id="btnBack" onAction="#onBack"/>
+            <Label text="আমার ফসলসমূহ / My Crops" styleClass="page-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="btnAddNew" text="+ নতুন যোগ করুন" styleClass="button-primary" onAction="#onAddNew"/>
+        </HBox>
+    </top>
+
+    <center>
+        <VBox spacing="20">
+            <padding>
+                <Insets top="20" bottom="20" left="30" right="30"/>
+            </padding>
+
+            <!-- Filter Tabs -->
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <Button fx:id="btnFilterAll" text="সব (All)" styleClass="filter-tab, filter-active" onAction="#onFilterAll"/>
+                <Button fx:id="btnFilterActive" text="সক্রিয় (Active)" styleClass="filter-tab" onAction="#onFilterActive"/>
+                <Button fx:id="btnFilterSold" text="বিক্রীত (Sold)" styleClass="filter-tab" onAction="#onFilterSold"/>
+                <Button fx:id="btnFilterExpired" text="মেয়াদোত্তীর্ণ (Expired)" styleClass="filter-tab" onAction="#onFilterExpired"/>
+            </HBox>
+
+            <!-- Crops List -->
+            <ScrollPane fitToWidth="true" fitToHeight="true" styleClass="scroll-pane">
+                <VBox spacing="15" fx:id="vboxCropsList">
+                    
+                    <!-- Sample Crop Card 1 -->
+                    <HBox spacing="20" styleClass="crop-card" alignment="CENTER_LEFT">
+                        <padding>
+                            <Insets top="15" bottom="15" left="20" right="20"/>
+                        </padding>
+                        
+                        <!-- Crop Image -->
+                        <ImageView fitWidth="100" fitHeight="100" preserveRatio="true" styleClass="crop-image"/>
+                        
+                        <!-- Crop Details -->
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="ধান (Rice)" styleClass="crop-name"/>
+                            <HBox spacing="15">
+                                <Label text="৳ 45 / কেজি" styleClass="crop-price"/>
+                                <Label text="•" styleClass="separator"/>
+                                <Label text="১০০ কেজি উপলব্ধ" styleClass="crop-quantity"/>
+                            </HBox>
+                            <HBox spacing="8">
+                                <Label text="📅" styleClass="icon-small"/>
+                                <Label text="পোস্ট: ১৫ ডিসেম্বর ২০২৫" styleClass="crop-date"/>
+                            </HBox>
+                            <Label text="✓ সক্রিয়" styleClass="status-active"/>
+                        </VBox>
+                        
+                        <!-- Action Buttons -->
+                        <VBox spacing="10" alignment="CENTER_RIGHT">
+                            <Button text="✎ সম্পাদনা" styleClass="button-secondary" prefWidth="120"/>
+                            <Button text="🗑 মুছুন" styleClass="button-danger" prefWidth="120"/>
+                            <Button text="📊 পরিসংখ্যান" styleClass="button-info" prefWidth="120"/>
+                        </VBox>
+                    </HBox>
+
+                    <!-- Sample Crop Card 2 -->
+                    <HBox spacing="20" styleClass="crop-card" alignment="CENTER_LEFT">
+                        <padding>
+                            <Insets top="15" bottom="15" left="20" right="20"/>
+                        </padding>
+                        
+                        <ImageView fitWidth="100" fitHeight="100" preserveRatio="true" styleClass="crop-image"/>
+                        
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <Label text="আলু (Potato)" styleClass="crop-name"/>
+                            <HBox spacing="15">
+                                <Label text="৳ 30 / কেজি" styleClass="crop-price"/>
+                                <Label text="•" styleClass="separator"/>
+                                <Label text="০ কেজি (বিক্রীত)" styleClass="crop-quantity"/>
+                            </HBox>
+                            <HBox spacing="8">
+                                <Label text="📅" styleClass="icon-small"/>
+                                <Label text="পোস্ট: ১০ ডিসেম্বর ২০২৫" styleClass="crop-date"/>
+                            </HBox>
+                            <Label text="✓ বিক্রীত" styleClass="status-sold"/>
+                        </VBox>
+                        
+                        <VBox spacing="10" alignment="CENTER_RIGHT">
+                            <Button text="👁 বিস্তারিত" styleClass="button-secondary" prefWidth="120"/>
+                            <Button text="🗑 মুছুন" styleClass="button-danger" prefWidth="120"/>
+                        </VBox>
+                    </HBox>
+
+                    <!-- Empty state will be shown if no crops -->
+                    <VBox alignment="CENTER" spacing="20" fx:id="vboxEmptyState" visible="false">
+                        <padding>
+                            <Insets top="60" bottom="60"/>
+                        </padding>
+                        <Label text="📦" styleClass="empty-icon"/>
+                        <Label text="আপনার কোনো ফসল পোস্ট নেই" styleClass="empty-text"/>
+                        <Button text="+ প্রথম ফসল যোগ করুন" styleClass="button-primary" onAction="#onAddNew"/>
+                    </VBox>
+
+                </VBox>
+            </ScrollPane>
+
+        </VBox>
+    </center>
+    
+</BorderPane>

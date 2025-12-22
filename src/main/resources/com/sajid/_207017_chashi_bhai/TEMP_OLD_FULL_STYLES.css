@@ -1,4 +1,4 @@
-/* Chashi Bhai - Agricultural Marketplace CSS Styles */
+﻿/* Chashi Bhai - Agricultural Marketplace CSS Styles */
 
 /* Root Styles */
 .root {
@@ -44,9 +44,9 @@
     -fx-padding: 12 20;
 }
 
-/* /* .button:hover { */ */
-/*     -fx-opacity: 0.9; */
-/* } */
+.button:hover {
+    -fx-opacity: 0.9;
+}
 
 .button:pressed {
     -fx-opacity: 0.8;
@@ -65,9 +65,9 @@
     -fx-padding: 12 20;
 }
 
-/* /* .button-primary:hover { */ */
-/*     -fx-background-color: #45a049; */
-/* } */
+.button-primary:hover {
+    -fx-background-color: #45a049;
+}
 
 .button-primary:pressed {
     -fx-background-color: #3d8b40;
@@ -86,9 +86,9 @@
     -fx-padding: 12 20;
 }
 
-/* /* .button-secondary:hover { */ */
-/*     -fx-background-color: #1976D2; */
-/* } */
+.button-secondary:hover {
+    -fx-background-color: #1976D2;
+}
 
 .button-secondary:pressed {
     -fx-background-color: #1565C0;
@@ -107,10 +107,10 @@
     -fx-font-size: 13px;
 }
 
-/* /* .role-button:hover { */ */
-/*     -fx-background-color: #3a3a3a; */
-/*     -fx-border-color: #555555; */
-/* } */
+.role-button:hover {
+    -fx-background-color: #3a3a3a;
+    -fx-border-color: #555555;
+}
 
 .role-button.selected-farmer {
     -fx-background-color: #4CAF50;
@@ -132,9 +132,9 @@
     -fx-cursor: hand;
 }
 
-/* /* .button-transparent:hover { */ */
-/*     -fx-text-fill: #66BB6A; */
-/* } */
+.button-transparent:hover {
+    -fx-text-fill: #66BB6A;
+}
 
 .button-link {
     -fx-background-color: transparent;
@@ -143,9 +143,9 @@
     -fx-cursor: hand;
 }
 
-/* /* .button-link:hover { */ */
-/*     -fx-text-fill: #FF5722; */
-/* } */
+.button-link:hover {
+    -fx-text-fill: #FF5722;
+}
 
 /* TextField Styles */
 .text-field {
@@ -291,9 +291,9 @@
     -fx-text-fill: #e0e0e0;
 }
 
-/* /* .combo-box .list-cell:hover { */ */
-/*     -fx-background-color: #2a2a2a; */
-/* } */
+.combo-box .list-cell:hover {
+    -fx-background-color: #2a2a2a;
+}
 
 .combo-box-popup .list-view {
     -fx-background-color: #1a1a1a;
@@ -329,9 +329,9 @@
     -fx-cursor: hand;
 }
 
-/* /* .back-button:hover { */ */
-/*     -fx-text-fill: #66BB6A; */
-/* } */
+.back-button:hover {
+    -fx-text-fill: #66BB6A;
+}
 
 /* Agricultural Theme Colors (Reference - not CSS variables) */
 /* agri-green: #4CAF50; */
@@ -428,9 +428,9 @@
     -fx-focus-traversable: true; /* Buttons should be focusable */
 }
 
-/* /* .button:hover { */ */
-/*     -fx-opacity: 0.9; */
-/* } */
+.button:hover {
+    -fx-opacity: 0.9;
+}
 
 .button:pressed {
     -fx-opacity: 0.8;

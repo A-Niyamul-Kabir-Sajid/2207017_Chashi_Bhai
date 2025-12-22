@@ -1,11 +1,9 @@
 package com.sajid._207017_chashi_bhai.controllers;
 
-import com.sajid._207017_chashi_bhai.ChashiBhaiApp;
+import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.utils.SessionManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-
-import java.io.IOException;
 
 public class SignupController {
 
@@ -47,11 +45,7 @@ public class SignupController {
 
     @FXML
     protected void onBackClick() {
-        try {
-            ChashiBhaiApp.showWelcomeView();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        App.loadScene("welcome-view.fxml", "Welcome - Chashi Bhai");
     }
 
     @FXML
@@ -109,21 +103,12 @@ public class SignupController {
         SessionManager.setTempRole(selectedRole);
         SessionManager.setLoginMode(false);
 
-        try {
-            ChashiBhaiApp.showOtpView();
-        } catch (IOException e) {
-            e.printStackTrace();
-            showError("Failed to load OTP screen");
-        }
+        App.loadScene("otp-verification-view.fxml", "OTP Verification");
     }
 
     @FXML
     protected void onLoginLinkClick() {
-        try {
-            ChashiBhaiApp.showLoginView();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        App.loadScene("login-view.fxml", "Login - Chashi Bhai");
     }
 
     private void showError(String message) {

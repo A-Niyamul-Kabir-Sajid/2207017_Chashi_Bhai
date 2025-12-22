@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.scene.image.ImageView?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.EditCropController" styleClass="root" minHeight="700" minWidth="1024">
+    
+    <!-- Top Navigation -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20" styleClass="nav-bar">
+            <padding>
+                <Insets top="15" bottom="15" left="20" right="20"/>
+            </padding>
+            <Button text="←" styleClass="back-button" fx:id="btnBack" onAction="#onBack"/>
+            <Label text="ফসলের তথ্য সম্পাদনা করুন / Edit Crop" styleClass="page-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+            <VBox alignment="TOP_CENTER" spacing="25" styleClass="form-container">
+                <padding>
+                    <Insets top="30" bottom="40" left="40" right="40"/>
+                </padding>
+
+                <!-- Form Card -->
+                <VBox spacing="20" styleClass="card" maxWidth="700">
+                    <padding>
+                        <Insets top="30" bottom="30" left="40" right="40"/>
+                    </padding>
+
+                    <!-- Crop Name -->
+                    <VBox spacing="8">
+                        <Label text="ফসলের নাম / Crop Name *" styleClass="field-label"/>
+                        <TextField fx:id="txtCropName" promptText="যেমন: ধান, আলু, টমেটো" styleClass="form-input"/>
+                    </VBox>
+
+                    <!-- Category -->
+                    <VBox spacing="8">
+                        <Label text="ক্যাটাগরি / Category *" styleClass="field-label"/>
+                        <ComboBox fx:id="cbCategory" promptText="নির্বাচন করুন" styleClass="form-input" prefWidth="620">
+                            <items>
+                                <FXCollections fx:factory="observableArrayList">
+                                    <String fx:value="শস্য (Grains)"/>
+                                    <String fx:value="সবজি (Vegetables)"/>
+                                    <String fx:value="ফল (Fruits)"/>
+                                    <String fx:value="মসলা (Spices)"/>
+                                    <String fx:value="ডাল (Pulses)"/>
+                                </FXCollections>
+                            </items>
+                        </ComboBox>
+                    </VBox>
+
+                    <!-- Price -->
+                    <VBox spacing="8">
+                        <Label text="মূল্য / Price *" styleClass="field-label"/>
+                        <HBox spacing="10">
+                            <TextField fx:id="txtPrice" promptText="০" styleClass="form-input" prefWidth="300"/>
+                            <Label text="৳ প্রতি" styleClass="field-label" alignment="CENTER_LEFT" prefWidth="60"/>
+                            <ComboBox fx:id="cbUnit" promptText="একক" styleClass="form-input" prefWidth="240">
+                                <items>
+                                    <FXCollections fx:factory="observableArrayList">
+                                        <String fx:value="কেজি (kg)"/>
+                                        <String fx:value="মণ (maund)"/>
+                                        <String fx:value="বস্তা (bag)"/>
+                                        <String fx:value="পিস (piece)"/>
+                                    </FXCollections>
+                                </items>
+                            </ComboBox>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Quantity Available -->
+                    <VBox spacing="8">
+                        <Label text="উপলব্ধ পরিমাণ / Quantity Available *" styleClass="field-label"/>
+                        <TextField fx:id="txtQuantity" promptText="যেমন: ১০০" styleClass="form-input"/>
+                    </VBox>
+
+                    <!-- Harvest/Available Date -->
+                    <VBox spacing="8">
+                        <Label text="কাটার/পাওয়ার তারিখ / Available Date *" styleClass="field-label"/>
+                        <DatePicker fx:id="dpAvailableDate" promptText="তারিখ নির্বাচন করুন" styleClass="form-input" prefWidth="620"/>
+                    </VBox>
+
+                    <!-- District -->
+                    <VBox spacing="8">
+                        <Label text="জেলা / District *" styleClass="field-label"/>
+                        <ComboBox fx:id="cbDistrict" promptText="জেলা নির্বাচন করুন" styleClass="form-input" prefWidth="620" editable="true">
+                            <items>
+                                <FXCollections fx:factory="observableArrayList">
+                                    <String fx:value="ঢাকা (Dhaka)"/>
+                                    <String fx:value="চট্টগ্রাম (Chattogram)"/>
+                                    <String fx:value="রাজশাহী (Rajshahi)"/>
+                                    <String fx:value="খুলনা (Khulna)"/>
+                                    <String fx:value="বরিশাল (Barishal)"/>
+                                    <String fx:value="সিলেট (Sylhet)"/>
+                                    <String fx:value="রংপুর (Rangpur)"/>
+                                    <String fx:value="ময়মনসিংহ (Mymensingh)"/>
+                                </FXCollections>
+                            </items>
+                        </ComboBox>
+                    </VBox>
+
+                    <!-- Transport Info -->
+                    <VBox spacing="8">
+                        <Label text="পরিবহন / Transport *" styleClass="field-label"/>
+                        <ComboBox fx:id="cbTransport" promptText="পরিবহন ব্যবস্থা নির্বাচন করুন" styleClass="form-input" prefWidth="620">
+                            <items>
+                                <FXCollections fx:factory="observableArrayList">
+                                    <String fx:value="আমি পৌঁছে দেব (I will arrange)"/>
+                                    <String fx:value="ক্রেতা নিয়ে যাবেন (Buyer picks up)"/>
+                                    <String fx:value="আলোচনা সাপেক্ষে (Negotiable)"/>
+                                </FXCollections>
+                            </items>
+                        </ComboBox>
+                    </VBox>
+
+                    <!-- Description -->
+                    <VBox spacing="8">
+                        <Label text="বিস্তারিত বর্ণনা / Description (Optional)" styleClass="field-label"/>
+                        <TextArea fx:id="txtDescription" promptText="আপনার ফসল সম্পর্কে অতিরিক্ত তথ্য..." 
+                                  styleClass="form-input" prefRowCount="4" wrapText="true"/>
+                    </VBox>
+
+                    <!-- Photo Upload Section -->
+                    <VBox spacing="12">
+                        <Label text="ছবি পরিবর্তন করুন / Edit Photos" styleClass="field-label"/>
+                        <HBox spacing="15" fx:id="hboxPhotos" alignment="CENTER_LEFT">
+                            <!-- Existing photos will be loaded here -->
+                            <VBox alignment="CENTER" spacing="8" styleClass="photo-upload-box" onMouseClicked="#onEditPhoto1">
+                                <ImageView fx:id="imgPhoto1" fitWidth="120" fitHeight="120" preserveRatio="true"/>
+                                <Button text="পরিবর্তন" styleClass="btn-sm"/>
+                            </VBox>
+
+                            <VBox alignment="CENTER" spacing="8" styleClass="photo-upload-box" onMouseClicked="#onEditPhoto2">
+                                <ImageView fx:id="imgPhoto2" fitWidth="120" fitHeight="120" preserveRatio="true"/>
+                                <Button text="যোগ করুন" styleClass="btn-sm"/>
+                            </VBox>
+
+                            <VBox alignment="CENTER" spacing="8" styleClass="photo-upload-box" onMouseClicked="#onEditPhoto3">
+                                <ImageView fx:id="imgPhoto3" fitWidth="120" fitHeight="120" preserveRatio="true"/>
+                                <Button text="যোগ করুন" styleClass="btn-sm"/>
+                            </VBox>
+
+                            <VBox alignment="CENTER" spacing="8" styleClass="photo-upload-box" onMouseClicked="#onEditPhoto4">
+                                <ImageView fx:id="imgPhoto4" fitWidth="120" fitHeight="120" preserveRatio="true"/>
+                                <Button text="যোগ করুন" styleClass="btn-sm"/>
+                            </VBox>
+
+                            <VBox alignment="CENTER" spacing="8" styleClass="photo-upload-box" onMouseClicked="#onEditPhoto5">
+                                <ImageView fx:id="imgPhoto5" fitWidth="120" fitHeight="120" preserveRatio="true"/>
+                                <Button text="যোগ করুন" styleClass="btn-sm"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Error Label -->
+                    <Label fx:id="lblError" styleClass="error-text" visible="false" wrapText="true"/>
+
+                    <!-- Action Buttons -->
+                    <HBox spacing="15" alignment="CENTER">
+                        <Button fx:id="btnUpdate" text="✓ আপডেট করুন" styleClass="btn-primary-large" 
+                                onAction="#onUpdate" prefWidth="300" prefHeight="55"/>
+                        <Button fx:id="btnCancel" text="বাতিল" styleClass="button-secondary" 
+                                onAction="#onCancel" prefWidth="150" prefHeight="55"/>
+                    </HBox>
+
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+    
+</BorderPane>

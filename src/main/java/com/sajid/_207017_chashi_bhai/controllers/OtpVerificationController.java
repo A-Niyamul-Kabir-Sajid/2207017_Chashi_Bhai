@@ -1,6 +1,6 @@
 package com.sajid._207017_chashi_bhai.controllers;
 
-import com.sajid._207017_chashi_bhai.ChashiBhaiApp;
+import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.utils.SessionManager;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -11,7 +11,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.util.Duration;
 
-import java.io.IOException;
 import java.util.Random;
 
 public class OtpVerificationController {
@@ -123,17 +122,9 @@ public class OtpVerificationController {
         }
         
         if (SessionManager.isLoginMode()) {
-            try {
-                ChashiBhaiApp.showLoginView();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            App.loadScene("login-view.fxml", "Login - Chashi Bhai");
         } else {
-            try {
-                ChashiBhaiApp.showSignupView();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            App.loadScene("signup-view.fxml", "Sign Up - Chashi Bhai");
         }
     }
 
@@ -174,7 +165,7 @@ public class OtpVerificationController {
             // Navigate to reset PIN screen after 1 second
             try {
                 Thread.sleep(1000);
-                ChashiBhaiApp.showResetPinView();
+                App.loadScene("reset-pin-view.fxml", "Reset PIN");
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -195,7 +186,7 @@ public class OtpVerificationController {
             // Navigate to create PIN screen after 1 second
             try {
                 Thread.sleep(1000);
-                ChashiBhaiApp.showCreatePinView();
+                App.loadScene("create-pin-view.fxml", "Create PIN");
             } catch (Exception e) {
                 e.printStackTrace();
             }

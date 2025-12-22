@@ -1,0 +1,149 @@
+/* ========================================
+   CHASHI BHAI - DASHBOARD
+   Farmer and Buyer dashboard specific styles
+   ======================================== */
+
+/* Dashboard Cards */
+.dashboard-card {
+    -fx-background-color: transparent;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-width: 2;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 2);
+}
+
+/* /* .dashboard-card:hover { */ */
+/*     -fx-scale-x: 1.05; */
+/*     -fx-scale-y: 1.05; */
+/*     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 15, 0, 0, 4); */
+/* } */
+
+.card-green {
+    -fx-border-color: #4CAF50;
+    -fx-background-color: rgba(76, 175, 80, 0.05);
+}
+
+.card-blue {
+    -fx-border-color: #2196F3;
+    -fx-background-color: rgba(33, 150, 243, 0.05);
+}
+
+.card-orange {
+    -fx-border-color: #FF7043;
+    -fx-background-color: rgba(255, 112, 67, 0.05);
+}
+
+.card-purple {
+    -fx-border-color: #9C27B0;
+    -fx-background-color: rgba(156, 39, 176, 0.05);
+}
+
+.card-icon {
+    -fx-font-size: 48px;
+}
+
+.card-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e0e0e0;
+    -fx-wrap-text: true;
+}
+
+.card-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: #b0b0b0;
+}
+
+/* Stat Cards */
+.stat-card {
+    -fx-background-color: linear-gradient(to bottom, #2a2a2a, #1f1f1f);
+    -fx-background-radius: 10;
+    -fx-border-color: #4CAF50;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 8, 0, 0, 2);
+}
+
+.stat-icon {
+    -fx-font-size: 24px;
+}
+
+.stat-value {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4CAF50;
+}
+
+.stat-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #e0e0e0;
+    -fx-font-weight: bold;
+}
+
+.stat-sublabel {
+    -fx-font-size: 12px;
+    -fx-text-fill: #808080;
+}
+
+/* Profile Styles */
+.profile-name {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e0e0e0;
+}
+
+.profile-photo-border {
+    -fx-border-color: #4CAF50;
+    -fx-border-width: 3;
+}
+
+.info-icon {
+    -fx-font-size: 14px;
+}
+
+.info-text {
+    -fx-font-size: 14px;
+    -fx-text-fill: #b0b0b0;
+}
+
+.info-separator {
+    -fx-text-fill: #666666;
+}
+
+/* Summary Cards */
+.summary-card {
+    -fx-background-color: #2a2a2a;
+    -fx-background-radius: 10;
+    -fx-border-color: #4CAF50;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+}
+
+.summary-icon {
+    -fx-font-size: 20px;
+}
+
+.summary-value {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4CAF50;
+}
+
+.summary-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #e0e0e0;
+    -fx-font-weight: bold;
+}
+
+.summary-sublabel {
+    -fx-font-size: 11px;
+    -fx-text-fill: #808080;
+}
+
+/* Action Button Large */
+.action-button-large {
+    -fx-font-size: 16px;
+    -fx-padding: 15 35;
+    -fx-background-radius: 10;
+}

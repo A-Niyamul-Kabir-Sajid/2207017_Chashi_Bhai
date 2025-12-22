@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.ScrollPane?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.FarmerDashboardController" styleClass="root" minHeight="700" minWidth="1024">
+    
+    <!-- Top Navigation Bar -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20" styleClass="nav-bar">
+            <padding>
+                <Insets top="15" bottom="15" left="20" right="20"/>
+            </padding>
+            <Label text="🌾 চাষী ভাই" styleClass="app-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <MenuButton text="⋮" styleClass="icon-button" fx:id="btnMenu">
+                <items>
+                    <MenuItem text="🚪 Sign Out" onAction="#onSignOut"/>
+                </items>
+            </MenuButton>
+            <Button fx:id="btnProfile" styleClass="icon-button" onAction="#onProfile">
+                <graphic>
+                    <Label text="👤" styleClass="icon-medium"/>
+                </graphic>
+            </Button>
+        </HBox>
+    </top>
+
+    <!-- Main Content -->
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+            <VBox alignment="TOP_CENTER" spacing="30" styleClass="dashboard-container">
+                <padding>
+                    <Insets top="30" bottom="40" left="40" right="40"/>
+                </padding>
+
+                <!-- Welcome Section -->
+                <VBox alignment="CENTER" spacing="10">
+                    <Label fx:id="lblWelcome" text="স্বাগতম, কৃষক" styleClass="welcome-title"/>
+                    <HBox alignment="CENTER" spacing="8">
+                        <Label fx:id="lblVerifiedBadge" text="✓" styleClass="verified-badge" visible="false"/>
+                        <Label text="যাচাইকৃত কৃষক" styleClass="verified-text" fx:id="lblVerifiedText" visible="false"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Main Action Cards -->
+                <GridPane hgap="20" vgap="20" alignment="CENTER">
+                    <!-- Row 1 -->
+                    <Button fx:id="btnPostCrop" styleClass="dashboard-card, card-green" onAction="#onPostCrop"
+                            GridPane.rowIndex="0" GridPane.columnIndex="0" prefWidth="280" prefHeight="160">
+                        <graphic>
+                            <VBox alignment="CENTER" spacing="12">
+                                <Label text="➕" styleClass="card-icon"/>
+                                <Label text="নতুন ফসল যোগ করুন" styleClass="card-title" wrapText="true"/>
+                                <Label text="Post New Crop" styleClass="card-subtitle"/>
+                            </VBox>
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="btnMyCrops" styleClass="dashboard-card, card-blue" onAction="#onMyCrops"
+                            GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="280" prefHeight="160">
+                        <graphic>
+                            <VBox alignment="CENTER" spacing="12">
+                                <Label text="🌾" styleClass="card-icon"/>
+                                <Label text="আমার ফসলসমূহ" styleClass="card-title" wrapText="true"/>
+                                <Label text="My Crops" styleClass="card-subtitle"/>
+                            </VBox>
+                        </graphic>
+                    </Button>
+
+                    <!-- Row 2 -->
+                    <Button fx:id="btnMyOrders" styleClass="dashboard-card, card-orange" onAction="#onMyOrders"
+                            GridPane.rowIndex="1" GridPane.columnIndex="0" prefWidth="280" prefHeight="160">
+                        <graphic>
+                            <VBox alignment="CENTER" spacing="12">
+                                <Label text="📦" styleClass="card-icon"/>
+                                <Label text="আমার অর্ডারসমূহ" styleClass="card-title" wrapText="true"/>
+                                <Label text="My Orders" styleClass="card-subtitle"/>
+                            </VBox>
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="btnHistory" styleClass="dashboard-card, card-purple" onAction="#onHistory"
+                            GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="280" prefHeight="160">
+                        <graphic>
+                            <VBox alignment="CENTER" spacing="12">
+                                <Label text="📊" styleClass="card-icon"/>
+                                <Label text="বিক্রয় ইতিহাস" styleClass="card-title" wrapText="true"/>
+                                <Label text="Sales History" styleClass="card-subtitle"/>
+                            </VBox>
+                        </graphic>
+                    </Button>
+                </GridPane>
+
+                <!-- Quick Stats Section -->
+                <VBox spacing="15" styleClass="stats-container">
+                    <Label text="সারসংক্ষেপ / Quick Stats" styleClass="section-title"/>
+                    
+                    <HBox spacing="20" alignment="CENTER">
+                        <!-- Total Earnings -->
+                        <VBox alignment="CENTER" spacing="8" styleClass="stat-card">
+                            <padding>
+                                <Insets top="20" bottom="20" left="30" right="30"/>
+                            </padding>
+                            <Label text="💰" styleClass="stat-icon"/>
+                            <Label fx:id="lblTotalEarnings" text="৳ 0.00" styleClass="stat-value"/>
+                            <Label text="মোট আয়" styleClass="stat-label"/>
+                            <Label text="Total Earnings" styleClass="stat-sublabel"/>
+                        </VBox>
+
+                        <!-- Active Listings -->
+                        <VBox alignment="CENTER" spacing="8" styleClass="stat-card">
+                            <padding>
+                                <Insets top="20" bottom="20" left="30" right="30"/>
+                            </padding>
+                            <Label text="📋" styleClass="stat-icon"/>
+                            <Label fx:id="lblActiveListings" text="0" styleClass="stat-value"/>
+                            <Label text="সক্রিয় পোস্ট" styleClass="stat-label"/>
+                            <Label text="Active Listings" styleClass="stat-sublabel"/>
+                        </VBox>
+
+                        <!-- Pending Orders -->
+                        <VBox alignment="CENTER" spacing="8" styleClass="stat-card">
+                            <padding>
+                                <Insets top="20" bottom="20" left="30" right="30"/>
+                            </padding>
+                            <Label text="⏳" styleClass="stat-icon"/>
+                            <Label fx:id="lblPendingOrders" text="0" styleClass="stat-value"/>
+                            <Label text="নতুন অর্ডার" styleClass="stat-label"/>
+                            <Label text="Pending Orders" styleClass="stat-sublabel"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+    
+</BorderPane>

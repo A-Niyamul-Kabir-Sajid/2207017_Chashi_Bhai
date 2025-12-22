@@ -1,0 +1,47 @@
+/* ========================================
+   CHASHI BHAI - AUTHENTICATION
+   Login, Signup, OTP, Welcome screens
+   ======================================== */
+
+/* Role Selection Buttons */
+.role-button {
+    -fx-background-color: #2a2a2a;
+    -fx-text-fill: #e0e0e0;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 40 30;
+    -fx-background-radius: 15;
+    -fx-border-width: 3;
+    -fx-border-radius: 15;
+    -fx-cursor: hand;
+}
+
+/* /* .role-button:hover { */ */
+/*     -fx-background-color: #333333; */
+/*     -fx-scale-x: 1.05; */
+/*     -fx-scale-y: 1.05; */
+/* } */
+
+.role-button.selected-farmer {
+    -fx-border-color: #4CAF50;
+    -fx-background-color: rgba(76, 175, 80, 0.1);
+    -fx-text-fill: #4CAF50;
+}
+
+.role-button.selected-buyer {
+    -fx-border-color: #2196F3;
+    -fx-background-color: rgba(33, 150, 243, 0.1);
+    -fx-text-fill: #2196F3;
+}
+
+/* Welcome Section */
+.welcome-title {
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4CAF50;
+}
+
+.welcome-subtitle {
+    -fx-font-size: 18px;
+    -fx-text-fill: #b0b0b0;
+}

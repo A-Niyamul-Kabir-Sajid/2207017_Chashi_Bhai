@@ -1,14 +1,12 @@
 package com.sajid._207017_chashi_bhai.controllers;
 
-import com.sajid._207017_chashi_bhai.ChashiBhaiApp;
+import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.utils.SessionManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.PasswordField;
-
-import java.io.IOException;
 
 public class LoginController {
 
@@ -31,11 +29,7 @@ public class LoginController {
 
     @FXML
     protected void onBackClick() {
-        try {
-            ChashiBhaiApp.showWelcomeView();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        App.loadScene("welcome-view.fxml", "Welcome - Chashi Bhai");
     }
 
     @FXML
@@ -91,23 +85,43 @@ public class LoginController {
             return;
         }
 
-        // TODO: Check phone, PIN and role in database
-        // For now, simulate login failure for demo
-        showError("Account not found or incorrect credentials. Please sign up first.");
+        // Demo credentials for testing
+        boolean loginSuccess = false;
+        String userName = "";
+        int userId = 0;
+        // added by default demo accounts
+        if (selectedRole.equals("FARMER") && phone.equals("01712345678") && pin.equals("1234")) {
+            loginSuccess = true;
+            userName = "আব্দুল করিম";
+            userId = 1;
+        } else if (selectedRole.equals("BUYER") && phone.equals("01812345678") && pin.equals("5678")) {
+            loginSuccess = true;
+            userName = "রহিম মিয়া";
+            userId = 2;
+        }
         
-        System.out.println("Login attempt - Phone: " + phone + ", Role: " + selectedRole);
-        
-        // TODO: On successful login:
-        // SessionManager.setCurrentUserId(userId);
-        // SessionManager.setCurrentUserName(name);
-        // SessionManager.setCurrentUserRole(selectedRole);
-        // SessionManager.setCurrentUserPhone(phone);
-        // Navigate to appropriate dashboard based on role
-        // if (selectedRole.equals("FARMER")) {
-        //     ChashiBhaiApp.showFarmerDashboard();
-        // } else {
-        //     ChashiBhaiApp.showBuyerDashboard();
-        // }
+        if (loginSuccess) {
+            // Set session data
+            SessionManager.setCurrentUserId(userId);
+            SessionManager.setCurrentUserName(userName);
+            SessionManager.setCurrentUserRole(selectedRole);
+            SessionManager.setCurrentUserPhone(phone);
+            
+            System.out.println("✅ Login successful - User: " + userName + ", Role: " + selectedRole);
+            
+            // Navigate to appropriate dashboard
+            if (selectedRole.equals("FARMER")) {
+                App.loadScene("farmer-dashboard-view.fxml", "Farmer Dashboard - Chashi Bhai");
+            } else {
+                App.loadScene("buyer-dashboard-view.fxml", "Buyer Dashboard - Chashi Bhai");
+            }
+        } else {
+            // TODO: Check phone, PIN and role in database
+            showError("❌ Invalid credentials. Try demo accounts:\n" +
+                     "Farmer: 01712345678 / PIN: 1234\n" +
+                     "Buyer: 01812345678 / PIN: 5678");
+            System.out.println("Login attempt failed - Phone: " + phone + ", Role: " + selectedRole);
+        }
     }
 
     @FXML
@@ -141,21 +155,12 @@ public class LoginController {
 
         System.out.println("Forgot PIN - Phone: " + phone + ", Role: " + selectedRole);
 
-        try {
-            ChashiBhaiApp.showOtpView();
-        } catch (IOException e) {
-            e.printStackTrace();
-            showError("Failed to load OTP screen");
-        }
+        App.loadScene("otp-verification-view.fxml", "OTP Verification");
     }
 
     @FXML
     protected void onSignupLinkClick() {
-        try {
-            ChashiBhaiApp.showSignupView();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        App.loadScene("signup-view.fxml", "Sign Up - Chashi Bhai");
     }
 
     private void showError(String message) {

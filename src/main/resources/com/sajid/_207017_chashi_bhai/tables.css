@@ -1,0 +1,65 @@
+/* ========================================
+   CHASHI BHAI - TABLES
+   TableView styling for history and data views
+   ======================================== */
+
+/* TableView */
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: #2a2a2a;
+}
+
+.data-table {
+    -fx-background-color: #2a2a2a;
+    -fx-background-radius: 10;
+}
+
+.table-view .column-header {
+    -fx-background-color: #1a1a1a;
+    -fx-border-color: #4CAF50;
+    -fx-border-width: 0 0 2 0;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #4CAF50;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+}
+
+.table-view .table-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e0e0e0;
+    -fx-border-color: #333333;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 10 8;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: #2a2a2a;
+}
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: #252525;
+}
+
+/* /* .table-view .table-row-cell:hover { */ */
+/*     -fx-background-color: rgba(76, 175, 80, 0.1); */
+/* } */
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: rgba(76, 175, 80, 0.2);
+}
+
+/* Column Resize */
+.table-view .column-resize-line {
+    -fx-background-color: #4CAF50;
+}
+
+/* Scrollbar in TableView */
+.table-view .scroll-bar:vertical .thumb {
+    -fx-background-color: #4CAF50;
+}
+
+.table-view .scroll-bar:horizontal .thumb {
+    -fx-background-color: #4CAF50;
+}

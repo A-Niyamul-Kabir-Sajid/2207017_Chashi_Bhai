@@ -1,0 +1,152 @@
+/* ========================================
+   CHASHI BHAI - BASE STYLES
+   Global styles, root, colors, layouts
+   ======================================== */
+
+/* Root Styles */
+.root {
+    -fx-background-color: linear-gradient(to bottom, #0f3460 0%, #16213e 25%, #1a1a2e 65%, #0f0f0f 100%);
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-focus-traversable: false;
+}
+
+/* Prevent focus-related layout changes */
+* {
+    -fx-focus-traversable: false;
+}
+
+/* ScrollPane Styles */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+    -fx-focus-traversable: false;
+    -fx-fit-to-width: true;
+    -fx-fit-to-height: false;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+    -fx-focus-traversable: false;
+}
+
+.scroll-pane .scroll-bar:vertical,
+.scroll-pane .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .scroll-bar .thumb {
+    -fx-background-color: #4CAF50;
+    -fx-background-radius: 5;
+}
+
+/* Navigation Bar */
+.nav-bar {
+    -fx-background-color: linear-gradient(to right, #16213e, #1a1a2e);
+    -fx-border-color: #2a2a2a;
+    -fx-border-width: 0 0 1 0;
+}
+
+.app-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4CAF50;
+}
+
+.page-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e0e0e0;
+}
+
+.back-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #4CAF50;
+    -fx-font-size: 24px;
+    -fx-cursor: hand;
+    -fx-padding: 5 15;
+}
+
+/* /* .back-button:hover { */ */
+/*     -fx-background-color: rgba(76, 175, 80, 0.1); */
+/* } */
+
+/* Label Styles */
+.label {
+    -fx-text-fill: #e0e0e0;
+}
+
+.label-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e0e0e0;
+}
+
+.label-subtitle {
+    -fx-font-size: 16px;
+    -fx-text-fill: #b0b0b0;
+}
+
+.label-description {
+    -fx-font-size: 14px;
+    -fx-text-fill: #808080;
+}
+
+.label-error {
+    -fx-text-fill: #FF5252;
+    -fx-font-size: 13px;
+}
+
+.label-success {
+    -fx-text-fill: #4CAF50;
+    -fx-font-size: 13px;
+}
+
+.label-info {
+    -fx-text-fill: #2196F3;
+    -fx-font-size: 13px;
+}
+
+.label-footer {
+    -fx-text-fill: #666666;
+    -fx-font-size: 12px;
+}
+
+/* Icon Styles */
+.icon-small {
+    -fx-font-size: 14px;
+}
+
+.separator {
+    -fx-text-fill: #666666;
+}
+
+/* Form Container */
+.form-container {
+    -fx-background-color: transparent;
+}
+
+/* Timer Label */
+.timer-label {
+    -fx-font-size: 16px;
+    -fx-text-fill: #4CAF50;
+    -fx-font-weight: bold;
+}
+
+/* Debug Label (for development) */
+.debug-label {
+    -fx-text-fill: #FF9800;
+    -fx-font-size: 11px;
+    -fx-background-color: rgba(255, 152, 0, 0.1);
+    -fx-padding: 2 5;
+}
+
+/* Agricultural Theme Color Reference (not CSS variables) */
+/* agri-green: #4CAF50 */
+/* agri-blue: #2196F3 */
+/* agri-orange: #FF7043 */
+/* bg-primary: #1a1a2e */
+/* bg-secondary: #16213e */
+/* bg-card: #2a2a2a */
+/* text-primary: #e0e0e0 */
+/* text-secondary: #b0b0b0 */
+/* text-muted: #666666 */

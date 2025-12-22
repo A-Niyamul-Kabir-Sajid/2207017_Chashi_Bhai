@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.BuyerDashboardController" styleClass="root" minHeight="700" minWidth="1024">
+    
+    <!-- Top Navigation Bar -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20" styleClass="nav-bar">
+            <padding>
+                <Insets top="15" bottom="15" left="20" right="20"/>
+            </padding>
+            <Label text="🌾 চাষী ভাই" styleClass="app-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <MenuButton text="⋮" styleClass="icon-button" fx:id="btnMenu">
+                <items>
+                    <MenuItem text="🚪 Sign Out" onAction="#onSignOut"/>
+                </items>
+            </MenuButton>
+            <Button fx:id="btnProfile" styleClass="icon-button" onAction="#onProfile">
+                <graphic>
+                    <Label text="👤" styleClass="icon-medium"/>
+                </graphic>
+            </Button>
+        </HBox>
+    </top>
+
+    <!-- Main Content -->
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+            <VBox alignment="TOP_CENTER" spacing="30" styleClass="dashboard-container">
+                <padding>
+                    <Insets top="30" bottom="40" left="40" right="40"/>
+                </padding>
+
+                <!-- Welcome Section -->
+                <VBox alignment="CENTER" spacing="10">
+                    <Label fx:id="lblWelcome" text="স্বাগতম, ক্রেতা" styleClass="welcome-title"/>
+                    <Label text="সেরা ফসল খুঁজুন" styleClass="welcome-subtitle"/>
+                </VBox>
+
+                <!-- Search Bar -->
+                <HBox spacing="12" styleClass="search-container" alignment="CENTER">
+                    <padding>
+                        <Insets top="15" bottom="15" left="20" right="20"/>
+                    </padding>
+                    <Label text="🔍" styleClass="search-icon"/>
+                    <TextField fx:id="txtSearch" promptText="ফসল খুঁজুন... (যেমন: ধান, আলু, টমেটো)" 
+                               styleClass="search-input" HBox.hgrow="ALWAYS" onAction="#onSearch"/>
+                    <Button fx:id="btnSearch" text="খুঁজুন" styleClass="button-primary" onAction="#onSearch" prefWidth="120"/>
+                </HBox>
+
+                <!-- Quick Action Buttons -->
+                <HBox spacing="20" alignment="CENTER">
+                    <Button fx:id="btnBrowseAll" styleClass="action-button-large, card-green" onAction="#onBrowseAll" prefWidth="280" prefHeight="100">
+                        <graphic>
+                            <HBox spacing="15" alignment="CENTER">
+                                <Label text="🛒" styleClass="action-icon"/>
+                                <VBox alignment="CENTER_LEFT">
+                                    <Label text="সকল ফসল" styleClass="action-title"/>
+                                    <Label text="Browse All Crops" styleClass="action-subtitle"/>
+                                </VBox>
+                            </HBox>
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="btnMyOrders" styleClass="action-button-large, card-blue" onAction="#onMyOrders" prefWidth="280" prefHeight="100">
+                        <graphic>
+                            <HBox spacing="15" alignment="CENTER">
+                                <Label text="📦" styleClass="action-icon"/>
+                                <VBox alignment="CENTER_LEFT">
+                                    <Label text="আমার অর্ডারসমূহ" styleClass="action-title"/>
+                                    <Label text="My Orders" styleClass="action-subtitle"/>
+                                </VBox>
+                            </HBox>
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="btnHistory" styleClass="action-button-large, card-purple" onAction="#onHistory" prefWidth="280" prefHeight="100">
+                        <graphic>
+                            <HBox spacing="15" alignment="CENTER">
+                                <Label text="📊" styleClass="action-icon"/>
+                                <VBox alignment="CENTER_LEFT">
+                                    <Label text="ক্রয় ইতিহাস" styleClass="action-title"/>
+                                    <Label text="Purchase History" styleClass="action-subtitle"/>
+                                </VBox>
+                            </HBox>
+                        </graphic>
+                    </Button>
+                </HBox>
+
+                <!-- Live Price Ticker -->
+                <VBox spacing="12" styleClass="price-ticker-container">
+                    <Label text="আজকের বাজার দর / Today's Market Price" styleClass="section-title"/>
+                    <ScrollPane fitToHeight="true" styleClass="ticker-scroll">
+                        <HBox spacing="25" fx:id="hboxPriceTicker" alignment="CENTER_LEFT">
+                            <padding>
+                                <Insets top="12" bottom="12" left="15" right="15"/>
+                            </padding>
+                            
+                            <HBox spacing="8" styleClass="price-item">
+                                <Label text="🌾" styleClass="ticker-icon"/>
+                                <VBox alignment="CENTER_LEFT">
+                                    <Label text="ধান (Rice)" styleClass="ticker-label"/>
+                                    <Label text="৳ 40-50/কেজি" styleClass="ticker-price"/>
+                                </VBox>
+                            </HBox>
+                            
+                            <Separator orientation="VERTICAL"/>
+                            
+                            <HBox spacing="8" styleClass="price-item">
+                                <Label text="🥔" styleClass="ticker-icon"/>
+                                <VBox alignment="CENTER_LEFT">
+                                    <Label text="আলু (Potato)" styleClass="ticker-label"/>
+                                    <Label text="৳ 25-35/কেজি" styleClass="ticker-price"/>
+                                </VBox>
+                            </HBox>
+                            
+                            <Separator orientation="VERTICAL"/>
+                            
+                            <HBox spacing="8" styleClass="price-item">
+                                <Label text="🍅" styleClass="ticker-icon"/>
+                                <VBox alignment="CENTER_LEFT">
+                                    <Label text="টমেটো (Tomato)" styleClass="ticker-label"/>
+                                    <Label text="৳ 60-80/কেজি" styleClass="ticker-price"/>
+                                </VBox>
+                            </HBox>
+                            
+                            <Separator orientation="VERTICAL"/>
+                            
+                            <HBox spacing="8" styleClass="price-item">
+                                <Label text="🌽" styleClass="ticker-icon"/>
+                                <VBox alignment="CENTER_LEFT">
+                                    <Label text="ভুট্টা (Corn)" styleClass="ticker-label"/>
+                                    <Label text="৳ 35-45/কেজি" styleClass="ticker-price"/>
+                                </VBox>
+                            </HBox>
+                            
+                        </HBox>
+                    </ScrollPane>
+                </VBox>
+
+                <!-- Featured Crops Section -->
+                <VBox spacing="15">
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="বৈশিষ্ট্যযুক্ত ফসল / Featured Crops" styleClass="section-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="সব দেখুন →" styleClass="button-link" onAction="#onBrowseAll"/>
+                    </HBox>
+                    
+                    <ScrollPane fitToHeight="true" styleClass="featured-scroll">
+                        <HBox spacing="20" fx:id="hboxFeaturedCrops" alignment="CENTER_LEFT">
+                            
+                            <!-- Featured Crop Card 1 -->
+                            <VBox spacing="12" styleClass="featured-crop-card" onMouseClicked="#onCropClick">
+                                <ImageView fitWidth="200" fitHeight="150" preserveRatio="true" styleClass="featured-image"/>
+                                <VBox spacing="8">
+                                    <padding>
+                                        <Insets left="12" right="12" bottom="12"/>
+                                    </padding>
+                                    <Label text="ধান (Rice)" styleClass="featured-crop-name"/>
+                                    <HBox spacing="6" alignment="CENTER_LEFT">
+                                        <Label text="✓" styleClass="verified-badge-small"/>
+                                        <Label text="রহিম কৃষক" styleClass="featured-farmer"/>
+                                    </HBox>
+                                    <Label text="৳ 45 / কেজি" styleClass="featured-price"/>
+                                    <Label text="📍 ঢাকা" styleClass="featured-location"/>
+                                </VBox>
+                            </VBox>
+
+                            <!-- Featured Crop Card 2 -->
+                            <VBox spacing="12" styleClass="featured-crop-card" onMouseClicked="#onCropClick">
+                                <ImageView fitWidth="200" fitHeight="150" preserveRatio="true" styleClass="featured-image"/>
+                                <VBox spacing="8">
+                                    <padding>
+                                        <Insets left="12" right="12" bottom="12"/>
+                                    </padding>
+                                    <Label text="আলু (Potato)" styleClass="featured-crop-name"/>
+                                    <HBox spacing="6" alignment="CENTER_LEFT">
+                                        <Label text="✓" styleClass="verified-badge-small"/>
+                                        <Label text="করিম মিয়া" styleClass="featured-farmer"/>
+                                    </HBox>
+                                    <Label text="৳ 30 / কেজি" styleClass="featured-price"/>
+                                    <Label text="📍 চট্টগ্রাম" styleClass="featured-location"/>
+                                </VBox>
+                            </VBox>
+
+                            <!-- Featured Crop Card 3 -->
+                            <VBox spacing="12" styleClass="featured-crop-card" onMouseClicked="#onCropClick">
+                                <ImageView fitWidth="200" fitHeight="150" preserveRatio="true" styleClass="featured-image"/>
+                                <VBox spacing="8">
+                                    <padding>
+                                        <Insets left="12" right="12" bottom="12"/>
+                                    </padding>
+                                    <Label text="টমেটো (Tomato)" styleClass="featured-crop-name"/>
+                                    <HBox spacing="6" alignment="CENTER_LEFT">
+                                        <Label text="✓" styleClass="verified-badge-small"/>
+                                        <Label text="সালাম কৃষক" styleClass="featured-farmer"/>
+                                    </HBox>
+                                    <Label text="৳ 60 / কেজি" styleClass="featured-price"/>
+                                    <Label text="📍 রাজশাহী" styleClass="featured-location"/>
+                                </VBox>
+                            </VBox>
+
+                            <!-- Featured Crop Card 4 -->
+                            <VBox spacing="12" styleClass="featured-crop-card" onMouseClicked="#onCropClick">
+                                <ImageView fitWidth="200" fitHeight="150" preserveRatio="true" styleClass="featured-image"/>
+                                <VBox spacing="8">
+                                    <padding>
+                                        <Insets left="12" right="12" bottom="12"/>
+                                    </padding>
+                                    <Label text="ভুট্টা (Corn)" styleClass="featured-crop-name"/>
+                                    <HBox spacing="6" alignment="CENTER_LEFT">
+                                        <Label text="✓" styleClass="verified-badge-small"/>
+                                        <Label text="জামাল কৃষক" styleClass="featured-farmer"/>
+                                    </HBox>
+                                    <Label text="৳ 40 / কেজি" styleClass="featured-price"/>
+                                    <Label text="📍 খুলনা" styleClass="featured-location"/>
+                                </VBox>
+                            </VBox>
+
+                        </HBox>
+                    </ScrollPane>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+    
+</BorderPane>

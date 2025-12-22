@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.BuyerOrdersController" styleClass="root" minHeight="700" minWidth="1024">
+    
+    <!-- Top Navigation -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20" styleClass="nav-bar">
+            <padding>
+                <Insets top="15" bottom="15" left="20" right="20"/>
+            </padding>
+            <Button text="←" styleClass="back-button" fx:id="btnBack" onAction="#onBack"/>
+            <Label text="আমার অর্ডারসমূহ / My Orders" styleClass="page-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="btnRefresh" text="🔄 রিফ্রেশ" styleClass="button-secondary"/>
+        </HBox>
+    </top>
+
+    <center>
+        <VBox spacing="20">
+            <padding>
+                <Insets top="20" bottom="20" left="30" right="30"/>
+            </padding>
+
+            <!-- Filter Tabs -->
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <Button fx:id="btnFilterAll" text="সব (All)" styleClass="filter-tab, filter-active" onAction="#onFilterAll"/>
+                <Button fx:id="btnFilterPending" text="পেমেন্ট বাকি (Pending Payment)" styleClass="filter-tab" onAction="#onFilterPending"/>
+                <Button fx:id="btnFilterConfirmed" text="নিশ্চিত (Confirmed)" styleClass="filter-tab" onAction="#onFilterConfirmed"/>
+                <Button fx:id="btnFilterInTransit" text="পাঠানো হচ্ছে (In Transit)" styleClass="filter-tab" onAction="#onFilterInTransit"/>
+                <Button fx:id="btnFilterDelivered" text="ডেলিভার (Delivered)" styleClass="filter-tab" onAction="#onFilterDelivered"/>
+            </HBox>
+
+            <!-- Orders List -->
+            <ScrollPane fitToWidth="true" fitToHeight="true" styleClass="scroll-pane">
+                <VBox spacing="15" fx:id="vboxOrdersList">
+                    
+                    <!-- Orders will be dynamically loaded here by BuyerOrdersController -->
+                    
+                    <!-- Empty State -->
+                    <VBox alignment="CENTER" spacing="20" fx:id="vboxEmptyState" visible="false">
+                        <padding>
+                            <Insets top="60" bottom="60"/>
+                        </padding>
+                        <Label text="📭" styleClass="empty-icon"/>
+                        <Label text="কোনো অর্ডার নেই" styleClass="empty-text"/>
+                        <Label text="ফসল খুঁজুন এবং অর্ডার করুন" styleClass="empty-subtext"/>
+                        <Button text="🛒 ফসল ব্রাউজ করুন" styleClass="button-primary" onAction="#onBrowseCrops"/>
+                    </VBox>
+
+                </VBox>
+            </ScrollPane>
+
+        </VBox>
+    </center>
+    
+</BorderPane>
