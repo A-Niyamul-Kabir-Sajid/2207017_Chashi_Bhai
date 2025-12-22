@@ -1,16 +1,26 @@
 /* ========================================
    CHASHI BHAI - BASE STYLES
-   Global styles, root, colors, layouts
+   Global styles, root colors, typography
    ======================================== */
+
+/* Color Palette Reference:
+   Primary Green: #2E7D32 (darker), #4CAF50 (main), #81C784 (light)
+   Secondary Blue: #1565C0 (darker), #2196F3 (main), #64B5F6 (light)
+   Accent Orange: #E64A19 (darker), #FF7043 (main), #FFAB91 (light)
+   Accent Gold: #F9A825 (darker), #FFB300 (main), #FFD54F (light)
+   
+   Background: #0D1117 (darkest), #161B22 (dark), #21262D (card), #30363D (border)
+   Text: #F0F6FC (primary), #C9D1D9 (secondary), #8B949E (muted)
+*/
 
 /* Root Styles */
 .root {
-    -fx-background-color: linear-gradient(to bottom, #0f3460 0%, #16213e 25%, #1a1a2e 65%, #0f0f0f 100%);
-    -fx-font-family: "Segoe UI", Arial, sans-serif;
-    -fx-focus-traversable: false;
+    -fx-background-color: linear-gradient(to bottom, #0D1117 0%, #161B22 50%, #0D1117 100%);
+    -fx-font-family: "Segoe UI", "Noto Sans Bengali", Arial, sans-serif;
+    -fx-font-size: 14px;
 }
 
-/* Prevent focus-related layout changes */
+/* Disable focus traversal globally */
 * {
     -fx-focus-traversable: false;
 }
@@ -19,35 +29,47 @@
 .scroll-pane {
     -fx-background-color: transparent;
     -fx-border-width: 0;
-    -fx-focus-traversable: false;
     -fx-fit-to-width: true;
     -fx-fit-to-height: false;
 }
 
 .scroll-pane .viewport {
     -fx-background-color: transparent;
-    -fx-focus-traversable: false;
 }
 
 .scroll-pane .scroll-bar:vertical,
 .scroll-pane .scroll-bar:horizontal {
-    -fx-background-color: transparent;
+    -fx-background-color: rgba(48, 54, 61, 0.3);
+    -fx-background-radius: 4;
 }
 
 .scroll-pane .scroll-bar .thumb {
     -fx-background-color: #4CAF50;
-    -fx-background-radius: 5;
+    -fx-background-radius: 4;
+}
+
+.scroll-pane .scroll-bar .increment-button,
+.scroll-pane .scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.scroll-pane .scroll-bar .increment-arrow,
+.scroll-pane .scroll-bar .decrement-arrow {
+    -fx-shape: "";
+    -fx-padding: 0;
 }
 
 /* Navigation Bar */
 .nav-bar {
-    -fx-background-color: linear-gradient(to right, #16213e, #1a1a2e);
-    -fx-border-color: #2a2a2a;
+    -fx-background-color: linear-gradient(to right, #161B22, #21262D);
+    -fx-border-color: #30363D;
     -fx-border-width: 0 0 1 0;
+    -fx-padding: 10 20;
 }
 
 .app-title {
-    -fx-font-size: 22px;
+    -fx-font-size: 24px;
     -fx-font-weight: bold;
     -fx-text-fill: #4CAF50;
 }
@@ -55,98 +77,117 @@
 .page-title {
     -fx-font-size: 20px;
     -fx-font-weight: bold;
-    -fx-text-fill: #e0e0e0;
+    -fx-text-fill: #F0F6FC;
 }
 
 .back-button {
     -fx-background-color: transparent;
     -fx-text-fill: #4CAF50;
-    -fx-font-size: 24px;
+    -fx-font-size: 18px;
     -fx-cursor: hand;
-    -fx-padding: 5 15;
+    -fx-padding: 8 16;
 }
 
-/* /* .back-button:hover { */ */
-/*     -fx-background-color: rgba(76, 175, 80, 0.1); */
-/* } */
+/* ===== TYPOGRAPHY ===== */
 
-/* Label Styles */
 .label {
-    -fx-text-fill: #e0e0e0;
+    -fx-text-fill: #C9D1D9;
 }
 
 .label-title {
-    -fx-font-size: 24px;
+    -fx-font-size: 28px;
     -fx-font-weight: bold;
-    -fx-text-fill: #e0e0e0;
+    -fx-text-fill: #F0F6FC;
 }
 
 .label-subtitle {
     -fx-font-size: 16px;
-    -fx-text-fill: #b0b0b0;
+    -fx-text-fill: #8B949E;
 }
 
 .label-description {
     -fx-font-size: 14px;
-    -fx-text-fill: #808080;
+    -fx-text-fill: #8B949E;
+    -fx-wrap-text: true;
 }
 
 .label-error {
-    -fx-text-fill: #FF5252;
+    -fx-text-fill: #F85149;
     -fx-font-size: 13px;
+    -fx-font-weight: bold;
 }
 
 .label-success {
     -fx-text-fill: #4CAF50;
     -fx-font-size: 13px;
+    -fx-font-weight: bold;
 }
 
 .label-info {
-    -fx-text-fill: #2196F3;
+    -fx-text-fill: #58A6FF;
+    -fx-font-size: 13px;
+}
+
+.label-warning {
+    -fx-text-fill: #FFB300;
     -fx-font-size: 13px;
 }
 
 .label-footer {
-    -fx-text-fill: #666666;
+    -fx-text-fill: #8B949E;
     -fx-font-size: 12px;
 }
 
 /* Icon Styles */
 .icon-small {
-    -fx-font-size: 14px;
+    -fx-font-size: 16px;
 }
 
+.icon-medium {
+    -fx-font-size: 24px;
+}
+
+.icon-large {
+    -fx-font-size: 48px;
+}
+
+/* Separator */
 .separator {
-    -fx-text-fill: #666666;
+    -fx-background-color: #30363D;
 }
 
 /* Form Container */
 .form-container {
     -fx-background-color: transparent;
+    -fx-padding: 20;
 }
 
 /* Timer Label */
 .timer-label {
     -fx-font-size: 16px;
-    -fx-text-fill: #4CAF50;
+    -fx-text-fill: #FFB300;
     -fx-font-weight: bold;
 }
 
-/* Debug Label (for development) */
+/* Debug Label */
 .debug-label {
-    -fx-text-fill: #FF9800;
+    -fx-text-fill: #FFB300;
     -fx-font-size: 11px;
-    -fx-background-color: rgba(255, 152, 0, 0.1);
-    -fx-padding: 2 5;
+    -fx-background-color: rgba(255, 179, 0, 0.15);
+    -fx-padding: 4 8;
+    -fx-background-radius: 4;
 }
 
-/* Agricultural Theme Color Reference (not CSS variables) */
-/* agri-green: #4CAF50 */
-/* agri-blue: #2196F3 */
-/* agri-orange: #FF7043 */
-/* bg-primary: #1a1a2e */
-/* bg-secondary: #16213e */
-/* bg-card: #2a2a2a */
-/* text-primary: #e0e0e0 */
-/* text-secondary: #b0b0b0 */
-/* text-muted: #666666 */
+/* Progress Indicator */
+.progress-indicator {
+    -fx-progress-color: #4CAF50;
+}
+
+/* Transparent containers */
+.transparent-container {
+    -fx-background-color: transparent;
+}
+
+.vbox, .hbox {
+    -fx-background-color: transparent;
+}

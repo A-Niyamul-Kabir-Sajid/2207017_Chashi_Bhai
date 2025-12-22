@@ -1,47 +1,452 @@
 /* ========================================
    CHASHI BHAI - AUTHENTICATION
-   Login, Signup, OTP, Welcome screens
+   Login, Signup, OTP, PIN, Role Selection
    ======================================== */
 
-/* Role Selection Buttons */
-.role-button {
-    -fx-background-color: #2a2a2a;
-    -fx-text-fill: #e0e0e0;
-    -fx-font-size: 16px;
-    -fx-font-weight: bold;
-    -fx-padding: 40 30;
-    -fx-background-radius: 15;
-    -fx-border-width: 3;
-    -fx-border-radius: 15;
-    -fx-cursor: hand;
+/* ===== AUTH CONTAINER ===== */
+
+.auth-container {
+    -fx-background-color: linear-gradient(to bottom right, #0D1117, #161B22);
+    -fx-padding: 30;
 }
 
-/* /* .role-button:hover { */ */
-/*     -fx-background-color: #333333; */
-/*     -fx-scale-x: 1.05; */
-/*     -fx-scale-y: 1.05; */
-/* } */
-
-.role-button.selected-farmer {
-    -fx-border-color: #4CAF50;
-    -fx-background-color: rgba(76, 175, 80, 0.1);
-    -fx-text-fill: #4CAF50;
+.auth-card {
+    -fx-background-color: #21262D;
+    -fx-background-radius: 16;
+    -fx-border-color: #30363D;
+    -fx-border-width: 1;
+    -fx-border-radius: 16;
+    -fx-padding: 35 40;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 30, 0, 0, 8);
 }
 
-.role-button.selected-buyer {
-    -fx-border-color: #2196F3;
-    -fx-background-color: rgba(33, 150, 243, 0.1);
-    -fx-text-fill: #2196F3;
-}
-
-/* Welcome Section */
-.welcome-title {
+.auth-title {
     -fx-font-size: 32px;
     -fx-font-weight: bold;
-    -fx-text-fill: #4CAF50;
+    -fx-text-fill: #F0F6FC;
+}
+
+.auth-subtitle {
+    -fx-font-size: 15px;
+    -fx-text-fill: #8B949E;
+}
+
+.auth-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #C9D1D9;
+    -fx-font-weight: bold;
+}
+
+/* ===== WELCOME SCREEN ===== */
+
+.welcome-container {
+    -fx-background-color: linear-gradient(to bottom, #0D1117 0%, #161B22 50%, #1A3A2A 100%);
+}
+
+.welcome-title {
+    -fx-font-size: 52px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F0F6FC;
+    -fx-effect: dropshadow(gaussian, rgba(76, 175, 80, 0.4), 15, 0, 0, 4);
 }
 
 .welcome-subtitle {
+    -fx-font-size: 20px;
+    -fx-text-fill: #C9D1D9;
+}
+
+.welcome-tagline {
+    -fx-font-size: 16px;
+    -fx-text-fill: #8B949E;
+    -fx-font-style: italic;
+}
+
+.welcome-icon {
+    -fx-font-size: 80px;
+    -fx-text-fill: #4CAF50;
+    -fx-effect: dropshadow(gaussian, rgba(76, 175, 80, 0.5), 20, 0, 0, 5);
+}
+
+.welcome-feature {
+    -fx-font-size: 14px;
+    -fx-text-fill: #C9D1D9;
+}
+
+.welcome-feature-icon {
+    -fx-font-size: 24px;
+    -fx-text-fill: #4CAF50;
+}
+
+/* ===== ROLE SELECTION ===== */
+
+.role-selection-container {
+    -fx-background-color: #161B22;
+    -fx-background-radius: 16;
+    -fx-padding: 30;
+}
+
+.role-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F0F6FC;
+}
+
+.role-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: #8B949E;
+}
+
+.role-button {
+    -fx-background-color: #21262D;
+    -fx-text-fill: #F0F6FC;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 20 50;
+    -fx-background-radius: 14;
+    -fx-border-color: #30363D;
+    -fx-border-width: 2;
+    -fx-border-radius: 14;
+    -fx-cursor: hand;
+    -fx-min-width: 200;
+    -fx-pref-height: 100;
+}
+
+.role-button-farmer {
+    -fx-border-color: #4CAF50;
+}
+
+.role-button-buyer {
+    -fx-border-color: #2196F3;
+}
+
+.role-button-selected {
+    -fx-background-color: rgba(76, 175, 80, 0.2);
+    -fx-border-color: #4CAF50;
+    -fx-border-width: 3;
+}
+
+.role-icon {
+    -fx-font-size: 36px;
+    -fx-text-fill: #4CAF50;
+}
+
+.role-icon-buyer {
+    -fx-text-fill: #2196F3;
+}
+
+.role-label {
     -fx-font-size: 18px;
-    -fx-text-fill: #b0b0b0;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F0F6FC;
+}
+
+.role-description {
+    -fx-font-size: 12px;
+    -fx-text-fill: #8B949E;
+}
+
+/* ===== LOGIN SPECIFIC ===== */
+
+.login-container {
+    -fx-background-color: linear-gradient(to bottom right, #0D1117, #161B22);
+}
+
+.login-card {
+    -fx-background-color: #21262D;
+    -fx-background-radius: 16;
+    -fx-padding: 35 45;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 30, 0, 0, 8);
+}
+
+.login-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F0F6FC;
+}
+
+.login-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: #8B949E;
+}
+
+.login-icon {
+    -fx-font-size: 48px;
+    -fx-text-fill: #4CAF50;
+}
+
+/* ===== SIGNUP SPECIFIC ===== */
+
+.signup-container {
+    -fx-background-color: linear-gradient(to bottom right, #0D1117, #161B22);
+}
+
+.signup-card {
+    -fx-background-color: #21262D;
+    -fx-background-radius: 16;
+    -fx-padding: 30 40;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 30, 0, 0, 8);
+    -fx-max-width: 500;
+}
+
+.signup-header {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F0F6FC;
+}
+
+.signup-subheader {
+    -fx-font-size: 13px;
+    -fx-text-fill: #8B949E;
+}
+
+.signup-progress {
+    -fx-accent: #4CAF50;
+}
+
+/* ===== OTP VERIFICATION ===== */
+
+.otp-container {
+    -fx-background-color: linear-gradient(to bottom right, #0D1117, #161B22);
+}
+
+.otp-card {
+    -fx-background-color: #21262D;
+    -fx-background-radius: 16;
+    -fx-padding: 40;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 30, 0, 0, 8);
+    -fx-min-width: 400;
+}
+
+.otp-title {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F0F6FC;
+}
+
+.otp-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: #8B949E;
+    -fx-wrap-text: true;
+}
+
+.otp-phone {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4CAF50;
+}
+
+.otp-icon {
+    -fx-font-size: 56px;
+    -fx-text-fill: #4CAF50;
+}
+
+.otp-box {
+    -fx-background-color: #0D1117;
+    -fx-border-color: #30363D;
+    -fx-border-width: 2;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 10;
+}
+
+.otp-field {
+    -fx-background-color: #0D1117;
+    -fx-text-fill: #F0F6FC;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-alignment: center;
+    -fx-min-width: 52;
+    -fx-max-width: 52;
+    -fx-min-height: 56;
+    -fx-max-height: 56;
+    -fx-border-color: #4CAF50;
+    -fx-border-width: 2;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+
+.otp-timer {
+    -fx-font-size: 14px;
+    -fx-text-fill: #8B949E;
+}
+
+.otp-timer-value {
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFB300;
+}
+
+.resend-link {
+    -fx-text-fill: #2196F3;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-underline: true;
+}
+
+/* ===== PIN ENTRY ===== */
+
+.pin-container {
+    -fx-background-color: linear-gradient(to bottom right, #0D1117, #161B22);
+}
+
+.pin-card {
+    -fx-background-color: #21262D;
+    -fx-background-radius: 16;
+    -fx-padding: 40;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 30, 0, 0, 8);
+}
+
+.pin-title {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F0F6FC;
+}
+
+.pin-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: #8B949E;
+}
+
+.pin-icon {
+    -fx-font-size: 56px;
+    -fx-text-fill: #4CAF50;
+}
+
+.pin-field {
+    -fx-background-color: #0D1117;
+    -fx-text-fill: #F0F6FC;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-alignment: center;
+    -fx-min-width: 50;
+    -fx-max-width: 50;
+    -fx-min-height: 55;
+    -fx-max-height: 55;
+    -fx-border-color: #4CAF50;
+    -fx-border-width: 2;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+
+.pin-dots {
+    -fx-spacing: 12;
+}
+
+.pin-dot {
+    -fx-background-color: #30363D;
+    -fx-background-radius: 50;
+    -fx-min-width: 18;
+    -fx-max-width: 18;
+    -fx-min-height: 18;
+    -fx-max-height: 18;
+}
+
+.pin-dot-filled {
+    -fx-background-color: #4CAF50;
+}
+
+/* ===== AUTH LINKS ===== */
+
+.auth-link {
+    -fx-text-fill: #2196F3;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.auth-link-text {
+    -fx-text-fill: #8B949E;
+    -fx-font-size: 14px;
+}
+
+.forgot-pin-link {
+    -fx-text-fill: #8B949E;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+
+/* ===== AUTH BUTTONS ===== */
+
+.btn-auth-primary {
+    -fx-background-color: linear-gradient(to bottom, #4CAF50, #388E3C);
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 14 35;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+.btn-auth-primary:pressed {
+    -fx-background-color: linear-gradient(to bottom, #388E3C, #2E7D32);
+}
+
+.btn-auth-secondary {
+    -fx-background-color: transparent;
+    -fx-text-fill: #8B949E;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 25;
+    -fx-border-color: #30363D;
+    -fx-border-width: 2;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+.btn-welcome {
+    -fx-background-color: linear-gradient(to bottom, #4CAF50, #388E3C);
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-padding: 16 45;
+    -fx-background-radius: 12;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(76, 175, 80, 0.4), 15, 0, 0, 4);
+}
+
+.btn-welcome:pressed {
+    -fx-background-color: linear-gradient(to bottom, #388E3C, #2E7D32);
+}
+
+/* ===== ERROR STATES ===== */
+
+.auth-error {
+    -fx-background-color: rgba(239, 83, 80, 0.15);
+    -fx-border-color: #EF5350;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 12;
+}
+
+.auth-error-text {
+    -fx-text-fill: #EF5350;
+    -fx-font-size: 13px;
+}
+
+.field-error {
+    -fx-border-color: #EF5350 !important;
+}
+
+.error-message {
+    -fx-text-fill: #EF5350;
+    -fx-font-size: 12px;
+}
+
+.success-message {
+    -fx-text-fill: #4CAF50;
+    -fx-font-size: 12px;
+}
+
+/* ===== DIVIDER ===== */
+
+.auth-divider {
+    -fx-border-color: #30363D;
+    -fx-border-width: 0 0 1 0;
+}
+
+.auth-divider-text {
+    -fx-text-fill: #8B949E;
+    -fx-font-size: 12px;
 }
