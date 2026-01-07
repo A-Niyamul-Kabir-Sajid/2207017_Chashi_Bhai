@@ -1,0 +1,254 @@
+{
+  "_comment": "Firebase Realtime Database Structure for Chashi Bhai",
+  "_note": "This is the recommended structure for Firebase. Use this for real-time features like chat and notifications.",
+  
+  "users": {
+    "user_id_1": {
+      "phone": "01711111111",
+      "name": "রহিম মিয়া",
+      "role": "farmer",
+      "district": "ঢাকা",
+      "upazila": "সাভার",
+      "village": "বিরুলিয়া",
+      "isVerified": true,
+      "profilePhoto": "path/to/photo.jpg",
+      "online": true,
+      "lastSeen": 1704643200000,
+      "fcmToken": "device_token_for_notifications",
+      "createdAt": 1704643200000,
+      "updatedAt": 1704643200000
+    },
+    "user_id_2": {
+      "phone": "01722222222",
+      "name": "করিম সাহেব",
+      "role": "buyer",
+      "district": "চট্টগ্রাম",
+      "isVerified": true,
+      "online": false,
+      "lastSeen": 1704643200000,
+      "createdAt": 1704643200000
+    }
+  },
+  
+  "crops": {
+    "crop_id_1": {
+      "farmerId": "user_id_1",
+      "name": "ধান (Rice)",
+      "category": "শস্য",
+      "initialQuantityKg": 100.0,
+      "availableQuantityKg": 95.0,
+      "pricePerKg": 45.0,
+      "description": "উচ্চ মানের ধান",
+      "district": "ঢাকা",
+      "upazila": "সাভার",
+      "village": "বিরুলিয়া",
+      "harvestDate": "2025-12-15",
+      "status": "active",
+      "photos": {
+        "photo_1": {
+          "url": "https://storage.example.com/photo1.jpg",
+          "order": 0
+        },
+        "photo_2": {
+          "url": "https://storage.example.com/photo2.jpg",
+          "order": 1
+        }
+      },
+      "createdAt": 1704643200000,
+      "updatedAt": 1704643200000
+    }
+  },
+  
+  "orders": {
+    "order_id_1": {
+      "orderNumber": "ORD-20260107-0001",
+      "cropId": "crop_id_1",
+      "farmerId": "user_id_1",
+      "buyerId": "user_id_2",
+      "quantityKg": 5.0,
+      "pricePerKg": 45.0,
+      "totalAmount": 225.0,
+      "deliveryAddress": "বাসা নং ১০, রোড ৫, ধানমন্ডি",
+      "deliveryDistrict": "চট্টগ্রাম",
+      "deliveryUpazila": "পাঁচলাইশ",
+      "buyerPhone": "01722222222",
+      "buyerName": "করিম সাহেব",
+      "status": "new",
+      "paymentStatus": "pending",
+      "paymentMethod": null,
+      "notes": "দ্রুত ডেলিভারি প্রয়োজন",
+      "createdAt": 1704643200000,
+      "acceptedAt": null,
+      "deliveredAt": null,
+      "completedAt": null
+    }
+  },
+  
+  "orderHistory": {
+    "order_id_1": {
+      "history_1": {
+        "status": "new",
+        "changedBy": "user_id_2",
+        "notes": "Order placed",
+        "timestamp": 1704643200000
+      },
+      "history_2": {
+        "status": "accepted",
+        "changedBy": "user_id_1",
+        "notes": "Order accepted by farmer",
+        "timestamp": 1704643300000
+      }
+    }
+  },
+  
+  "conversations": {
+    "conversation_id_1": {
+      "participants": {
+        "user_id_1": true,
+        "user_id_2": true
+      },
+      "cropId": "crop_id_1",
+      "lastMessage": "আমি ৫ কেজি ধান কিনতে চাই",
+      "lastMessageTime": 1704643200000,
+      "lastMessageSender": "user_id_2",
+      "unreadCount": {
+        "user_id_1": 2,
+        "user_id_2": 0
+      },
+      "createdAt": 1704643200000,
+      "updatedAt": 1704643200000
+    }
+  },
+  
+  "messages": {
+    "conversation_id_1": {
+      "message_id_1": {
+        "senderId": "user_id_2",
+        "receiverId": "user_id_1",
+        "text": "আসসালামু আলাইকুম",
+        "type": "text",
+        "isRead": true,
+        "readAt": 1704643250000,
+        "timestamp": 1704643200000
+      },
+      "message_id_2": {
+        "senderId": "user_id_2",
+        "receiverId": "user_id_1",
+        "text": "আমি ৫ কেজি ধান কিনতে চাই",
+        "type": "text",
+        "isRead": false,
+        "readAt": null,
+        "timestamp": 1704643210000
+      },
+      "message_id_3": {
+        "senderId": "user_id_1",
+        "receiverId": "user_id_2",
+        "text": "ওয়ালাইকুম আসসালাম। অবশ্যই পাবেন।",
+        "type": "text",
+        "isRead": true,
+        "readAt": 1704643300000,
+        "timestamp": 1704643260000
+      },
+      "message_id_4": {
+        "senderId": "user_id_2",
+        "receiverId": "user_id_1",
+        "text": null,
+        "type": "image",
+        "attachmentUrl": "https://storage.example.com/image.jpg",
+        "isRead": false,
+        "timestamp": 1704643400000
+      }
+    }
+  },
+  
+  "notifications": {
+    "user_id_1": {
+      "notification_id_1": {
+        "title": "নতুন অর্ডার",
+        "message": "করিম সাহেব আপনার ধান এর ৫ কেজি অর্ডার করেছেন",
+        "type": "order",
+        "relatedId": "order_id_1",
+        "isRead": false,
+        "timestamp": 1704643200000
+      },
+      "notification_id_2": {
+        "title": "নতুন বার্তা",
+        "message": "করিম সাহেব আপনাকে একটি বার্তা পাঠিয়েছেন",
+        "type": "chat",
+        "relatedId": "conversation_id_1",
+        "isRead": false,
+        "timestamp": 1704643210000
+      }
+    },
+    "user_id_2": {
+      "notification_id_3": {
+        "title": "অর্ডার গৃহীত",
+        "message": "রহিম মিয়া আপনার অর্ডার গ্রহণ করেছেন",
+        "type": "order",
+        "relatedId": "order_id_1",
+        "isRead": true,
+        "timestamp": 1704643300000
+      }
+    }
+  },
+  
+  "reviews": {
+    "user_id_1": {
+      "review_id_1": {
+        "orderId": "order_id_1",
+        "reviewerId": "user_id_2",
+        "rating": 5,
+        "comment": "খুব ভালো মানের ধান। দ্রুত ডেলিভারি।",
+        "timestamp": 1704643500000
+      }
+    }
+  },
+  
+  "userStats": {
+    "user_id_1": {
+      "totalCrops": 5,
+      "activeCrops": 3,
+      "totalOrders": 15,
+      "completedOrders": 12,
+      "totalRevenue": 15000.0,
+      "averageRating": 4.5,
+      "totalReviews": 10
+    },
+    "user_id_2": {
+      "totalOrders": 8,
+      "completedOrders": 7,
+      "totalSpent": 5000.0,
+      "averageRating": 4.8,
+      "totalReviews": 5
+    }
+  },
+  
+  "typingStatus": {
+    "conversation_id_1": {
+      "user_id_2": {
+        "isTyping": true,
+        "timestamp": 1704643400000
+      }
+    }
+  },
+  
+  "_security_rules": {
+    "_comment": "Add these rules in Firebase Console",
+    "rules": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "users": {
+        "$userId": {
+          ".read": "auth != null",
+          ".write": "$userId === auth.uid"
+        }
+      },
+      "messages": {
+        "$conversationId": {
+          ".read": "auth != null && (data.child('participants').child(auth.uid).exists())",
+          ".write": "auth != null && (data.child('participants').child(auth.uid).exists())"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+
+<HBox xmlns:fx="http://javafx.com/fxml" spacing="20" styleClass="order-card" alignment="CENTER_LEFT">
+    <padding>
+        <Insets top="15" bottom="15" left="20" right="20"/>
+    </padding>
+    
+    <!-- Crop Image -->
+    <ImageView fx:id="cropImage" fitWidth="80" fitHeight="80" preserveRatio="true" styleClass="crop-image"/>
+    
+    <!-- Order Details -->
+    <VBox spacing="8" HBox.hgrow="ALWAYS">
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label fx:id="lblOrderId" text="#অর্ডার-১০০১" styleClass="order-id"/>
+            <Label fx:id="lblStatus" text="নতুন" styleClass="status-new"/>
+        </HBox>
+        <Label fx:id="lblCropName" text="ফসলের নাম" styleClass="crop-name"/>
+        <HBox spacing="15">
+            <Label fx:id="lblQuantity" text="পরিমাণ: 0 কেজি" styleClass="order-detail"/>
+            <Label text="•" styleClass="separator"/>
+            <Label fx:id="lblTotal" text="মোট: ৳ 0" styleClass="order-total"/>
+        </HBox>
+        <HBox spacing="8">
+            <Label text="👤" styleClass="icon-small"/>
+            <Label fx:id="lblBuyerName" text="ক্রেতার নাম" styleClass="buyer-name"/>
+            <Label text="•" styleClass="separator"/>
+            <Label fx:id="lblBuyerPhone" text="ফোন: --" styleClass="buyer-phone"/>
+        </HBox>
+        <HBox spacing="8">
+            <Label text="📅" styleClass="icon-small"/>
+            <Label fx:id="lblOrderDate" text="অর্ডার: --" styleClass="order-date"/>
+        </HBox>
+    </VBox>
+    
+    <!-- Action Buttons -->
+    <VBox spacing="10" alignment="CENTER_RIGHT" fx:id="vboxActions">
+        <Button fx:id="btnAccept" text="✓ গ্রহণ করুন" styleClass="button-success" prefWidth="140" visible="true"/>
+        <Button fx:id="btnReject" text="✕ প্রত্যাখ্যান" styleClass="button-danger" prefWidth="140" visible="true"/>
+        <Button fx:id="btnMarkDelivered" text="📦 ডেলিভার করা হয়েছে" styleClass="button-primary" prefWidth="140" visible="false"/>
+        <Button fx:id="btnContact" text="📞 যোগাযোগ" styleClass="button-secondary" prefWidth="140"/>
+        <Button fx:id="btnDetails" text="👁 বিস্তারিত" styleClass="button-info" prefWidth="140"/>
+    </VBox>
+</HBox>

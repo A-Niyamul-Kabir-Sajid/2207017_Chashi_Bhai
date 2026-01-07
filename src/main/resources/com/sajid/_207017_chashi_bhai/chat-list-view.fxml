@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane minHeight="700" minWidth="1024" styleClass="root" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25" fx:controller="com.sajid._207017_chashi_bhai.controllers.ChatListController">
+    
+    <!-- Top Navigation -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20" styleClass="nav-bar">
+            <padding>
+                <Insets bottom="15" left="20" right="20" top="15" />
+            </padding>
+            <Button fx:id="btnBack" onAction="#onBack" styleClass="back-button" text="←" />
+            <Label styleClass="page-title" text="💬 চ্যাট / Messages" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="btnRefresh" onAction="#onRefresh" styleClass="button-secondary" text="🔄 রিফ্রেশ" />
+        </HBox>
+    </top>
+
+    <center>
+        <VBox spacing="15">
+            <padding>
+                <Insets bottom="20" left="30" right="30" top="20" />
+            </padding>
+
+            <!-- Search Bar -->
+            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="search-bar">
+                <padding>
+                    <Insets bottom="10" left="15" right="15" top="10" />
+                </padding>
+                <Label styleClass="icon-medium" text="🔍" />
+                <TextField fx:id="txtSearch" onKeyReleased="#onSearchKeyUp" promptText="চ্যাট খুঁজুন..." styleClass="search-input" HBox.hgrow="ALWAYS" />
+            </HBox>
+
+            <!-- Filter Tabs -->
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <Button fx:id="btnFilterAll" onAction="#onFilterAll" styleClass="filter-tab, filter-active" text="সব (All)" />
+                <Button fx:id="btnFilterUnread" onAction="#onFilterUnread" styleClass="filter-tab" text="না পড়া (Unread)" />
+            </HBox>
+
+            <!-- Chat List -->
+            <ScrollPane fitToHeight="true" fitToWidth="true" styleClass="scroll-pane">
+                <VBox fx:id="vboxChatList" spacing="0">
+                    
+                    <!-- Chat items will be dynamically loaded here -->
+                    
+                    <!-- Empty state -->
+                    <VBox fx:id="vboxEmptyState" alignment="CENTER" spacing="20" visible="false">
+                        <padding>
+                            <Insets bottom="60" top="60" />
+                        </padding>
+                        <Label style="-fx-font-size: 48px;" text="💬" />
+                        <Label styleClass="empty-text" text="কোনো চ্যাট নেই" />
+                        <Label styleClass="empty-subtext" text="নতুন চ্যাট শুরু করতে কোনো ফসলে যোগাযোগ করুন" />
+                    </VBox>
+
+                    <!-- Loading indicator -->
+                    <VBox fx:id="vboxLoading" alignment="CENTER" spacing="20" visible="true">
+                        <padding>
+                            <Insets bottom="60" top="60" />
+                        </padding>
+                        <ProgressIndicator fx:id="progressIndicator" />
+                        <Label styleClass="loading-text" text="চ্যাট লোড হচ্ছে..." />
+                    </VBox>
+
+                </VBox>
+            </ScrollPane>
+
+        </VBox>
+    </center>
+    
+</BorderPane>

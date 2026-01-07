@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+
+<!-- Message Bubble - Can be styled as "sent" or "received" -->
+<HBox xmlns:fx="http://javafx.com/fxml" fx:id="messageContainer" spacing="10" alignment="CENTER_LEFT">
+    <padding>
+        <Insets top="5" bottom="5" left="0" right="0"/>
+    </padding>
+    
+    <!-- Avatar for received messages (left side) -->
+    <ImageView fx:id="avatarLeft" fitWidth="32" fitHeight="32" preserveRatio="true" styleClass="avatar-small" visible="true"/>
+    
+    <!-- Spacer for sent messages (pushes to right) -->
+    <Region fx:id="spacerLeft" HBox.hgrow="ALWAYS" visible="false"/>
+    
+    <!-- Message Content -->
+    <VBox fx:id="messageBubble" spacing="5" styleClass="message-bubble" maxWidth="600">
+        <padding>
+            <Insets top="10" bottom="10" left="15" right="15"/>
+        </padding>
+        
+        <!-- Sender name (for received messages in group chats) -->
+        <Label fx:id="lblSenderName" text="প্রেরক" styleClass="sender-name" visible="false"/>
+        
+        <!-- Message text -->
+        <Label fx:id="lblMessage" text="বার্তা টেক্সট এখানে থাকবে" styleClass="message-text" wrapText="true"/>
+        
+        <!-- Image attachment (if any) -->
+        <ImageView fx:id="messageImage" fitWidth="300" fitHeight="200" preserveRatio="true" visible="false" styleClass="message-image"/>
+        
+        <!-- File attachment (if any) -->
+        <HBox fx:id="fileAttachment" spacing="8" alignment="CENTER_LEFT" styleClass="file-attachment" visible="false">
+            <Label text="📎" styleClass="file-icon"/>
+            <VBox spacing="2">
+                <Label fx:id="lblFileName" text="file.pdf" styleClass="file-name"/>
+                <Label fx:id="lblFileSize" text="2.5 MB" styleClass="file-size"/>
+            </VBox>
+        </HBox>
+        
+        <!-- Time and Status -->
+        <HBox spacing="8" alignment="BASELINE_RIGHT">
+            <Label fx:id="lblTime" text="১০:৩০ AM" styleClass="message-time"/>
+            <!-- Status indicators for sent messages (single tick, double tick, read) -->
+            <Label fx:id="lblStatus" text="✓" styleClass="message-status" visible="false"/>
+        </HBox>
+    </VBox>
+    
+    <!-- Spacer for received messages (no use on right) -->
+    <Region fx:id="spacerRight" HBox.hgrow="ALWAYS" visible="false"/>
+    
+    <!-- Avatar for sent messages (right side) - usually not shown -->
+    <ImageView fx:id="avatarRight" fitWidth="32" fitHeight="32" preserveRatio="true" styleClass="avatar-small" visible="false"/>
+    
+</HBox>

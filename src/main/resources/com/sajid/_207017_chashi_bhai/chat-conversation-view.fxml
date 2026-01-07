@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.ChatConversationController" styleClass="root" minHeight="700" minWidth="1024">
+    
+    <!-- Top Navigation - Chat Header -->
+    <top>
+        <VBox>
+            <HBox alignment="CENTER_LEFT" spacing="20" styleClass="nav-bar">
+                <padding>
+                    <Insets top="15" bottom="15" left="20" right="20"/>
+                </padding>
+                <Button text="←" styleClass="back-button" fx:id="btnBack" onAction="#onBack"/>
+                
+                <!-- User Info -->
+                <HBox spacing="12" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                    <ImageView fx:id="userAvatar" fitWidth="40" fitHeight="40" preserveRatio="true" styleClass="avatar-small"/>
+                    <VBox spacing="2">
+                        <Label fx:id="lblUserName" text="ব্যবহারকারীর নাম" styleClass="chat-header-name"/>
+                        <Label fx:id="lblUserStatus" text="অনলাইন" styleClass="chat-header-status"/>
+                    </VBox>
+                </HBox>
+                
+                <Region HBox.hgrow="ALWAYS"/>
+                
+                <!-- Action Buttons -->
+                <Button fx:id="btnCall" text="📞" styleClass="button-icon" onAction="#onCall"/>
+                <Button fx:id="btnVideoCall" text="📹" styleClass="button-icon" onAction="#onVideoCall"/>
+                <Button fx:id="btnInfo" text="ℹ" styleClass="button-icon" onAction="#onInfo"/>
+            </HBox>
+            
+            <!-- Crop Context (Optional - shows which crop the chat is about) -->
+            <HBox fx:id="hboxCropContext" spacing="10" alignment="CENTER_LEFT" styleClass="crop-context-bar" visible="false">
+                <padding>
+                    <Insets top="10" bottom="10" left="20" right="20"/>
+                </padding>
+                <ImageView fx:id="cropImage" fitWidth="50" fitHeight="50" preserveRatio="true" styleClass="crop-image-small"/>
+                <VBox spacing="2" HBox.hgrow="ALWAYS">
+                    <Label fx:id="lblCropName" text="ফসলের নাম" styleClass="crop-context-name"/>
+                    <Label fx:id="lblCropPrice" text="৳ 0 / কেজি" styleClass="crop-context-price"/>
+                </VBox>
+                <Button fx:id="btnViewCrop" text="বিস্তারিত দেখুন" styleClass="button-link" onAction="#onViewCrop"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <!-- Messages Area -->
+        <ScrollPane fx:id="scrollPane" fitToWidth="true" styleClass="scroll-pane" vvalue="1.0">
+            <VBox fx:id="vboxMessages" spacing="10" styleClass="messages-container">
+                <padding>
+                    <Insets top="20" bottom="20" left="30" right="30"/>
+                </padding>
+                
+                <!-- Messages will be dynamically loaded here -->
+                
+                <!-- Date Separator Example -->
+                <HBox alignment="CENTER">
+                    <Label text="আজ" styleClass="date-separator"/>
+                </HBox>
+                
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <!-- Bottom - Message Input -->
+    <bottom>
+        <VBox>
+            <!-- Typing Indicator -->
+            <HBox fx:id="hboxTypingIndicator" spacing="8" alignment="CENTER_LEFT" visible="false" styleClass="typing-indicator">
+                <padding>
+                    <Insets top="8" bottom="8" left="20" right="20"/>
+                </padding>
+                <Label text="..." styleClass="typing-dots"/>
+                <Label fx:id="lblTypingUser" text="টাইপ করছে..." styleClass="typing-text"/>
+            </HBox>
+            
+            <!-- Message Input Area -->
+            <HBox spacing="10" alignment="CENTER" styleClass="message-input-bar">
+                <padding>
+                    <Insets top="15" bottom="15" left="20" right="20"/>
+                </padding>
+                
+                <Button fx:id="btnAttach" text="📎" styleClass="button-icon" onAction="#onAttach"/>
+                <Button fx:id="btnPhoto" text="📷" styleClass="button-icon" onAction="#onPhoto"/>
+                
+                <TextArea fx:id="txtMessage" promptText="বার্তা লিখুন..." wrapText="true" prefRowCount="1" styleClass="message-input" HBox.hgrow="ALWAYS" onKeyPressed="#onMessageKeyPressed"/>
+                
+                <Button fx:id="btnEmoji" text="😊" styleClass="button-icon" onAction="#onEmoji"/>
+                <Button fx:id="btnSend" text="পাঠান ➤" styleClass="button-primary" onAction="#onSendMessage"/>
+            </HBox>
+        </VBox>
+    </bottom>
+    
+</BorderPane>

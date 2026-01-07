@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+
+<HBox xmlns:fx="http://javafx.com/fxml" spacing="15" styleClass="chat-list-item" alignment="CENTER_LEFT" onMouseClicked="#onChatClick">
+    <padding>
+        <Insets top="12" bottom="12" left="20" right="20"/>
+    </padding>
+    
+    <!-- User Avatar with Online Status -->
+    <StackPane>
+        <ImageView fx:id="userAvatar" fitWidth="55" fitHeight="55" preserveRatio="true" styleClass="avatar-medium"/>
+        <!-- Online/Offline indicator -->
+        <HBox alignment="BOTTOM_RIGHT">
+            <padding>
+                <Insets bottom="2" right="2"/>
+            </padding>
+            <Region fx:id="onlineIndicator" prefWidth="12" prefHeight="12" styleClass="online-indicator" visible="false"/>
+        </HBox>
+    </StackPane>
+    
+    <!-- Chat Info -->
+    <VBox spacing="4" HBox.hgrow="ALWAYS">
+        <HBox spacing="8" alignment="CENTER_LEFT">
+            <Label fx:id="lblUserName" text="ব্যবহারকারীর নাম" styleClass="chat-user-name"/>
+            <Label fx:id="lblUserRole" text="কৃষক" styleClass="chat-user-role"/>
+            <Label fx:id="lblVerified" text="✓" styleClass="verified-badge" visible="false"/>
+        </HBox>
+        
+        <Label fx:id="lblLastMessage" text="শেষ বার্তা..." styleClass="chat-last-message" maxWidth="400" wrapText="false"/>
+        
+        <HBox spacing="8" alignment="CENTER_LEFT">
+            <Label fx:id="lblCropName" text="ফসল: ধান" styleClass="chat-crop-name" visible="true"/>
+        </HBox>
+    </VBox>
+    
+    <!-- Right Side - Time and Badge -->
+    <VBox spacing="8" alignment="TOP_RIGHT" minWidth="80">
+        <Label fx:id="lblTime" text="১০:৩০ AM" styleClass="chat-time"/>
+        
+        <!-- Unread badge -->
+        <StackPane fx:id="unreadBadge" styleClass="unread-badge" visible="false">
+            <Label fx:id="lblUnreadCount" text="3" styleClass="unread-count"/>
+        </StackPane>
+        
+        <!-- Message status (for sent messages) -->
+        <Label fx:id="lblStatus" text="✓✓" styleClass="message-status" visible="false"/>
+    </VBox>
+    
+</HBox>
