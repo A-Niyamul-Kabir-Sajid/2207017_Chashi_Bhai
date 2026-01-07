@@ -415,11 +415,75 @@ public class CropFeedController {
     }
 
     private void contactFarmer(CropItem item) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("যোগাযোগ করুন");
-        alert.setHeaderText("কৃষক: " + item.farmerName);
-        alert.setContentText("ফসল: " + item.name + "\nজেলা: " + item.district);
-        alert.showAndWait();
+        // Get or create conversation with farmer
+        String sql = "SELECT id FROM conversations WHERE " +
+                    "(user1_id = ? AND user2_id = ? AND (crop_id = ? OR crop_id IS NULL)) OR " +
+                    "(user1_id = ? AND user2_id = ? AND (crop_id = ? OR crop_id IS NULL))";
+        Object[] params = {currentUser.getId(), item.farmerId, item.id, 
+                          item.farmerId, currentUser.getId(), item.id};
+        
+        DatabaseService.executeQueryAsync(sql, params,
+            rs -> {
+                try {
+                    if (rs.next()) {
+                        // Conversation exists
+                        int convId = rs.getInt("id");
+                        Platform.runLater(() -> openConversation(convId, item.farmerId, item.farmerName, item.id));
+                    } else {
+                        // Create new conversation
+                        createAndOpenConversation(item);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Platform.runLater(() -> showError("Error", "Failed to open chat"));
+                }
+            },
+            err -> {
+                Platform.runLater(() -> showError("Error", "Database error: " + err.getMessage()));
+            }
+        );
+    }
+    
+    private void createAndOpenConversation(CropItem item) {
+        String insertSql = "INSERT INTO conversations (user1_id, user2_id, crop_id) VALUES (?, ?, ?)";
+        Object[] params = {currentUser.getId(), item.farmerId, item.id};
+        
+        DatabaseService.executeUpdateAsync(insertSql, params,
+            rows -> {
+                // Get the newly created conversation ID
+                String selectSql = "SELECT id FROM conversations WHERE user1_id = ? AND user2_id = ? AND crop_id = ?";
+                DatabaseService.executeQueryAsync(selectSql, params,
+                    rs -> {
+                        try {
+                            if (rs.next()) {
+                                int convId = rs.getInt("id");
+                                Platform.runLater(() -> openConversation(convId, item.farmerId, item.farmerName, item.id));
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    },
+                    err -> err.printStackTrace()
+                );
+            },
+            err -> {
+                Platform.runLater(() -> showError("Error", "Failed to create conversation"));
+            }
+        );
+    }
+    
+    private void openConversation(int convId, int userId, String userName, int cropId) {
+        try {
+            App.showView("chat-conversation-view.fxml", controller -> {
+                if (controller instanceof ChatConversationController) {
+                    ChatConversationController chatController = (ChatConversationController) controller;
+                    chatController.loadConversation(convId, userId, userName, cropId);
+                }
+            });
+        } catch (Exception e) {
+            showError("Error", "Failed to open chat");
+            e.printStackTrace();
+        }
     }
 
     private void openPhone(String phone) {
