@@ -5,6 +5,7 @@ package com.sajid._207017_chashi_bhai.models;
  */
 public class Crop {
     private int id;
+    private String productCode; // Auto-generated unique code
     private int farmerId;
     private String name;
     private String category;
@@ -39,6 +40,14 @@ public class Crop {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getProductCode() {
+        return productCode;
+    }
+
+    public void setProductCode(String productCode) {
+        this.productCode = productCode;
     }
 
     public int getFarmerId() {

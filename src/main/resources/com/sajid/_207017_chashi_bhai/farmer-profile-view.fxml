@@ -120,6 +120,12 @@
                     </ScrollPane>
                 </VBox>
 
+                <!-- Logout Button -->
+                <VBox spacing="10" alignment="CENTER" styleClass="logout-section">
+                    <Button fx:id="btnLogout" text="🚺 লগআউট / Logout" styleClass="button-danger" onAction="#onLogout" prefWidth="300" prefHeight="45"/>
+                    <Label text="আপনার অ্যাকাউন্ট থেকে সাইন আউট করুন" styleClass="logout-hint-text"/>
+                </VBox>
+
             </VBox>
         </ScrollPane>
     </center>

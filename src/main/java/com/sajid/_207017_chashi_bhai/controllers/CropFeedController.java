@@ -43,6 +43,7 @@ public class CropFeedController {
     // Keep a simple in-memory representation to support quick filtering
     private static class CropItem {
         int id;
+        String productCode;
         int farmerId;
         String name;
         String farmerName;
@@ -89,7 +90,32 @@ public class CropFeedController {
 
     @FXML
     private void onBack() {
-        App.loadScene("welcome-view.fxml", "Chashi Bhai");
+        // Navigate to dashboard based on role
+        if ("farmer".equals(role)) {
+            App.loadScene("farmer-dashboard-view.fxml", "কৃষক ড্যাশবোর্ড");
+        } else {
+            App.loadScene("buyer-dashboard-view.fxml", "ক্রেতা ড্যাশবোর্ড");
+        }
+    }
+
+    @FXML
+    private void onDashboard() {
+        // Navigate to dashboard based on role
+        if ("farmer".equals(role)) {
+            App.loadScene("farmer-dashboard-view.fxml", "কৃষক ড্যাশবোর্ড");
+        } else {
+            App.loadScene("buyer-dashboard-view.fxml", "ক্রেতা ড্যাশবোর্ড");
+        }
+    }
+
+    @FXML
+    private void onProfile() {
+        // Navigate to profile based on role
+        if ("farmer".equals(role)) {
+            App.loadScene("farmer-profile-view.fxml", "প্রোফাইল");
+        } else {
+            App.loadScene("buyer-profile-view.fxml", "প্রোফাইল");
+        }
     }
 
     @FXML
@@ -220,6 +246,7 @@ public class CropFeedController {
     private CropItem mapItem(ResultSet rs) throws Exception {
         CropItem item = new CropItem();
         item.id = rs.getInt("id");
+        item.productCode = safeString(rs, "product_code");
         item.farmerId = rs.getInt("farmer_id");
         item.name = rs.getString("name");
         item.farmerName = rs.getString("farmer_name");
@@ -347,12 +374,18 @@ public class CropFeedController {
 
             actionsBox.getChildren().addAll(contact, order, whatsapp, call);
         } else {
-            // Farmer viewing others
+            // Farmer viewing others' crops - can only view details and copy code
             Button view = new Button("বিস্তারিত দেখুন");
             view.getStyleClass().add("button-secondary");
             view.setMaxWidth(Double.MAX_VALUE);
             view.setOnAction(e -> openDetails(item.id));
-            actionsBox.getChildren().add(view);
+            
+            Button copyCode = new Button("📋 কোড কপি করুন");
+            copyCode.getStyleClass().add("button-transparent");
+            copyCode.setMaxWidth(Double.MAX_VALUE);
+            copyCode.setOnAction(e -> copyProductCode(item.productCode));
+            
+            actionsBox.getChildren().addAll(view, copyCode);
         }
 
         card.getChildren().addAll(imageView, details, actionsBox);
@@ -364,9 +397,11 @@ public class CropFeedController {
         vboxCrops.getChildren().clear();
         int count = 0;
         for (CropItem item : loadedCrops) {
-            if (q.isEmpty() || (item.name != null && item.name.toLowerCase().contains(q)) ||
+            if (q.isEmpty() || 
+                (item.name != null && item.name.toLowerCase().contains(q)) ||
                 (item.district != null && item.district.toLowerCase().contains(q)) ||
-                (item.farmerName != null && item.farmerName.toLowerCase().contains(q))) {
+                (item.farmerName != null && item.farmerName.toLowerCase().contains(q)) ||
+                (item.productCode != null && item.productCode.toLowerCase().contains(q))) {
                 vboxCrops.getChildren().add(buildCropCard(item));
                 count++;
             }
@@ -500,6 +535,23 @@ public class CropFeedController {
             java.awt.Desktop.getDesktop().browse(new java.net.URI("https://wa.me/" + cleanPhone));
         } catch (Exception e) {
             showInfo("WhatsApp", "WhatsApp: " + (phone == null ? "N/A" : phone));
+        }
+    }
+
+    private void copyProductCode(String productCode) {
+        if (productCode == null || productCode.isEmpty()) {
+            showInfo("কোড নেই", "এই পণ্যের কোড পাওয়া যায়নি।");
+            return;
+        }
+        try {
+            javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+            javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+            content.putString(productCode);
+            clipboard.setContent(content);
+            showInfo("কপি সফল", "পণ্য কোড কপি হয়েছে: " + productCode);
+        } catch (Exception e) {
+            showError("ত্রুটি", "কোড কপি করতে ব্যর্থ হয়েছে।");
+            e.printStackTrace();
         }
     }
 

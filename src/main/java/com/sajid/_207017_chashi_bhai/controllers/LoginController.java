@@ -109,12 +109,8 @@ public class LoginController {
             
             System.out.println("✅ Login successful - User: " + userName + ", Role: " + selectedRole);
             
-            // Navigate to appropriate dashboard
-            if (selectedRole.equals("FARMER")) {
-                App.loadScene("farmer-dashboard-view.fxml", "Farmer Dashboard - Chashi Bhai");
-            } else {
-                App.loadScene("buyer-dashboard-view.fxml", "Buyer Dashboard - Chashi Bhai");
-            }
+            // Navigate to crop feed (marketplace) - now the default landing page
+            App.loadScene("crop-feed-view.fxml", "সকল ফসল / Browse Crops - Chashi Bhai");
         } else {
             // TODO: Check phone, PIN and role in database
             showError("❌ Invalid credentials. Try demo accounts:\n" +

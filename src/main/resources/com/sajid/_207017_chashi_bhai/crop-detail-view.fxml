@@ -65,6 +65,12 @@
                                 <Region HBox.hgrow="ALWAYS"/>
                                 <Label text="✓ সক্রিয়" styleClass="status-active"/>
                             </HBox>
+                            <!-- Product Code -->
+                            <HBox spacing="10" alignment="CENTER_LEFT" styleClass="product-code-box">
+                                <Label text="পণ্য কোড:" styleClass="detail-label"/>
+                                <Label fx:id="lblProductCode" text="CRP-20260108-0001" styleClass="product-code-value"/>
+                                <Button fx:id="btnCopyCode" text="📋 কপি" styleClass="button-transparent" onAction="#onCopyProductCode"/>
+                            </HBox>
                         </VBox>
                         
                         <Separator/>

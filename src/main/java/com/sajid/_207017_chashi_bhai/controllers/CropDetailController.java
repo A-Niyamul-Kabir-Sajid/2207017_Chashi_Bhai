@@ -24,6 +24,8 @@ public class CropDetailController {
     @FXML private HBox hboxThumbnails;
     @FXML private Label lblCropName;
     @FXML private Label lblCropPrice;
+    @FXML private Label lblProductCode;
+    @FXML private Button btnCopyCode;
     @FXML private Label lblCategory;
     @FXML private Label lblQuantity;
     @FXML private Label lblHarvestDate;
@@ -44,6 +46,7 @@ public class CropDetailController {
 
     private User currentUser;
     private int cropId;
+    private String productCode;
     private int farmerId;
     private String farmerPhone;
     private double cropPrice;
@@ -71,6 +74,7 @@ public class CropDetailController {
         // TODO: Replace with actual database call later
         // Hardcoded data for UI testing
         String name = "তাজা টমেটো";
+        productCode = "CRP-20260108-0001"; // This will come from database
         String category = "সবজি";
         cropPrice = 45.0;
         cropUnit = "কেজি";
@@ -82,6 +86,7 @@ public class CropDetailController {
 
         lblCropName.setText(name);
         lblCropPrice.setText(String.format("৳%.2f/%s", cropPrice, cropUnit));
+        lblProductCode.setText(productCode != null ? productCode : "N/A");
         lblCategory.setText(category);
         lblQuantity.setText(String.format("%.1f %s", quantity, cropUnit));
         lblHarvestDate.setText(harvestDate);
@@ -230,8 +235,26 @@ public class CropDetailController {
     }
 
     @FXML
-    private void onFavorite() {
+    private void onToggleFavorite() {
         showInfo("প্রিয়", "প্রিয় বৈশিষ্ট্য শীঘ্রই আসছে...");
+    }
+
+    @FXML
+    private void onCopyProductCode() {
+        if (productCode == null || productCode.isEmpty()) {
+            showInfo("কোড নেই", "এই পণ্যের কোড পাওয়া যায়নি।");
+            return;
+        }
+        try {
+            javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+            javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+            content.putString(productCode);
+            clipboard.setContent(content);
+            showInfo("কপি সফল", "পণ্য কোড কপি হয়েছে: " + productCode);
+        } catch (Exception e) {
+            showError("ত্রুটি", "কোড কপি করতে ব্যর্থ হয়েছে।");
+            e.printStackTrace();
+        }
     }
 
     @FXML

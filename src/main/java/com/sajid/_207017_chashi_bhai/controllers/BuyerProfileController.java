@@ -113,6 +113,23 @@ public class BuyerProfileController {
         App.loadScene("buyer-dashboard-view.fxml", "Dashboard");
     }
 
+    @FXML
+    private void onLogout() {
+        // Show confirmation dialog
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("নিশ্চিত করুন");
+        confirm.setHeaderText("আপনি কি লগআউট করতে চান?");
+        confirm.setContentText("আপনাকে পুনরায় লগইন করতে হবে।");
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == javafx.scene.control.ButtonType.OK) {
+                // Clear current user
+                App.setCurrentUser(null);
+                // Navigate to login screen
+                App.loadScene("login-view.fxml", "Login");
+            }
+        });
+    }
+
     private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);

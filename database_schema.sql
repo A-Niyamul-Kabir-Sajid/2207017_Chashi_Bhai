@@ -30,6 +30,7 @@ CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 -- ============================================
 CREATE TABLE IF NOT EXISTS crops (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_code TEXT UNIQUE NOT NULL, -- Auto-generated: CRP-YYYYMMDD-0001
     farmer_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     category TEXT NOT NULL,
