@@ -1,9 +1,7 @@
 # Database Setup Guide for Chashi Bhai App
 
 ## Overview
-This application uses **two databases**:
-1. **SQLite** - For local data storage and offline functionality
-2. **Firebase Realtime Database** - For real-time features (chat, notifications, online status)
+This application uses **SQLite** for local data storage and offline functionality.
 
 ---
 
@@ -46,111 +44,9 @@ After running your app:
 
 ---
 
-## Part 2: Firebase Setup (Real-time Database)
+## Part 2: Database Structure Explanation
 
-### 2.1 What You Need Outside VS Code
-
-#### Step 1: Create Firebase Project
-1. Go to https://console.firebase.google.com/
-2. Click "Add project"
-3. Enter project name: `chashi-bhai-app`
-4. Follow the wizard (disable Google Analytics if not needed)
-5. Click "Create project"
-
-#### Step 2: Enable Realtime Database
-1. In Firebase Console, click "Realtime Database" from left menu
-2. Click "Create Database"
-3. Choose location: `asia-southeast1` (Singapore - closest to Bangladesh)
-4. Start in **Test Mode** (for development)
-5. Click "Enable"
-
-#### Step 3: Get Configuration Files
-
-##### For Android (if you plan to make mobile app):
-1. Go to Project Settings (gear icon)
-2. Click "Add app" → Android
-3. Enter package name: `com.sajid._207017_chashi_bhai`
-4. Download `google-services.json`
-
-##### For Java Desktop App:
-1. Go to Project Settings → Service Accounts
-2. Click "Generate new private key"
-3. Save the JSON file as `firebase-credentials.json`
-4. Put it in: `src/main/resources/`
-
-#### Step 4: Set Security Rules
-1. In Realtime Database, go to "Rules" tab
-2. Replace with these rules:
-```json
-{
-  "rules": {
-    ".read": "auth != null",
-    ".write": "auth != null",
-    
-    "users": {
-      "$userId": {
-        ".read": true,
-        ".write": "$userId === auth.uid"
-      }
-    },
-    
-    "crops": {
-      ".read": true,
-      "$cropId": {
-        ".write": "auth != null && (data.child('farmerId').val() === auth.uid || !data.exists())"
-      }
-    },
-    
-    "conversations": {
-      "$conversationId": {
-        ".read": "auth != null && (data.child('participants').child(auth.uid).exists())",
-        ".write": "auth != null && (data.child('participants').child(auth.uid).exists() || !data.exists())"
-      }
-    },
-    
-    "messages": {
-      "$conversationId": {
-        ".read": "auth != null && (root.child('conversations').child($conversationId).child('participants').child(auth.uid).exists())",
-        ".write": "auth != null && (root.child('conversations').child($conversationId).child('participants').child(auth.uid).exists())"
-      }
-    },
-    
-    "notifications": {
-      "$userId": {
-        ".read": "$userId === auth.uid",
-        ".write": "$userId === auth.uid"
-      }
-    }
-  }
-}
-```
-
-### 2.2 Add Firebase Dependencies to pom.xml
-Add these to your `pom.xml`:
-```xml
-<!-- Firebase Admin SDK -->
-<dependency>
-    <groupId>com.google.firebase</groupId>
-    <artifactId>firebase-admin</artifactId>
-    <version>9.2.0</version>
-</dependency>
-
-<!-- Gson for JSON parsing -->
-<dependency>
-    <groupId>com.google.code.gson</groupId>
-    <artifactId>gson</artifactId>
-    <version>2.10.1</version>
-</dependency>
-```
-
-### 2.3 Initialize Firebase in Your App
-Create `FirebaseService.java` to initialize Firebase with your credentials.
-
----
-
-## Part 3: Database Structure Explanation
-
-### 3.1 How Product Quantity Works
+### 2.1 How Product Quantity Works
 
 #### Example Scenario:
 1. **Farmer posts crop**: 
@@ -190,13 +86,13 @@ new → accepted → in_transit → delivered → completed
 
 #### `conversations` & `messages`:
 - Enable chat between farmers and buyers
-- Real-time sync with Firebase
+- Messages stored in SQLite
 
 ---
 
-## Part 4: Testing Your Setup
+## Part 3: Testing Your Setup
 
-### 4.1 Test SQLite
+### 3.1 Test SQLite
 ```java
 // In your DatabaseService initialization:
 DatabaseService.executeQuery(
@@ -210,50 +106,37 @@ DatabaseService.executeQuery(
 );
 ```
 
-### 4.2 Test Firebase
-```java
-// Test Firebase connection:
-FirebaseService.testConnection(
-    success -> System.out.println("Firebase connected!"),
-    error -> System.err.println("Firebase error: " + error)
-);
-```
-
 ---
 
-## Part 5: Next Steps
+## Part 4: Next Steps
 
-### 5.1 What to Implement:
+### 4.1 What to Implement:
 
 1. **DatabaseService.java** ✓ (Already exists)
-   - Add methods for orders
-   - Add quantity management
+   - Methods for orders
+   - Quantity management
+   - Chat operations
 
-2. **FirebaseService.java** ⚠ (Need to create)
-   - Initialize Firebase
-   - Real-time listeners for chat
-   - Sync data between SQLite and Firebase
-
-3. **Order Management**:
+2. **Order Management**:
    - Create order from buyer
    - Update crop quantity
    - Handle order status changes
 
-4. **Chat System**:
+3. **Chat System**:
    - Send/receive messages
    - Update conversation list
    - Mark messages as read
 
-5. **Authentication**:
+4. **Authentication**:
    - Phone + PIN login
    - OTP verification
    - Session management
 
 ---
 
-## Part 6: Tools You Need to Install
+## Part 5: Tools You Need to Install
 
-### 6.1 Required Tools:
+### 5.1 Required Tools:
 
 1. **DB Browser for SQLite** (Free)
    - Download: https://sqlitebrowser.org/

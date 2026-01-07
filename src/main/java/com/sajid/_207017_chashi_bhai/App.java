@@ -19,6 +19,7 @@ public class App extends Application {
     private static Stage primaryStage;
     private static User currentUser;
     private static int currentCropId = -1;
+    private static int viewedUserId = -1; // For viewing other users' profiles
     private static String searchQuery = "";
 
     @Override
@@ -142,6 +143,41 @@ public class App extends Application {
      */
     public static Stage getPrimaryStage() {
         return primaryStage;
+    }
+
+    /**
+     * Get viewed user ID (for public profile views)
+     */
+    public static int getCurrentViewedUserId() {
+        return viewedUserId;
+    }
+
+    /**
+     * Set viewed user ID
+     */
+    public static void setCurrentViewedUserId(int userId) {
+        viewedUserId = userId;
+    }
+
+    /**
+     * Show a view and pass its controller to a callback
+     */
+    public static void showView(String fxmlFile, java.util.function.Consumer<Object> controllerCallback) throws IOException {
+        FXMLLoader loader = new FXMLLoader(App.class.getResource(fxmlFile));
+        Scene scene = new Scene(loader.load());
+        
+        // Load CSS
+        scene.getStylesheets().add(App.class.getResource("styles.css").toExternalForm());
+        scene.getStylesheets().add(App.class.getResource("base.css").toExternalForm());
+        scene.getStylesheets().add(App.class.getResource("components.css").toExternalForm());
+        scene.getStylesheets().add(App.class.getResource("chat.css").toExternalForm());
+        
+        primaryStage.setScene(scene);
+        
+        // Pass controller to callback
+        if (controllerCallback != null) {
+            controllerCallback.accept(loader.getController());
+        }
     }
 
     public static void main(String[] args) {

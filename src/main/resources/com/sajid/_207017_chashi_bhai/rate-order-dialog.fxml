@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.RateOrderDialogController" 
+      spacing="15" styleClass="dialog-container" prefWidth="450" prefHeight="400">
+    <padding>
+        <Insets top="20" bottom="20" left="25" right="25"/>
+    </padding>
+    
+    <!-- Dialog Title -->
+    <Label text="⭐ রেটিং দিন / Rate Order" styleClass="dialog-title" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+    
+    <Separator/>
+    
+    <!-- Order Info Summary -->
+    <VBox spacing="8" styleClass="info-box" style="-fx-background-color: #f5f5f5; -fx-padding: 15; -fx-background-radius: 8;">
+        <Label text="অর্ডার নম্বর / Order Number" style="-fx-font-size: 11px; -fx-text-fill: #666;"/>
+        <Label fx:id="lblOrderNumber" text="ORD-20260108-0001" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+        <HBox spacing="10">
+            <Label text="কৃষক / Farmer:" style="-fx-font-weight: bold;"/>
+            <Label fx:id="lblFarmerName" text="কৃষকের নাম" style="-fx-text-fill: #4CAF50;"/>
+        </HBox>
+        <HBox spacing="10">
+            <Label text="পণ্য / Product:" style="-fx-font-weight: bold;"/>
+            <Label fx:id="lblCropName" text="ফসলের নাম"/>
+        </HBox>
+    </VBox>
+    
+    <!-- Rating Form -->
+    <VBox spacing="15">
+        <!-- Star Rating -->
+        <VBox spacing="8">
+            <Label text="আপনার রেটিং / Your Rating *" styleClass="form-label" style="-fx-font-weight: bold;"/>
+            <HBox spacing="10" alignment="CENTER_LEFT" fx:id="hboxStars">
+                <Button fx:id="btnStar1" text="⭐" styleClass="star-button" onAction="#onStar1" style="-fx-font-size: 32px; -fx-background-color: transparent; -fx-cursor: hand;"/>
+                <Button fx:id="btnStar2" text="⭐" styleClass="star-button" onAction="#onStar2" style="-fx-font-size: 32px; -fx-background-color: transparent; -fx-cursor: hand;"/>
+                <Button fx:id="btnStar3" text="⭐" styleClass="star-button" onAction="#onStar3" style="-fx-font-size: 32px; -fx-background-color: transparent; -fx-cursor: hand;"/>
+                <Button fx:id="btnStar4" text="⭐" styleClass="star-button" onAction="#onStar4" style="-fx-font-size: 32px; -fx-background-color: transparent; -fx-cursor: hand;"/>
+                <Button fx:id="btnStar5" text="⭐" styleClass="star-button" onAction="#onStar5" style="-fx-font-size: 32px; -fx-background-color: transparent; -fx-cursor: hand;"/>
+                <Label fx:id="lblRatingText" text="রেটিং নির্বাচন করুন" style="-fx-font-size: 14px; -fx-text-fill: #666;"/>
+            </HBox>
+        </VBox>
+        
+        <!-- Comment -->
+        <VBox spacing="8">
+            <Label text="মন্তব্য / Comment (Optional)" styleClass="form-label"/>
+            <TextArea fx:id="txtComment" promptText="আপনার অভিজ্ঞতা শেয়ার করুন..." prefRowCount="5" styleClass="form-input" wrapText="true"/>
+        </VBox>
+    </VBox>
+    
+    <Separator/>
+    
+    <!-- Action Buttons -->
+    <HBox spacing="12" alignment="CENTER">
+        <Button text="❌ বাতিল / Cancel" onAction="#onCancel" styleClass="button-secondary" prefWidth="180" prefHeight="40"/>
+        <Button text="✅ সাবমিট / Submit" onAction="#onSubmit" styleClass="button-primary" prefWidth="180" prefHeight="40"/>
+    </HBox>
+    
+    <!-- Error Label -->
+    <Label fx:id="lblError" text="" style="-fx-text-fill: red; -fx-font-weight: bold;" wrapText="true" visible="false"/>
+    
+</VBox>

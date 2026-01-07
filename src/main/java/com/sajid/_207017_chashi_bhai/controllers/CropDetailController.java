@@ -41,6 +41,7 @@ public class CropDetailController {
     @FXML private Label lblFarmerDistrict;
     @FXML private Button btnCall;
     @FXML private Button btnWhatsApp;
+    @FXML private Button btnChat;
     @FXML private Button btnOrder;
     @FXML private Button btnFavorite;
 
@@ -181,57 +182,70 @@ public class CropDetailController {
     private void onWhatsApp() {
         try {
             String cleanPhone = farmerPhone.replaceAll("[^0-9]", "");
+            // Add Bangladesh country code if not present
             if (!cleanPhone.startsWith("880")) {
-                cleanPhone = "880" + cleanPhone;
+                if (cleanPhone.startsWith("0")) {
+                    cleanPhone = "880" + cleanPhone.substring(1);
+                } else {
+                    cleanPhone = "880" + cleanPhone;
+                }
             }
-            Desktop.getDesktop().browse(new URI("https://wa.me/" + cleanPhone));
+            String url = "https://wa.me/" + cleanPhone;
+            Desktop.getDesktop().browse(new URI(url));
         } catch (Exception e) {
             showInfo("WhatsApp", "WhatsApp: " + farmerPhone);
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void onChat() {
+        // Navigate to chat conversation with farmer
+        try {
+            App.showView("chat-conversation-view.fxml", controller -> {
+                if (controller instanceof ChatConversationController) {
+                    ChatConversationController chatController = (ChatConversationController) controller;
+                    // Get or create conversation with farmer
+                    chatController.loadConversation(0, farmerId, lblFarmerName.getText(), cropId);
+                }
+            });
+        } catch (Exception e) {
+            showError("ত্রুটি", "চ্যাট খুলতে ব্যর্থ হয়েছে।");
+            e.printStackTrace();
         }
     }
 
     @FXML
     private void onOrder() {
-        // Show quantity dialog
-        TextInputDialog dialog = new TextInputDialog("1");
-        dialog.setTitle("অর্ডার করুন");
-        dialog.setHeaderText("আপনি কত পরিমাণ কিনতে চান?");
-        dialog.setContentText("পরিমাণ (" + cropUnit + "):");
-
-        Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()) {
-            try {
-                double quantity = Double.parseDouble(result.get());
-                if (quantity <= 0) {
-                    showError("ত্রুটি", "সঠিক পরিমাণ লিখুন।");
-                    return;
-                }
-
-                double totalPrice = quantity * cropPrice;
-                
-                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-                confirm.setTitle("অর্ডার নিশ্চিত করুন");
-                confirm.setHeaderText("অর্ডার বিস্তারিত");
-                confirm.setContentText(
-                    "পরিমাণ: " + quantity + " " + cropUnit + "\n" +
-                    "মূল্য: ৳" + String.format("%.2f", totalPrice) + "\n\n" +
-                    "আপনি কি এই অর্ডার নিশ্চিত করতে চান?"
-                );
-
-                Optional<ButtonType> confirmResult = confirm.showAndWait();
-                if (confirmResult.isPresent() && confirmResult.get() == ButtonType.OK) {
-                    placeOrder(quantity);
-                }
-            } catch (NumberFormatException e) {
-                showError("ত্রুটি", "সঠিক পরিমাণ লিখুন।");
+        try {
+            // Load order dialog
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                getClass().getResource("/com/sajid/_207017_chashi_bhai/place-order-dialog.fxml")
+            );
+            javafx.scene.Parent root = loader.load();
+            
+            // Get controller and set crop details
+            PlaceOrderDialogController dialogController = loader.getController();
+            dialogController.setCropDetails(cropId, farmerId, lblCropName.getText(), cropPrice, Double.parseDouble(lblQuantity.getText().replaceAll("[^0-9.]", "")));
+            
+            // Create and show dialog
+            javafx.stage.Stage dialogStage = new javafx.stage.Stage();
+            dialogStage.setTitle("অর্ডার করুন");
+            dialogStage.initModality(javafx.stage.Modality.WINDOW_MODAL);
+            dialogStage.initOwner(App.getPrimaryStage());
+            dialogStage.setScene(new javafx.scene.Scene(root));
+            dialogController.setDialogStage(dialogStage);
+            
+            dialogStage.showAndWait();
+            
+            // If order was placed successfully, navigate to buyer orders
+            if (dialogController.isOrderPlaced()) {
+                App.loadScene("buyer-orders-view.fxml", "আমার অর্ডারসমূহ");
             }
+        } catch (Exception e) {
+            showError("ত্রুটি", "অর্ডার ডায়ালগ খুলতে ব্যর্থ হয়েছে।");
+            e.printStackTrace();
         }
-    }
-
-    private void placeOrder(double quantity) {
-        // TODO: Replace with actual database call later
-        showSuccess("সফল!", "আপনার অর্ডার সফলভাবে সম্পন্ন হয়েছে। কৃষক শীঘ্রই যোগাযোগ করবেন।");
-        // App.loadScene("buyer-orders-view.fxml", "আমার অর্ডারসমূহ");
     }
 
     @FXML
@@ -259,7 +273,9 @@ public class CropDetailController {
 
     @FXML
     private void onViewFarmerProfile() {
-        showInfo("কৃষকের প্রোফাইল", "প্রোফাইল ভিউ শীঘ্রই আসছে...");
+        // Store farmer ID and navigate to public farmer profile view
+        App.setCurrentViewedUserId(farmerId);
+        App.loadScene("public-farmer-profile-view.fxml", "কৃষকের প্রোফাইল");
     }
 
     @FXML

@@ -3,7 +3,6 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
-import com.sajid._207017_chashi_bhai.services.FirebaseService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -108,11 +107,6 @@ public class ChatConversationController {
         
         // Mark messages as read
         markMessagesAsRead();
-        
-        // Setup Firebase listeners
-        if (FirebaseService.isInitialized()) {
-            setupRealtimeListeners();
-        }
     }
 
     private void setupEventHandlers() {
@@ -155,18 +149,6 @@ public class ChatConversationController {
             },
             err -> err.printStackTrace()
         );
-        
-        // Check online status from Firebase
-        if (FirebaseService.isInitialized()) {
-            FirebaseService.listenToUserStatus(String.valueOf(otherUserId), online -> {
-                Platform.runLater(() -> {
-                    if (online) {
-                        lblUserStatus.setText("অনলাইন");
-                        lblUserStatus.setStyle("-fx-text-fill: #4CAF50;");
-                    }
-                });
-            });
-        }
     }
 
     private void loadCropContext() {
@@ -371,23 +353,6 @@ public class ChatConversationController {
                     txtMessage.clear();
                     loadMessages(); // Reload to show new message
                 });
-                
-                // Send to Firebase for real-time delivery
-                if (FirebaseService.isInitialized()) {
-                    FirebaseService.sendMessage(
-                        String.valueOf(conversationId),
-                        String.valueOf(currentUser.getId()),
-                        String.valueOf(otherUserId),
-                        text,
-                        "text",
-                        messageId -> {
-                            // Message sent successfully
-                        },
-                        error -> {
-                            System.err.println("Firebase send error: " + error.getMessage());
-                        }
-                    );
-                }
             },
             err -> {
                 Platform.runLater(() -> showError("Error", "Failed to send message"));
@@ -413,18 +378,6 @@ public class ChatConversationController {
             },
             err -> err.printStackTrace()
         );
-    }
-
-    private void setupRealtimeListeners() {
-        // Listen for new messages
-        FirebaseService.listenToMessages(String.valueOf(conversationId), snapshot -> {
-            Platform.runLater(() -> {
-                loadMessages(); // Reload messages when new message arrives
-            });
-        });
-        
-        // Listen for typing status
-        // (Implementation optional - requires additional Firebase structure)
     }
 
     @FXML

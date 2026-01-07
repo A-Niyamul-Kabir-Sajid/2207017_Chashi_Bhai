@@ -119,6 +119,76 @@ public class CropFeedController {
     }
 
     @FXML
+    private void onSearchUser() {
+        // Show user ID search dialog
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("User ID দিয়ে খুঁজুন");
+        dialog.setHeaderText("ইউজার খুঁজুন / Search User by ID");
+        dialog.setContentText("User ID লিখুন:");
+
+        dialog.showAndWait().ifPresent(userIdStr -> {
+            try {
+                int userId = Integer.parseInt(userIdStr.trim());
+                searchUserById(userId);
+            } catch (NumberFormatException e) {
+                showError("ত্রুটি", "সঠিক User ID লিখুন (শুধুমাত্র সংখ্যা)");
+            }
+        });
+    }
+
+    private void searchUserById(int userId) {
+        String sql = "SELECT id, role, name, phone, district, is_verified FROM users WHERE id = ?";
+        
+        DatabaseService.executeQueryAsync(sql, new Object[]{userId},
+            rs -> {
+                Platform.runLater(() -> {
+                    try {
+                        if (rs.next()) {
+                            String userRole = rs.getString("role");
+                            String userName = rs.getString("name");
+                            String phone = rs.getString("phone");
+                            String district = rs.getString("district");
+                            boolean isVerified = rs.getBoolean("is_verified");
+
+                            // Show user info and ask to view profile
+                            Alert info = new Alert(Alert.AlertType.CONFIRMATION);
+                            info.setTitle("ইউজার পাওয়া গেছে / User Found");
+                            info.setHeaderText(userName + (isVerified ? " ✓" : ""));
+                            info.setContentText(
+                                "Role: " + (userRole.equals("farmer") ? "কৃষক / Farmer" : "ক্রেতা / Buyer") + "\n" +
+                                "Phone: " + phone + "\n" +
+                                "District: " + district + "\n\n" +
+                                "প্রোফাইল দেখতে চান?"
+                            );
+
+                            info.showAndWait().ifPresent(response -> {
+                                if (response == ButtonType.OK) {
+                                    App.setCurrentViewedUserId(userId);
+                                    if (userRole.equals("farmer")) {
+                                        App.loadScene("public-farmer-profile-view.fxml", "কৃষকের প্রোফাইল");
+                                    } else {
+                                        // TODO: Create public buyer profile view
+                                        showInfo("Coming Soon", "Buyer profile view coming soon!");
+                                    }
+                                }
+                            });
+                        } else {
+                            showError("পাওয়া যায়নি", "এই ID এর কোনো ইউজার পাওয়া যায়নি।");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        showError("ত্রুটি", "ইউজার খুঁজতে ব্যর্থ হয়েছে।");
+                    }
+                });
+            },
+            err -> {
+                Platform.runLater(() -> showError("ডাটাবেস ত্রুটি", "ইউজার সার্চ করতে সমস্যা হয়েছে।"));
+                err.printStackTrace();
+            }
+        );
+    }
+
+    @FXML
     private void onToggleFilter() {
         boolean visible = filterPane.isVisible();
         filterPane.setVisible(!visible);
@@ -135,7 +205,7 @@ public class CropFeedController {
     }
 
     @FXML
-    private void onClearFilter() {
+    private void onResetFilter() {
         cmbCategory.getSelectionModel().clearSelection();
         cmbDistrict.getSelectionModel().clearSelection();
         tfPriceMin.clear();

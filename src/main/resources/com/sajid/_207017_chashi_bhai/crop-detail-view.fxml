@@ -169,6 +169,7 @@
                         <VBox spacing="12" styleClass="action-buttons">
                             <Button fx:id="btnCall" text="📞 কল করুন" styleClass="btn-action-call" prefHeight="50" onAction="#onCall"/>
                             <Button fx:id="btnWhatsApp" text="💬 WhatsApp" styleClass="btn-action-whatsapp" prefHeight="50" onAction="#onWhatsApp"/>
+                            <Button fx:id="btnChat" text="💬 চ্যাট করুন" styleClass="btn-action-chat" prefHeight="50" onAction="#onChat"/>
                             <Button fx:id="btnOrder" text="🛒 অর্ডার করুন" styleClass="btn-action-order" prefHeight="55" onAction="#onOrder"/>
                         </VBox>
 

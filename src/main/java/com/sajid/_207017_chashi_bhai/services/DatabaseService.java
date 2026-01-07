@@ -263,6 +263,34 @@ public class DatabaseService {
     }
 
     /**
+     * Update user profile (name and district/hometown)
+     * 
+     * @param userId User ID
+     * @param fullName New full name
+     * @param homeTown New home town/district
+     * @return true if update was successful
+     */
+    public static boolean updateUserProfile(int userId, String fullName, String homeTown) {
+        String sql = "UPDATE users SET name = ?, district = ? WHERE id = ?";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, fullName);
+            stmt.setString(2, homeTown);
+            stmt.setInt(3, userId);
+            
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+            
+        } catch (SQLException e) {
+            System.err.println("Error updating user profile: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
      * Shutdown the database executor (call on app exit)
      */
     public static void shutdown() {

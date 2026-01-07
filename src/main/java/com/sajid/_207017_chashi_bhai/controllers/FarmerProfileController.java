@@ -22,6 +22,7 @@ public class FarmerProfileController {
     @FXML private ImageView imgProfilePhoto;
     @FXML private Label lblFarmerName;
     @FXML private Label lblVerifiedBadge;
+    @FXML private Label lblUserId;
     @FXML private Label lblPhone;
     @FXML private Label lblDistrict;
     @FXML private Label lblUpazila;
@@ -75,6 +76,7 @@ public class FarmerProfileController {
 
                             // Set profile data
                             lblFarmerName.setText(name);
+                            lblUserId.setText("ID: " + currentUser.getId());
                             lblPhone.setText(phone != null ? phone : "N/A");
                             lblDistrict.setText(district != null ? district : "N/A");
                             lblUpazila.setText(upazila != null ? upazila : "N/A");
@@ -154,7 +156,7 @@ public class FarmerProfileController {
     @FXML
     private void onEditProfile() {
         // Navigate to edit profile view
-        App.loadScene("signup-view.fxml", "প্রোফাইল সম্পাদনা"); // Can pass edit mode flag
+        App.loadScene("edit-profile-view.fxml", "প্রোফাইল সম্পাদনা");
     }
 
     @FXML
@@ -179,8 +181,30 @@ public class FarmerProfileController {
         });
     }
 
+    @FXML
+    private void onCopyUserId() {
+        try {
+            javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+            javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+            content.putString(String.valueOf(currentUser.getId()));
+            clipboard.setContent(content);
+            showSuccess("কপি সফল", "User ID কপি হয়েছে: " + currentUser.getId());
+        } catch (Exception e) {
+            showError("ত্রুটি", "ID কপি করতে ব্যর্থ হয়েছে।");
+            e.printStackTrace();
+        }
+    }
+
     private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void showSuccess(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);

@@ -23,6 +23,7 @@
                 <Label styleClass="page-title" text="সকল ফসল / Browse Crops"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <TextField fx:id="txtQuickSearch" prefWidth="250" promptText="খুঁজুন (নাম, জেলা, কৃষক, কোড)..." styleClass="quick-search"/>
+                <Button fx:id="btnSearchUser" text="🔍 User ID" onAction="#onSearchUser" styleClass="button-secondary"/>
                 <Button fx:id="btnProfile" onAction="#onProfile" styleClass="button-secondary" text="👤 প্রোফাইল"/>
             </HBox>
 

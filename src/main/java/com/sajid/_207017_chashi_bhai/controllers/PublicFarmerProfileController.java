@@ -1,0 +1,312 @@
+package com.sajid._207017_chashi_bhai.controllers;
+
+import com.sajid._207017_chashi_bhai.App;
+import com.sajid._207017_chashi_bhai.models.User;
+import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import javafx.application.Platform;
+import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
+
+import java.awt.Desktop;
+import java.io.File;
+import java.net.URI;
+
+/**
+ * PublicFarmerProfileController - Shows farmer profile to buyers with products and sales history
+ */
+public class PublicFarmerProfileController {
+
+    @FXML private ImageView imgProfilePhoto;
+    @FXML private Label lblFarmerName;
+    @FXML private Label lblVerifiedBadge;
+    @FXML private Label lblVerifiedText;
+    @FXML private Label lblUserId;
+    @FXML private Label lblPhone;
+    @FXML private Label lblDistrict;
+    @FXML private Label lblYearsFarming;
+    @FXML private Label lblTotalProducts;
+    @FXML private Label lblTotalSales;
+    @FXML private Label lblRating;
+    @FXML private GridPane gridProducts;
+    @FXML private Label lblNoProducts;
+    @FXML private TableView tblSalesHistory;
+    @FXML private VBox vboxReviews;
+    @FXML private Label lblNoReviews;
+
+    private User currentUser;
+    private int farmerId;
+    private String farmerPhone;
+
+    @FXML
+    public void initialize() {
+        currentUser = App.getCurrentUser();
+        farmerId = App.getCurrentViewedUserId();
+        
+        if (currentUser == null) {
+            showError("অ্যাক্সেস অস্বীকার", "দয়া করে লগইন করুন।");
+            App.loadScene("login-view.fxml", "Login");
+            return;
+        }
+
+        if (farmerId <= 0) {
+            showError("ত্রুটি", "কৃষকের প্রোফাইল খুঁজে পাওয়া যায়নি।");
+            App.loadScene("crop-feed-view.fxml", "ফসলের তালিকা");
+            return;
+        }
+
+        loadFarmerProfile();
+        loadFarmerProducts();
+        loadSalesHistory();
+        loadReviews();
+    }
+
+    private void loadFarmerProfile() {
+        String sql = "SELECT u.*, " +
+                    "COALESCE(CAST((julianday('now') - julianday(u.created_at)) / 365 AS INTEGER), 0) as years_farming, " +
+                    "(SELECT COUNT(*) FROM crops WHERE farmer_id = u.id AND status = 'active') as total_products, " +
+                    "(SELECT COUNT(*) FROM orders o JOIN crops c ON o.crop_id = c.id WHERE c.farmer_id = u.id AND o.status = 'delivered') as total_sales, " +
+                    "(SELECT COALESCE(AVG(r.rating), 0.0) FROM reviews r WHERE r.reviewee_id = u.id) as avg_rating " +
+                    "FROM users u WHERE u.id = ?";
+
+        DatabaseService.executeQueryAsync(sql, new Object[]{farmerId},
+            rs -> {
+                Platform.runLater(() -> {
+                    try {
+                        if (rs.next()) {
+                            String name = rs.getString("name");
+                            String phone = rs.getString("phone");
+                            String district = rs.getString("district");
+                            boolean isVerified = rs.getBoolean("is_verified");
+                            int yearsFarming = rs.getInt("years_farming");
+                            int totalProducts = rs.getInt("total_products");
+                            int totalSales = rs.getInt("total_sales");
+                            double avgRating = rs.getDouble("avg_rating");
+                            String photoPath = rs.getString("profile_photo");
+
+                            lblFarmerName.setText(name);
+                            lblUserId.setText("ID: " + farmerId);
+                            lblPhone.setText(phone != null ? phone : "N/A");
+                            farmerPhone = phone;
+                            lblDistrict.setText(district != null ? district : "N/A");
+                            lblYearsFarming.setText(String.valueOf(yearsFarming));
+                            lblTotalProducts.setText(String.valueOf(totalProducts));
+                            lblTotalSales.setText(String.valueOf(totalSales));
+                            lblRating.setText(String.format("%.1f", avgRating));
+
+                            if (isVerified) {
+                                lblVerifiedBadge.setVisible(true);
+                                lblVerifiedText.setVisible(true);
+                            }
+
+                            if (photoPath != null && !photoPath.isEmpty()) {
+                                File photoFile = new File(photoPath);
+                                if (photoFile.exists()) {
+                                    imgProfilePhoto.setImage(new Image(photoFile.toURI().toString()));
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        showError("ত্রুটি", "প্রোফাইল লোড করতে ব্যর্থ হয়েছে।");
+                    }
+                });
+            },
+            error -> {
+                Platform.runLater(() -> showError("ডাটাবেস ত্রুটি", "প্রোফাইল ডেটা লোড করতে সমস্যা হয়েছে।"));
+                error.printStackTrace();
+            }
+        );
+    }
+
+    private void loadFarmerProducts() {
+        String sql = "SELECT c.id, c.name, c.product_code, c.price_per_kg, c.available_quantity_kg, c.district " +
+                    "FROM crops c WHERE c.farmer_id = ? AND c.status = 'active' ORDER BY c.created_at DESC LIMIT 6";
+
+        DatabaseService.executeQueryAsync(sql, new Object[]{farmerId},
+            rs -> {
+                Platform.runLater(() -> {
+                    try {
+                        gridProducts.getChildren().clear();
+                        int index = 0;
+                        boolean hasProducts = false;
+
+                        while (rs.next() && index < 6) {
+                            hasProducts = true;
+                            VBox productCard = createProductCard(
+                                rs.getInt("id"),
+                                rs.getString("name"),
+                                rs.getString("product_code"),
+                                rs.getDouble("price_per_kg"),
+                                rs.getDouble("available_quantity_kg"),
+                                rs.getString("district")
+                            );
+                            gridProducts.add(productCard, index % 3, index / 3);
+                            index++;
+                        }
+
+                        lblNoProducts.setVisible(!hasProducts);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            },
+            error -> error.printStackTrace()
+        );
+    }
+
+    private VBox createProductCard(int cropId, String name, String productCode, double price, double quantity, String district) {
+        VBox card = new VBox(8);
+        card.getStyleClass().add("crop-card");
+        card.setPadding(new Insets(12));
+        card.setOnMouseClicked(e -> {
+            App.setCurrentCropId(cropId);
+            App.loadScene("crop-detail-view.fxml", "ফসলের বিস্তারিত");
+        });
+        card.setStyle("-fx-cursor: hand;");
+
+        Label lblName = new Label(name);
+        lblName.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+        
+        Label lblCode = new Label("কোড: " + productCode);
+        lblCode.setStyle("-fx-font-size: 11px; -fx-text-fill: #888;");
+        
+        Label lblPrice = new Label(String.format("৳%.2f/কেজি", price));
+        lblPrice.setStyle("-fx-font-size: 13px; -fx-text-fill: #4CAF50; -fx-font-weight: bold;");
+        
+        Label lblQty = new Label(String.format("পরিমাণ: %.1f কেজি", quantity));
+        lblQty.setStyle("-fx-font-size: 11px; -fx-text-fill: #666;");
+        
+        Label lblDist = new Label("📍 " + district);
+        lblDist.setStyle("-fx-font-size: 11px; -fx-text-fill: #888;");
+
+        card.getChildren().addAll(lblName, lblCode, lblPrice, lblQty, lblDist);
+        return card;
+    }
+
+    private void loadSalesHistory() {
+        // TODO: Implement sales history table
+        // For now, just hide if empty
+    }
+
+    private void loadReviews() {
+        String sql = "SELECT r.rating, r.comment, r.created_at, u.name as reviewer_name " +
+                    "FROM reviews r JOIN users u ON r.reviewer_id = u.id " +
+                    "WHERE r.reviewee_id = ? ORDER BY r.created_at DESC LIMIT 10";
+
+        DatabaseService.executeQueryAsync(sql, new Object[]{farmerId},
+            rs -> {
+                Platform.runLater(() -> {
+                    try {
+                        vboxReviews.getChildren().clear();
+                        boolean hasReviews = false;
+
+                        while (rs.next()) {
+                            hasReviews = true;
+                            VBox reviewCard = createReviewCard(
+                                rs.getInt("rating"),
+                                rs.getString("comment"),
+                                rs.getString("reviewer_name"),
+                                rs.getString("created_at")
+                            );
+                            vboxReviews.getChildren().add(reviewCard);
+                        }
+
+                        lblNoReviews.setVisible(!hasReviews);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            },
+            error -> error.printStackTrace()
+        );
+    }
+
+    private VBox createReviewCard(int rating, String comment, String reviewerName, String date) {
+        VBox card = new VBox(6);
+        card.getStyleClass().add("review-card");
+        card.setPadding(new Insets(12));
+        card.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 8;");
+
+        HBox header = new HBox(10);
+        header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        
+        Label lblName = new Label(reviewerName);
+        lblName.setStyle("-fx-font-weight: bold;");
+        
+        StringBuilder stars = new StringBuilder();
+        for (int i = 0; i < rating; i++) stars.append("⭐");
+        Label lblStars = new Label(stars.toString());
+        
+        Label lblDate = new Label(date != null ? date.substring(0, 10) : "");
+        lblDate.setStyle("-fx-text-fill: #888; -fx-font-size: 11px;");
+        
+        header.getChildren().addAll(lblName, lblStars, lblDate);
+
+        Label lblComment = new Label(comment != null ? comment : "");
+        lblComment.setWrapText(true);
+        lblComment.setStyle("-fx-font-size: 13px;");
+
+        card.getChildren().addAll(header, lblComment);
+        return card;
+    }
+
+    @FXML
+    private void onChat() {
+        try {
+            App.showView("chat-conversation-view.fxml", controller -> {
+                if (controller instanceof ChatConversationController) {
+                    ChatConversationController chatController = (ChatConversationController) controller;
+                    chatController.loadConversation(0, farmerId, lblFarmerName.getText(), 0);
+                }
+            });
+        } catch (Exception e) {
+            showError("ত্রুটি", "চ্যাট খুলতে ব্যর্থ হয়েছে।");
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void onWhatsApp() {
+        try {
+            String cleanPhone = farmerPhone.replaceAll("[^0-9]", "");
+            if (!cleanPhone.startsWith("880")) {
+                if (cleanPhone.startsWith("0")) {
+                    cleanPhone = "880" + cleanPhone.substring(1);
+                } else {
+                    cleanPhone = "880" + cleanPhone;
+                }
+            }
+            Desktop.getDesktop().browse(new URI("https://wa.me/" + cleanPhone));
+        } catch (Exception e) {
+            showInfo("WhatsApp", "WhatsApp: " + farmerPhone);
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void onBack() {
+        App.loadScene("crop-feed-view.fxml", "সকল ফসল");
+    }
+
+    private void showError(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void showInfo(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+}

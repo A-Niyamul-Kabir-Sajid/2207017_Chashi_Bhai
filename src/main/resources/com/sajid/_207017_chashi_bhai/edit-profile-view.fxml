@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.sajid._207017_chashi_bhai.controllers.EditProfileController"
+            styleClass="root"
+            stylesheets="@auth.css,@base.css">
+
+    <top>
+        <VBox styleClass="header" alignment="CENTER" spacing="10">
+            <padding>
+                <Insets top="20" bottom="20" left="20" right="20"/>
+            </padding>
+            <Text styleClass="title-text" text="প্রোফাইল সম্পাদনা"/>
+            <Text styleClass="subtitle-text" text="Edit Profile"/>
+        </VBox>
+    </top>
+
+    <center>
+        <VBox alignment="CENTER" spacing="20" maxWidth="400">
+            <padding>
+                <Insets top="30" bottom="30" left="30" right="30"/>
+            </padding>
+
+            <!-- Full Name -->
+            <VBox spacing="5">
+                <Label text="পূর্ণ নাম / Full Name" styleClass="label"/>
+                <TextField fx:id="txtFullName" promptText="আপনার পূর্ণ নাম লিখুন" styleClass="text-field"/>
+            </VBox>
+
+            <!-- Home Town -->
+            <VBox spacing="5">
+                <Label text="নিজ শহর / Home Town" styleClass="label"/>
+                <TextField fx:id="txtHomeTown" promptText="আপনার শহর/জেলা লিখুন" styleClass="text-field"/>
+            </VBox>
+
+            <!-- Phone (Read-only) -->
+            <VBox spacing="5">
+                <Label text="ফোন নম্বর / Phone Number (cannot change)" styleClass="label"/>
+                <TextField fx:id="txtPhone" editable="false" styleClass="text-field-readonly"/>
+            </VBox>
+
+            <!-- User ID (Read-only) -->
+            <VBox spacing="5">
+                <Label text="ইউজার আইডি / User ID (cannot change)" styleClass="label"/>
+                <TextField fx:id="txtUserId" editable="false" styleClass="text-field-readonly"/>
+            </VBox>
+
+            <!-- Buttons -->
+            <HBox spacing="15" alignment="CENTER">
+                <padding>
+                    <Insets top="20"/>
+                </padding>
+                <Button fx:id="btnSave" text="সংরক্ষণ করুন / Save" onAction="#onSave" styleClass="button-primary" prefWidth="150"/>
+                <Button fx:id="btnCancel" text="বাতিল / Cancel" onAction="#onCancel" styleClass="button-secondary" prefWidth="150"/>
+            </HBox>
+
+            <!-- Loading Indicator -->
+            <ProgressIndicator fx:id="progressIndicator" visible="false" maxHeight="30" maxWidth="30"/>
+
+        </VBox>
+    </center>
+
+</BorderPane>

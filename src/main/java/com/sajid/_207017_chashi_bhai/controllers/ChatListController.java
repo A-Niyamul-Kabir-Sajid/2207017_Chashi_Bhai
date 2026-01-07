@@ -3,7 +3,6 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
-import com.sajid._207017_chashi_bhai.services.FirebaseService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -66,11 +65,6 @@ public class ChatListController {
 
         setupEventHandlers();
         loadConversations();
-        
-        // Setup Firebase real-time listener if available
-        if (FirebaseService.isInitialized()) {
-            setupRealtimeListeners();
-        }
     }
 
     private void setupEventHandlers() {
@@ -339,14 +333,6 @@ public class ChatListController {
         }
         
         displayConversations();
-    }
-
-    private void setupRealtimeListeners() {
-        // Listen to Firebase for real-time updates
-        FirebaseService.listenToUserConversations(String.valueOf(currentUser.getId()), snapshot -> {
-            // Reload conversations when Firebase updates
-            Platform.runLater(this::loadConversations);
-        });
     }
 
     @FXML

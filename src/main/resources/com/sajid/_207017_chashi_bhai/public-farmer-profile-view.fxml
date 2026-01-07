@@ -6,7 +6,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.shape.Circle?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.FarmerProfileController" styleClass="root" minHeight="700" minWidth="1024">
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.PublicFarmerProfileController" styleClass="root" minHeight="700" minWidth="1024">
     
     <!-- Top Navigation -->
     <top>
@@ -15,9 +15,8 @@
                 <Insets top="15" bottom="15" left="20" right="20"/>
             </padding>
             <Button text="←" styleClass="back-button" fx:id="btnBack" onAction="#onBack"/>
-            <Label text="🌾 চাষী ভাই" styleClass="app-title"/>
+            <Label text="🌾 কৃষকের প্রোফাইল / Farmer Profile" styleClass="page-title"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button fx:id="btnEditProfile" text="✎ সম্পাদনা" styleClass="button-secondary" onAction="#onEditProfile"/>
         </HBox>
     </top>
 
@@ -37,19 +36,15 @@
                     <!-- Profile Photo -->
                     <StackPane>
                         <Circle radius="70" styleClass="profile-photo-border"/>
-                        <ImageView fx:id="imgProfilePhoto" fitWidth="130" fitHeight="130" preserveRatio="true">
-                            <image>
-                                <!-- Placeholder will be set in controller -->
-                            </image>
-                        </ImageView>
+                        <ImageView fx:id="imgProfilePhoto" fitWidth="130" fitHeight="130" preserveRatio="true"/>
                     </StackPane>
 
                     <!-- Name & Verified Badge -->
                     <VBox alignment="CENTER" spacing="8">
                         <Label fx:id="lblFarmerName" text="কৃষকের নাম" styleClass="profile-name"/>
                         <HBox alignment="CENTER" spacing="8">
-                            <Label fx:id="lblVerifiedBadge" text="✓" styleClass="verified-badge"/>
-                            <Label text="যাচাইকৃত কৃষক" styleClass="verified-text"/>
+                            <Label fx:id="lblVerifiedBadge" text="✓" styleClass="verified-badge" visible="false"/>
+                            <Label text="যাচাইকৃত কৃষক" styleClass="verified-text" fx:id="lblVerifiedText" visible="false"/>
                         </HBox>
                     </VBox>
 
@@ -58,7 +53,6 @@
                         <HBox alignment="CENTER" spacing="8">
                             <Label text="🆔" styleClass="info-icon"/>
                             <Label fx:id="lblUserId" text="ID: 0000" styleClass="info-text"/>
-                            <Button fx:id="btnCopyId" text="📋" styleClass="button-transparent" onAction="#onCopyUserId" style="-fx-font-size: 12px; -fx-padding: 2 8;"/>
                         </HBox>
                         <HBox alignment="CENTER" spacing="8">
                             <Label text="📱" styleClass="info-icon"/>
@@ -67,12 +61,6 @@
                         <HBox alignment="CENTER" spacing="8">
                             <Label text="📍" styleClass="info-icon"/>
                             <Label fx:id="lblDistrict" text="জেলা" styleClass="info-text"/>
-                            <Label text="•" styleClass="info-separator"/>
-                            <Label fx:id="lblUpazila" text="উপজেলা" styleClass="info-text"/>
-                        </HBox>
-                        <HBox alignment="CENTER" spacing="8">
-                            <Label text="🏡" styleClass="info-icon"/>
-                            <Label fx:id="lblFarmType" text="Farm Type" styleClass="info-text"/>
                         </HBox>
                     </VBox>
                 </VBox>
@@ -85,16 +73,22 @@
                         </padding>
                         <Label fx:id="lblYearsFarming" text="5" styleClass="stat-value"/>
                         <Label text="বছর চাষাবাদ" styleClass="stat-label"/>
-                        <Label text="Years Farming" styleClass="stat-sublabel"/>
                     </VBox>
 
                     <VBox alignment="CENTER" spacing="8" styleClass="stat-card">
                         <padding>
                             <Insets top="20" bottom="20" left="30" right="30"/>
                         </padding>
-                        <Label fx:id="lblTotalSales" text="৳ 50,000" styleClass="stat-value"/>
+                        <Label fx:id="lblTotalProducts" text="12" styleClass="stat-value"/>
+                        <Label text="মোট পণ্য" styleClass="stat-label"/>
+                    </VBox>
+
+                    <VBox alignment="CENTER" spacing="8" styleClass="stat-card">
+                        <padding>
+                            <Insets top="20" bottom="20" left="30" right="30"/>
+                        </padding>
+                        <Label fx:id="lblTotalSales" text="45" styleClass="stat-value"/>
                         <Label text="মোট বিক্রয়" styleClass="stat-label"/>
-                        <Label text="Total Sales" styleClass="stat-sublabel"/>
                     </VBox>
 
                     <VBox alignment="CENTER" spacing="8" styleClass="stat-card">
@@ -106,29 +100,46 @@
                             <Label text="⭐" styleClass="stat-icon-small"/>
                         </HBox>
                         <Label text="রেটিং" styleClass="stat-label"/>
-                        <Label text="Rating" styleClass="stat-sublabel"/>
                     </VBox>
                 </HBox>
 
-                <!-- Farm Photos Section -->
+                <!-- Contact Actions -->
+                <HBox spacing="15" alignment="CENTER">
+                    <Button text="💬 চ্যাট করুন" styleClass="button-primary" onAction="#onChat" prefWidth="200" prefHeight="45"/>
+                    <Button text="📞 WhatsApp" styleClass="button-secondary" onAction="#onWhatsApp" prefWidth="200" prefHeight="45"/>
+                </HBox>
+
+                <!-- Active Products Section -->
                 <VBox spacing="15" styleClass="section-container">
-                    <Label text="খামারের ছবি / Farm Photos" styleClass="section-title"/>
-                    
-                    <ScrollPane fitToHeight="true" styleClass="photo-scroll">
-                        <HBox spacing="15" fx:id="hboxFarmPhotos">
-                            <!-- Farm photos will be added dynamically -->
-                            <ImageView fitWidth="200" fitHeight="150" styleClass="farm-photo" preserveRatio="true"/>
-                            <ImageView fitWidth="200" fitHeight="150" styleClass="farm-photo" preserveRatio="true"/>
-                            <ImageView fitWidth="200" fitHeight="150" styleClass="farm-photo" preserveRatio="true"/>
-                            <Button text="+ ছবি যোগ করুন" styleClass="button-secondary" prefWidth="200" prefHeight="150"/>
-                        </HBox>
-                    </ScrollPane>
+                    <Label text="🌾 সক্রিয় পণ্য / Active Products" styleClass="section-title"/>
+                    <GridPane fx:id="gridProducts" hgap="20" vgap="20">
+                        <!-- Products will be added dynamically -->
+                    </GridPane>
+                    <Label fx:id="lblNoProducts" text="কোনো সক্রিয় পণ্য নেই" styleClass="empty-text" visible="false"/>
                 </VBox>
 
-                <!-- Logout Button -->
-                <VBox spacing="10" alignment="CENTER" styleClass="logout-section">
-                    <Button fx:id="btnLogout" text="🚺 লগআউট / Logout" styleClass="button-danger" onAction="#onLogout" prefWidth="300" prefHeight="45"/>
-                    <Label text="আপনার অ্যাকাউন্ট থেকে সাইন আউট করুন" styleClass="logout-hint-text"/>
+                <!-- Sales History Section -->
+                <VBox spacing="15" styleClass="section-container">
+                    <Label text="📊 বিক্রয় ইতিহাস / Sales History" styleClass="section-title"/>
+                    <TableView fx:id="tblSalesHistory" styleClass="data-table" prefHeight="300">
+                        <columns>
+                            <TableColumn text="তারিখ / Date" prefWidth="120" fx:id="colDate"/>
+                            <TableColumn text="পণ্য / Product" prefWidth="200" fx:id="colProduct"/>
+                            <TableColumn text="পরিমাণ / Quantity" prefWidth="120" fx:id="colQuantity"/>
+                            <TableColumn text="মূল্য / Price" prefWidth="120" fx:id="colPrice"/>
+                            <TableColumn text="ক্রেতা / Buyer" prefWidth="180" fx:id="colBuyer"/>
+                            <TableColumn text="স্ট্যাটাস / Status" prefWidth="120" fx:id="colStatus"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+
+                <!-- Reviews Section -->
+                <VBox spacing="15" styleClass="section-container">
+                    <Label text="⭐ রিভিউ / Reviews" styleClass="section-title"/>
+                    <VBox fx:id="vboxReviews" spacing="12">
+                        <!-- Reviews will be added dynamically -->
+                    </VBox>
+                    <Label fx:id="lblNoReviews" text="কোনো রিভিউ নেই" styleClass="empty-text" visible="false"/>
                 </VBox>
 
             </VBox>

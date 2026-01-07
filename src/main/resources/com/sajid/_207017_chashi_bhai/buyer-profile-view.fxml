@@ -53,6 +53,11 @@
                     <!-- Contact Info -->
                     <VBox alignment="CENTER" spacing="8">
                         <HBox alignment="CENTER" spacing="8">
+                            <Label text="🆔" styleClass="info-icon"/>
+                            <Label fx:id="lblUserId" text="ID: 0000" styleClass="info-text"/>
+                            <Button fx:id="btnCopyId" text="📋" styleClass="button-transparent" onAction="#onCopyUserId" style="-fx-font-size: 12px; -fx-padding: 2 8;"/>
+                        </HBox>
+                        <HBox alignment="CENTER" spacing="8">
                             <Label text="📱" styleClass="info-icon"/>
                             <Label fx:id="lblPhone" text="+88018XXXXXXXX" styleClass="info-text"/>
                         </HBox>
