@@ -340,9 +340,9 @@ public class ChatListController {
         try {
             String role = currentUser.getRole();
             if ("farmer".equals(role)) {
-                App.showView("farmer-dashboard-view.fxml");
+                App.loadScene("farmer-dashboard-view.fxml", "Dashboard");
             } else {
-                App.showView("buyer-dashboard-view.fxml");
+                App.loadScene("buyer-dashboard-view.fxml", "Dashboard");
             }
         } catch (Exception e) {
             e.printStackTrace();

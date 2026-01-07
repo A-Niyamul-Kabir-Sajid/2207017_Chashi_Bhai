@@ -7,11 +7,13 @@ public class WelcomeController {
 
     @FXML
     protected void onLoginClick() {
-        App.loadScene("login-view.fxml", "Login");
+        System.out.println("Login button clicked - navigating to login page");
+        App.loadScene("login-view.fxml", "Login - Chashi Bhai");
     }
 
     @FXML
     protected void onSignupClick() {
-        App.loadScene("signup-view.fxml", "Sign Up");
+        System.out.println("Signup button clicked - navigating to signup page");
+        App.loadScene("signup-view.fxml", "Sign Up - Chashi Bhai");
     }
 }

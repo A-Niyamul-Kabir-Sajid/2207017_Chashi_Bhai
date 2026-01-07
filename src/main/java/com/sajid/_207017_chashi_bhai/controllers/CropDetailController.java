@@ -11,7 +11,6 @@ import javafx.scene.layout.HBox;
 import java.awt.Desktop;
 import java.io.File;
 import java.net.URI;
-import java.util.Optional;
 
 /**
  * CropDetailController - Detailed crop view with photo carousel and farmer profile

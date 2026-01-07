@@ -1,7 +1,10 @@
 package com.sajid._207017_chashi_bhai.controllers;
 
 import com.sajid._207017_chashi_bhai.App;
+import com.sajid._207017_chashi_bhai.models.User;
+import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import com.sajid._207017_chashi_bhai.utils.SessionManager;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -85,39 +88,90 @@ public class LoginController {
             return;
         }
 
-        // Demo credentials for testing
-        boolean loginSuccess = false;
-        String userName = "";
-        int userId = 0;
-        // added by default demo accounts
-        if (selectedRole.equals("FARMER") && phone.equals("01712345678") && pin.equals("1234")) {
-            loginSuccess = true;
-            userName = "আব্দুল করিম";
-            userId = 1;
-        } else if (selectedRole.equals("BUYER") && phone.equals("01812345678") && pin.equals("5678")) {
-            loginSuccess = true;
-            userName = "রহিম মিয়া";
-            userId = 2;
-        }
-        
-        if (loginSuccess) {
-            // Set session data
-            SessionManager.setCurrentUserId(userId);
-            SessionManager.setCurrentUserName(userName);
-            SessionManager.setCurrentUserRole(selectedRole);
-            SessionManager.setCurrentUserPhone(phone);
-            
-            System.out.println("✅ Login successful - User: " + userName + ", Role: " + selectedRole);
-            
-            // Navigate to crop feed (marketplace) - now the default landing page
-            App.loadScene("crop-feed-view.fxml", "সকল ফসল / Browse Crops - Chashi Bhai");
-        } else {
-            // TODO: Check phone, PIN and role in database
-            showError("❌ Invalid credentials. Try demo accounts:\n" +
-                     "Farmer: 01712345678 / PIN: 1234\n" +
-                     "Buyer: 01812345678 / PIN: 5678");
-            System.out.println("Login attempt failed - Phone: " + phone + ", Role: " + selectedRole);
-        }
+        // Disable login button during authentication
+        Button loginBtn = (Button) phoneField.getScene().lookup(".button-primary");
+        if (loginBtn != null) loginBtn.setDisable(true);
+
+        // Check credentials in database
+        String sql = "SELECT * FROM users WHERE phone = ? AND role = ?";
+        Object[] params = {phone, selectedRole.toLowerCase()};
+
+        DatabaseService.executeQueryAsync(sql, params,
+            rs -> {
+                try {
+                    if (rs.next()) {
+                        String storedPin = rs.getString("pin");
+                        
+                        // TODO: Use BCrypt for hashing - for now comparing plain text
+                        if (pin.equals(storedPin)) {
+                            // Create User object
+                            User user = new User();
+                            user.setId(rs.getInt("id"));
+                            user.setName(rs.getString("name"));
+                            user.setPhone(rs.getString("phone"));
+                            user.setRole(rs.getString("role"));
+                            user.setDistrict(rs.getString("district"));
+                            user.setUpazila(rs.getString("upazila"));
+                            user.setVerified(rs.getBoolean("is_verified"));
+                            user.setProfilePhoto(rs.getString("profile_photo"));
+                            user.setCreatedAt(rs.getString("created_at"));
+                            
+                            Platform.runLater(() -> {
+                                // Set current user in App
+                                App.setCurrentUser(user);
+                                
+                                // Set session data (for backward compatibility)
+                                SessionManager.setCurrentUserId(user.getId());
+                                SessionManager.setCurrentUserName(user.getName());
+                                SessionManager.setCurrentUserRole(user.getRole().toUpperCase());
+                                SessionManager.setCurrentUserPhone(user.getPhone());
+                                
+                                System.out.println("✅ Login successful - User: " + user.getName() + ", Role: " + user.getRole());
+                                
+                                // Navigate to crop feed (marketplace) - default landing page
+                                App.loadScene("crop-feed-view.fxml", "সকল ফসল / Browse Crops - Chashi Bhai");
+                                
+                                if (loginBtn != null) loginBtn.setDisable(false);
+                            });
+                        } else {
+                            Platform.runLater(() -> {
+                                showError("❌ Invalid PIN. Please try again.");
+                                System.out.println("Login failed - Wrong PIN for phone: " + phone);
+                                if (loginBtn != null) loginBtn.setDisable(false);
+                            });
+                        }
+                    } else {
+                        Platform.runLater(() -> {
+                            showError("❌ Account not found for this role.\n\n" +
+                                     "Please check:\n" +
+                                     "• Phone number is correct (01XXXXXXXXX)\n" +
+                                     "• Selected correct role (Farmer/Buyer)\n" +
+                                     "• Account exists (Sign up if new user)");
+                            System.out.println("Login failed - No account found for phone: " + phone + ", Role: " + selectedRole);
+                            if (loginBtn != null) loginBtn.setDisable(false);
+                        });
+                    }
+                } catch (Exception e) {
+                    Platform.runLater(() -> {
+                        showError("❌ Database error occurred. Please try again.\n" +
+                                 "If problem persists, contact support.");
+                        System.err.println("Database error during login: " + e.getMessage());
+                        e.printStackTrace();
+                        if (loginBtn != null) loginBtn.setDisable(false);
+                    });
+                }
+            },
+            err -> {
+                Platform.runLater(() -> {
+                    showError("❌ Connection error. Please check:\n" +
+                             "• Database is accessible\n" +
+                             "• Network connection is stable");
+                    System.err.println("Login connection error: " + err.getMessage());
+                    err.printStackTrace();
+                    if (loginBtn != null) loginBtn.setDisable(false);
+                });
+            }
+        );
     }
 
     @FXML

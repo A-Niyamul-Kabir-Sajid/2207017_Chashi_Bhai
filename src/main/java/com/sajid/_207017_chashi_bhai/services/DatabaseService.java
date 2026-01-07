@@ -291,6 +291,67 @@ public class DatabaseService {
     }
 
     /**
+     * Create a new user account
+     * 
+     * @param phone User phone number (unique)
+     * @param pin User PIN (should be hashed with BCrypt in production)
+     * @param name User full name
+     * @param role User role (farmer/buyer)
+     * @param district User district
+     * @return userId if successful, -1 if failed, -2 if phone already exists
+     */
+    public static int createUser(String phone, String pin, String name, String role, String district) {
+        // First check if phone already exists
+        String checkSql = "SELECT id FROM users WHERE phone = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+            
+            checkStmt.setString(1, phone);
+            ResultSet rs = checkStmt.executeQuery();
+            if (rs.next()) {
+                System.err.println("Phone number already exists: " + phone);
+                return -2; // Phone already exists
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking phone existence: " + e.getMessage());
+            e.printStackTrace();
+            return -1;
+        }
+        
+        // Insert new user
+        String sql = "INSERT INTO users (phone, pin, name, role, district) VALUES (?, ?, ?, ?, ?)";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            
+            stmt.setString(1, phone);
+            stmt.setString(2, pin); // TODO: Hash with BCrypt before storing
+            stmt.setString(3, name);
+            stmt.setString(4, role.toLowerCase());
+            stmt.setString(5, district);
+            
+            int rowsAffected = stmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                // Get the generated user ID
+                ResultSet keys = stmt.getGeneratedKeys();
+                if (keys.next()) {
+                    int userId = keys.getInt(1);
+                    System.out.println("User created successfully with ID: " + userId);
+                    return userId;
+                }
+            }
+            
+            return -1;
+            
+        } catch (SQLException e) {
+            System.err.println("Error creating user: " + e.getMessage());
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    /**
      * Shutdown the database executor (call on app exit)
      */
     public static void shutdown() {

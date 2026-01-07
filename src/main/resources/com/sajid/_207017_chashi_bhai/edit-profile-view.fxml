@@ -35,8 +35,8 @@
 
             <!-- Home Town -->
             <VBox spacing="5">
-                <Label text="নিজ শহর / Home Town" styleClass="label"/>
-                <TextField fx:id="txtHomeTown" promptText="আপনার শহর/জেলা লিখুন" styleClass="text-field"/>
+                <Label text="জেলা / District" styleClass="label"/>
+                <ComboBox fx:id="cmbDistrict" promptText="জেলা নির্বাচন করুন" styleClass="combo-box" prefWidth="340"/>
             </VBox>
 
             <!-- Phone (Read-only) -->

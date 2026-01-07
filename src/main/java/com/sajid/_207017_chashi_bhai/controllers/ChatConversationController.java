@@ -383,7 +383,7 @@ public class ChatConversationController {
     @FXML
     private void onBack() {
         try {
-            App.showView("chat-list-view.fxml");
+            App.loadScene("chat-list-view.fxml", "Chats");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -400,8 +400,7 @@ public class ChatConversationController {
                         String phone = rs.getString("phone");
                         Platform.runLater(() -> {
                             try {
-                                String cmd = "cmd /c start tel:" + phone;
-                                Runtime.getRuntime().exec(cmd);
+                                new ProcessBuilder("cmd", "/c", "start", "tel:" + phone).start();
                             } catch (Exception e) {
                                 showError("Error", "Could not open phone dialer");
                             }

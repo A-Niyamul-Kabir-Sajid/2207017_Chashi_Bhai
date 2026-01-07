@@ -4,6 +4,7 @@ import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -39,6 +40,25 @@ public class CropFeedController {
 
     private User currentUser;
     private String role; // "farmer" or "buyer"
+    
+    // 64 districts of Bangladesh sorted alphabetically
+    private static final String[] DISTRICTS = {
+        "Bagerhat", "Bandarban", "Barguna", "Barisal", "Bhola", "Bogra",
+        "Brahmanbaria", "Chandpur", "Chapainawabganj", "Chittagong", "Chuadanga",
+        "Comilla", "Cox's Bazar", "Dhaka", "Dinajpur", "Faridpur", "Feni",
+        "Gaibandha", "Gazipur", "Gopalganj", "Habiganj", "Jamalpur", "Jessore",
+        "Jhalokati", "Jhenaidah", "Joypurhat", "Khagrachhari", "Khulna", "Kishoreganj",
+        "Kurigram", "Kushtia", "Lakshmipur", "Lalmonirhat", "Madaripur", "Magura",
+        "Manikganj", "Meherpur", "Moulvibazar", "Munshiganj", "Mymensingh", "Naogaon",
+        "Narail", "Narayanganj", "Narsingdi", "Natore", "Netrokona", "Nilphamari",
+        "Noakhali", "Pabna", "Panchagarh", "Patuakhali", "Pirojpur", "Rajbari",
+        "Rajshahi", "Rangamati", "Rangpur", "Satkhira", "Shariatpur", "Sherpur",
+        "Sirajganj", "Sunamganj", "Sylhet", "Tangail", "Thakurgaon"
+    };
+    
+    private static final String[] CATEGORIES = {
+        "Rice", "Wheat", "Vegetables", "Fruits", "Spices", "Pulses", "Others"
+    };
 
     // Keep a simple in-memory representation to support quick filtering
     private static class CropItem {
@@ -68,6 +88,10 @@ public class CropFeedController {
             return;
         }
         role = currentUser.getRole();
+        
+        // Populate filter dropdowns
+        cmbDistrict.setItems(FXCollections.observableArrayList(DISTRICTS));
+        cmbCategory.setItems(FXCollections.observableArrayList(CATEGORIES));
 
         // Set dynamic title by role
         if ("farmer".equals(role)) {

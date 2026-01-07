@@ -1,7 +1,9 @@
 package com.sajid._207017_chashi_bhai.controllers;
 
 import com.sajid._207017_chashi_bhai.App;
+import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import com.sajid._207017_chashi_bhai.utils.SessionManager;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -47,36 +49,56 @@ public class CreatePinController {
             return;
         }
 
-        // TODO: Save user account to database with PIN
+        // Get user data from session
         String name = SessionManager.getTempName();
         String phone = SessionManager.getTempPhone();
         String district = SessionManager.getTempDistrict();
         String role = SessionManager.getTempRole();
 
-        System.out.println("================================");
-        System.out.println("Account Creation Successful!");
-        System.out.println("Name: " + name);
-        System.out.println("Phone: " + phone);
-        System.out.println("District: " + district);
-        System.out.println("Role: " + role);
-        System.out.println("PIN: " + newPin);
-        System.out.println("================================");
+        // Show creating account message
+        showSuccess("Creating your account...");
+        
+        // Save user to database
+        new Thread(() -> {
+            int userId = DatabaseService.createUser(phone, newPin, name, role, district);
+            
+            Platform.runLater(() -> {
+                if (userId == -2) {
+                    showError("❌ Phone number already registered. Please login instead.");
+                } else if (userId == -1) {
+                    showError("❌ Failed to create account. Please try again.");
+                } else {
+                    // Success
+                    System.out.println("================================");
+                    System.out.println("Account Creation Successful!");
+                    System.out.println("User ID: USR" + String.format("%06d", userId));
+                    System.out.println("Name: " + name);
+                    System.out.println("Phone: " + phone);
+                    System.out.println("District: " + district);
+                    System.out.println("Role: " + role);
+                    System.out.println("================================");
 
-        // Show success message
-        showSuccess("✅ Account created successfully! Redirecting to login...");
+                    showSuccess("✅ Account created successfully! Redirecting to login...");
 
-        // Clear fields
-        newPinField.clear();
-        confirmPinField.clear();
+                    // Clear fields
+                    newPinField.clear();
+                    confirmPinField.clear();
 
-        // Redirect to login after 2 seconds
-        try {
-            Thread.sleep(2000);
-            App.loadScene("login-view.fxml", "Login - Chashi Bhai");
-            SessionManager.clearTempData();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                    // Redirect to login after 2 seconds
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(2000);
+                            Platform.runLater(() -> {
+                                App.loadScene("login-view.fxml", "Login - Chashi Bhai");
+                                SessionManager.clearTempData();
+                            });
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }).start();
+                }
+            });
+        }).start();
     }
 
     @FXML

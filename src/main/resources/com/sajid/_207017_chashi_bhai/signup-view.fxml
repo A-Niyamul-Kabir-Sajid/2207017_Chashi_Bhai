@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.HBox?>
@@ -80,6 +81,27 @@
                         prefWidth="200" prefHeight="45"/>
             </HBox>
         </VBox>
+
+        <!-- PIN Input -->
+        <VBox spacing="8.0" prefWidth="420.0">
+            <Label text="🔐 Create PIN (4-6 digits)" styleClass="field-label"/>
+            <PasswordField fx:id="pinField" promptText="Enter PIN"
+                          styleClass="form-input"
+                          prefWidth="420.0">
+            </PasswordField>
+        </VBox>
+
+        <!-- Confirm PIN -->
+        <VBox spacing="8.0" prefWidth="420.0">
+            <Label text="✓ Confirm PIN" styleClass="field-label"/>
+            <PasswordField fx:id="confirmPinField" promptText="Re-enter PIN"
+                          styleClass="form-input"
+                          prefWidth="420.0">
+            </PasswordField>
+        </VBox>
+
+        <!-- Error Label -->
+        <Label fx:id="errorLabel" styleClass="label-error" visible="false" wrapText="true" maxWidth="420"/>
 
         <!-- Continue Button -->
         <Button text="➜ Continue" onAction="#onContinueClick"

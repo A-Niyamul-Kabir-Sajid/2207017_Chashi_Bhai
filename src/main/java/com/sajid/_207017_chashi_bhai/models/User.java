@@ -106,6 +106,10 @@ public class User {
         this.createdAt = createdAt;
     }
 
+    public String getUserId() {
+        return "USR" + String.format("%06d", id);
+    }
+
     @Override
     public String toString() {
         return "User{" +
