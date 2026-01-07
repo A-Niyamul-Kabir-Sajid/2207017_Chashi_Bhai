@@ -42,7 +42,10 @@ public class BuyerOrdersController {
             App.loadScene("login-view.fxml", "Login");
             return;
         }
-
+        
+        setActiveFilter(btnFilterAll);
+        currentFilter = "all";
+        
         loadOrders(currentFilter);
     }
 

@@ -47,6 +47,7 @@ public class CropFeedController {
         String name;
         String farmerName;
         boolean farmerVerified;
+        String farmerPhone; // Add this field
         double price;
         String unit;
         double quantity;
@@ -129,7 +130,7 @@ public class CropFeedController {
         loadedCrops.clear();
 
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT c.*, u.name as farmer_name, u.is_verified, ")
+        sql.append("SELECT c.*, u.name as farmer_name, u.phone as farmer_phone, u.is_verified, ")
            .append(" (SELECT photo_path FROM crop_photos WHERE crop_id = c.id ORDER BY photo_order LIMIT 1) as photo")
            .append(" FROM crops c JOIN users u ON c.farmer_id = u.id WHERE c.status = 'active'");
 
@@ -222,6 +223,7 @@ public class CropFeedController {
         item.farmerId = rs.getInt("farmer_id");
         item.name = rs.getString("name");
         item.farmerName = rs.getString("farmer_name");
+        item.farmerPhone = safeString(rs, "farmer_phone");
         item.farmerVerified = rs.getBoolean("is_verified");
         item.price = rs.getDouble("price");
         item.unit = rs.getString("unit");
@@ -336,12 +338,12 @@ public class CropFeedController {
             Button whatsapp = new Button("WhatsApp");
             whatsapp.getStyleClass().add("button-transparent");
             whatsapp.setMaxWidth(Double.MAX_VALUE);
-            whatsapp.setOnAction(e -> openWhatsApp(currentUser.getPhone()));
+            whatsapp.setOnAction(e -> openWhatsApp(item.farmerPhone));
 
             Button call = new Button("Call");
             call.getStyleClass().add("button-transparent");
             call.setMaxWidth(Double.MAX_VALUE);
-            call.setOnAction(e -> openPhone(currentUser.getPhone()));
+            call.setOnAction(e -> openPhone(item.farmerPhone));
 
             actionsBox.getChildren().addAll(contact, order, whatsapp, call);
         } else {
@@ -389,9 +391,20 @@ public class CropFeedController {
         confirm.setContentText("এই কাজটি পূর্বাবস্থায় ফেরত নেওয়া যাবে না।");
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
-                // TODO: Use DatabaseService.executeUpdateAsync if available
-                showSuccess("সফল", "ফসল মুছে ফেলা হয়েছে।");
-                loadCrops(false);
+                DatabaseService.executeUpdateAsync(
+                    "UPDATE crops SET status = 'deleted' WHERE id = ?",
+                    new Object[]{cropId},
+                    rowsAffected -> {
+                        Platform.runLater(() -> {
+                            showSuccess("সফল", "ফসল মুছে ফেলা হয়েছে।");
+                            loadCrops(false);
+                        });
+                    },
+                    err -> {
+                        Platform.runLater(() -> showError("ত্রুটি", "ফসল মুছতে ব্যর্থ হয়েছে।"));
+                        err.printStackTrace();
+                    }
+                );
             }
         });
     }

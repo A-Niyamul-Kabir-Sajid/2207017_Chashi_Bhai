@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="root" alignment="CENTER" spacing="12" styleClass="crop-item" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.sajid._207017_chashi_bhai.controllers.CropItemController">
+
+    <children>
+        <!-- Image at the top -->
+        <ImageView fx:id="imageView" fitHeight="120" fitWidth="259.0" preserveRatio="true" styleClass="crop-image" />
+
+        <!-- Details below -->
+        <VBox alignment="CENTER_LEFT" spacing="6">
+            <Label fx:id="nameLabel" styleClass="crop-name" text="Crop name" />
+            <Label fx:id="categoryLabel" styleClass="crop-category" text="Category" />
+            <Label fx:id="farmerLabel" styleClass="crop-farmer" text="Farmer: Name" />
+            <Label fx:id="remainingLabel" styleClass="crop-remaining" text="Remaining: 0 kg" />
+
+            <HBox spacing="8">
+                <Label fx:id="priceLabel" styleClass="crop-price" text="৳ 0.00" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button fx:id="viewButton" onAction="#onViewClicked" styleClass="crop-action" text="View" />
+            </HBox>
+        </VBox>
+    </children>
+</VBox>

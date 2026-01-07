@@ -70,6 +70,7 @@ public class App extends Application {
             
             primaryStage.setScene(scene);
             primaryStage.setTitle(title);
+            primaryStage.centerOnScreen();
             
         } catch (IOException e) {
             System.err.println("Error loading scene: " + fxmlFile);

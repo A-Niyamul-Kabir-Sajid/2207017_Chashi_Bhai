@@ -1,35 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
+<?import javafx.collections.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import java.lang.String?>
-<?import javafx.collections.FXCollections?>
-<?import javafx.scene.image.ImageView?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.CropFeedController" styleClass="root" minHeight="700" minWidth="1024">
-    
+<BorderPane minHeight="700" minWidth="1024" styleClass="root"
+            xmlns="http://javafx.com/javafx/17.0.12"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.sajid._207017_chashi_bhai.controllers.CropFeedController">
+
     <!-- Top Navigation -->
     <top>
         <VBox>
+            <!-- Navigation Bar -->
             <HBox alignment="CENTER_LEFT" spacing="20" styleClass="nav-bar">
                 <padding>
-                    <Insets top="15" bottom="15" left="20" right="20"/>
+                    <Insets bottom="15" left="20" right="20" top="15"/>
                 </padding>
-                <Button text="←" styleClass="back-button" fx:id="btnBack" onAction="#onBack"/>
-                <Label text="সকল ফসল / Browse Crops" styleClass="page-title"/>
+                <Button fx:id="btnBack" onAction="#onBack" styleClass="back-button" text="←"/>
+                <Label styleClass="page-title" text="সকল ফসল / Browse Crops"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <TextField fx:id="txtQuickSearch" promptText="খুঁজুন..." styleClass="quick-search" prefWidth="250"/>
+                <TextField fx:id="txtQuickSearch" prefWidth="250" promptText="খুঁজুন..." styleClass="quick-search"/>
             </HBox>
-            
+
             <!-- Filter Bar -->
-            <HBox spacing="15" alignment="CENTER_LEFT" styleClass="filter-bar">
+            <HBox alignment="CENTER_LEFT" spacing="15" styleClass="filter-bar">
                 <padding>
-                    <Insets top="12" bottom="12" left="20" right="20"/>
+                    <Insets bottom="12" left="20" right="20" top="12"/>
                 </padding>
-                <Label text="ফিল্টার:" styleClass="filter-label"/>
-                
-                <ComboBox fx:id="cbFilterCropType" promptText="ফসলের ধরন" styleClass="filter-combo" prefWidth="180">
+                <Label styleClass="filter-label" text="ফিল্টার:"/>
+
+                <ComboBox fx:id="cbFilterCropType" prefWidth="180" promptText="ফসলের ধরন" styleClass="filter-combo">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="সব ধরন (All Types)"/>
@@ -40,8 +43,8 @@
                         </FXCollections>
                     </items>
                 </ComboBox>
-                
-                <ComboBox fx:id="cbFilterDistrict" promptText="জেলা" styleClass="filter-combo" prefWidth="180">
+
+                <ComboBox fx:id="cbFilterDistrict" prefWidth="180" promptText="জেলা" styleClass="filter-combo">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="সব জেলা (All Districts)"/>
@@ -52,180 +55,49 @@
                         </FXCollections>
                     </items>
                 </ComboBox>
-                
-                <Label text="মূল্য:" styleClass="filter-label"/>
-                <Slider fx:id="sliderPriceMin" min="0" max="1000" value="0" prefWidth="120" styleClass="price-slider"/>
-                <Label fx:id="lblPriceRange" text="৳ 0 - ৳ 1000" styleClass="filter-label"/>
-                
-                <CheckBox fx:id="chkVerifiedOnly" text="✓ শুধু যাচাইকৃত" styleClass="filter-checkbox"/>
-                
-                <Button fx:id="btnApplyFilter" text="প্রয়োগ করুন" styleClass="button-primary" onAction="#onApplyFilter"/>
-                <Button fx:id="btnResetFilter" text="রিসেট" styleClass="button-secondary" onAction="#onResetFilter"/>
+
+                <Label styleClass="filter-label" text="মূল্য:"/>
+                <Slider fx:id="sliderPriceMin" max="1000" min="0" prefWidth="120" styleClass="price-slider" value="0"/>
+                <Label fx:id="lblPriceRange" styleClass="filter-label" text="৳ 0 - ৳ 1000"/>
+
+                <CheckBox fx:id="chkVerifiedOnly" styleClass="filter-checkbox" text="✓ শুধু যাচাইকৃত"/>
+
+                <Button fx:id="btnApplyFilter" onAction="#onApplyFilter" styleClass="button-primary" text="প্রয়োগ করুন"/>
+                <Button fx:id="btnResetFilter" onAction="#onResetFilter" styleClass="button-secondary" text="রিসেট"/>
             </HBox>
         </VBox>
     </top>
 
+    <!-- Center Feed -->
     <center>
-        <ScrollPane fitToWidth="true" fitToHeight="true" styleClass="scroll-pane">
-            <VBox spacing="15" fx:id="vboxCropFeed">
-                <padding>
-                    <Insets top="20" bottom="20" left="30" right="30"/>
-                </padding>
-                
-                <!-- Crop Card 1 -->
-                <HBox spacing="25" styleClass="crop-feed-card" alignment="CENTER_LEFT">
+        <ScrollPane fitToHeight="true" fitToWidth="true" styleClass="scroll-pane" vbarPolicy="ALWAYS">
+            <content>
+                <VBox spacing="20">
                     <padding>
-                        <Insets top="20" bottom="20" left="25" right="25"/>
+                        <Insets bottom="20" left="30" right="30" top="20"/>
                     </padding>
-                    
-                    <!-- Crop Image -->
-                    <ImageView fitWidth="140" fitHeight="140" preserveRatio="true" styleClass="crop-feed-image"/>
-                    
-                    <!-- Crop Info -->
-                    <VBox spacing="10" HBox.hgrow="ALWAYS">
-                        <?xml version="1.0" encoding="UTF-8"?>
 
-                        <?import javafx.collections.FXCollections?>
-                        <?import javafx.geometry.Insets?>
-                        <?import javafx.scene.control.*?>
-                        <?import javafx.scene.layout.*?>
-                        <?import javafx.scene.image.ImageView?>
+                    <!-- Grid for Crop Cards -->
+                    <GridPane fx:id="gridCropFeed" hgap="20" vgap="20">
+                        <columnConstraints>
+                            <ColumnConstraints minWidth="280" percentWidth="33.33"/>
+                            <ColumnConstraints minWidth="280" percentWidth="33.33"/>
+                            <ColumnConstraints minWidth="280" percentWidth="33.33"/>
+                        </columnConstraints>
+                    </GridPane>
 
-                        <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.CropFeedController" styleClass="root" minHeight="700" minWidth="1024">
-    
-                            <!-- Top Navigation -->
-                            <top>
-                                <VBox spacing="12">
-                                    <!-- Primary top bar -->
-                                    <HBox alignment="CENTER_LEFT" spacing="16" styleClass="nav-bar">
-                                        <padding>
-                                            <Insets top="12" bottom="12" left="16" right="16"/>
-                                        </padding>
-                                        <Button text="←" styleClass="back-button" fx:id="btnBack" onAction="#onBack"/>
-                                        <Label fx:id="lblTitle" text="আজকের উপলব্ধ ফসলসমূহ" styleClass="page-title"/>
-                                        <Region HBox.hgrow="ALWAYS"/>
-                                        <TextField fx:id="txtSearch" promptText="ফসল খুঁজুন..." styleClass="search-input" prefWidth="320" onKeyReleased="#onSearchKeyUp"/>
-                                        <Button fx:id="btnToggleFilter" text="⚙️ ফিল্টার" styleClass="button-secondary" onAction="#onToggleFilter"/>
-                                    </HBox>
-
-                                    <!-- Optional farmer-only quick section header (rendered by controller) -->
-                                    <HBox fx:id="hboxMyCropsHeader" alignment="CENTER_LEFT" spacing="8" visible="false">
-                                        <padding>
-                                            <Insets left="20" right="20"/>
-                                        </padding>
-                                        <Label text="আমার ফসলসমূহ" styleClass="section-title"/>
-                                    </HBox>
-                                </VBox>
-                            </top>
-
-                            <!-- Center: progress + scroll list -->
-                            <center>
-                                <VBox spacing="10">
-                                    <padding>
-                                        <Insets top="10" bottom="10" left="16" right="16"/>
-                                    </padding>
-                                    <ProgressIndicator fx:id="progressIndicator" visible="false" maxWidth="60" maxHeight="60"/>
-            
-                                    <!-- Farmer-only highlights grid (shown by controller when role=farmer) -->
-                                    <GridPane fx:id="myCropsGrid" hgap="12" vgap="12" visible="false">
-                                        <columnConstraints>
-                                            <ColumnConstraints percentWidth="33"/>
-                                            <ColumnConstraints percentWidth="33"/>
-                                            <ColumnConstraints percentWidth="33"/>
-                                        </columnConstraints>
-                                    </GridPane>
-
-                                    <!-- Main feed -->
-                                    <ScrollPane fitToWidth="true" fitToHeight="true" styleClass="scroll-pane">
-                                        <VBox fx:id="vboxCrops" spacing="12">
-                                            <padding>
-                                                <Insets top="10" bottom="20"/>
-                                            </padding>
-                                        </VBox>
-                                    </ScrollPane>
-                                </VBox>
-                            </center>
-
-                            <!-- Right: filter pane (toggle visibility) -->
-                            <right>
-                                <VBox fx:id="filterPane" spacing="12" visible="false" styleClass="filter-pane">
-                                    <padding>
-                                        <Insets top="16" bottom="16" left="16" right="16"/>
-                                    </padding>
-                                    <Label text="ফিল্টার" styleClass="section-title"/>
-            
-                                    <Label text="ক্যাটাগরি" styleClass="filter-label"/>
-                                    <ComboBox fx:id="cmbCategory" promptText="ক্যাটাগরি নির্বাচন করুন" styleClass="filter-combo">
-                                        <items>
-                                            <FXCollections fx:factory="observableArrayList">
-                                                <String fx:value="সব"/>
-                                                <String fx:value="শস্য"/>
-                                                <String fx:value="সবজি"/>
-                                                <String fx:value="ফল"/>
-                                                <String fx:value="মসলা"/>
-                                            </FXCollections>
-                                        </items>
-                                    </ComboBox>
-
-                                    <Label text="জেলা" styleClass="filter-label"/>
-                                    <ComboBox fx:id="cmbDistrict" promptText="জেলা নির্বাচন করুন" styleClass="filter-combo">
-                                        <items>
-                                            <FXCollections fx:factory="observableArrayList">
-                                                <String fx:value="সব"/>
-                                                <String fx:value="ঢাকা"/>
-                                                <String fx:value="চট্টগ্রাম"/>
-                                                <String fx:value="রাজশাহী"/>
-                                                <String fx:value="খুলনা"/>
-                                                <String fx:value="বরিশাল"/>
-                                                <String fx:value="সিলেট"/>
-                                                <String fx:value="রংপুর"/>
-                                                <String fx:value="ময়মনসিংহ"/>
-                                            </FXCollections>
-                                        </items>
-                                    </ComboBox>
-
-                                    <Label text="মূল্য সীমা" styleClass="filter-label"/>
-                                    <HBox spacing="8">
-                                        <TextField fx:id="tfPriceMin" promptText="সর্বনিম্ন" prefWidth="90"/>
-                                        <Label text="—"/>
-                                        <TextField fx:id="tfPriceMax" promptText="সর্বোচ্চ" prefWidth="90"/>
-                                    </HBox>
-
-                                    <CheckBox fx:id="chkVerifiedOnly" text="✓ শুধু যাচাইকৃত কৃষক" styleClass="filter-checkbox"/>
-
-                                    <HBox spacing="10">
-                                        <Button fx:id="btnApplyFilter" text="প্রয়োগ" styleClass="button-primary" onAction="#onApplyFilter"/>
-                                        <Button fx:id="btnClearFilter" text="রিসেট" styleClass="button-secondary" onAction="#onClearFilter"/>
-                                    </HBox>
-                                </VBox>
-                            </right>
-
-                            <!-- Bottom: total count -->
-                            <bottom>
-                                <HBox alignment="CENTER_RIGHT">
-                                    <padding>
-                                        <Insets top="8" bottom="8" left="16" right="16"/>
-                                    </padding>
-                                    <Region HBox.hgrow="ALWAYS"/>
-                                    <Label fx:id="lblTotalCount" text="মোট ফসল: 0টি" styleClass="footer-text"/>
-                                </HBox>
-                            </bottom>
-                        </BorderPane>
+                    <!-- Empty State -->
+                    <VBox fx:id="vboxEmptyState" alignment="CENTER" spacing="20" visible="false">
+                        <padding>
+                            <Insets bottom="60" top="60"/>
+                        </padding>
+                        <Label styleClass="empty-icon" text="🔍"/>
+                        <Label styleClass="empty-text" text="কোনো ফসল পাওয়া যায়নি"/>
+                        <Label styleClass="empty-subtext" text="ফিল্টার পরিবর্তন করে আবার চেষ্টা করুন"/>
                     </VBox>
-                </HBox>
-
-                <!-- Empty State -->
-                <VBox alignment="CENTER" spacing="20" fx:id="vboxEmptyState" visible="false">
-                    <padding>
-                        <Insets top="60" bottom="60"/>
-                    </padding>
-                    <Label text="🔍" styleClass="empty-icon"/>
-                    <Label text="কোনো ফসল পাওয়া যায়নি" styleClass="empty-text"/>
-                    <Label text="ফিল্টার পরিবর্তন করে আবার চেষ্টা করুন" styleClass="empty-subtext"/>
                 </VBox>
-
-            </VBox>
+            </content>
         </ScrollPane>
     </center>
-    
+
 </BorderPane>
