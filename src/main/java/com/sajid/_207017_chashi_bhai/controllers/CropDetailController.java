@@ -57,12 +57,19 @@ public class CropDetailController {
     private String cropUnit;
     private String[] photoPaths;
     private int currentPhotoIndex = 0;
+    private Double orderedQuantity = null; // Set when viewing from order context
 
     @FXML
     public void initialize() {
         currentUser = App.getCurrentUser();
         cropId = App.getCurrentCropId();
         System.out.println("Loading crop details for cropId: " + cropId);
+        
+        // Check if viewing from order context
+        int contextOrderId = App.getCurrentOrderId();
+        if (contextOrderId > 0) {
+            loadOrderQuantity(contextOrderId);
+        }
         
         if (currentUser == null) {
             showError("অ্যাক্সেস অস্বীকার", "দয়া করে লগইন করুন।");
@@ -89,8 +96,8 @@ public class CropDetailController {
                     "u.profile_photo as farmer_photo, " +
                     "COALESCE(CAST((julianday('now') - julianday(u.created_at)) / 365 AS INTEGER), 0) as years_farming, " +
                     "(SELECT COUNT(*) FROM orders o JOIN crops cr ON o.crop_id = cr.id WHERE cr.farmer_id = u.id AND o.status = 'delivered') as total_sales, " +
-                    "(SELECT COALESCE(AVG(r.rating), 0.0) FROM ratings r WHERE r.farmer_id = u.id) as avg_rating, " +
-                    "(SELECT COUNT(*) FROM ratings r WHERE r.farmer_id = u.id) as total_reviews " +
+                    "(SELECT COALESCE(AVG(r.rating), 0.0) FROM reviews r WHERE r.reviewee_id = u.id) as avg_rating, " +
+                    "(SELECT COUNT(*) FROM reviews r WHERE r.reviewee_id = u.id) as total_reviews " +
                     "FROM crops c " +
                     "JOIN users u ON c.farmer_id = u.id " +
                     "WHERE c.id = ?";
@@ -116,7 +123,13 @@ public class CropDetailController {
                             lblCropPrice.setText(String.format("৳%.2f/%s", cropPrice, cropUnit));
                             lblProductCode.setText(productCode != null ? productCode : "N/A");
                             lblCategory.setText(category != null ? category : "N/A");
-                            lblQuantity.setText(String.format("%.1f %s", quantity, cropUnit));
+                            
+                            // Show ordered quantity if viewing from order, otherwise show available quantity
+                            if (orderedQuantity != null) {
+                                lblQuantity.setText(String.format("অর্ডার: %.1f %s (মোট: %.1f %s)", orderedQuantity, cropUnit, quantity, cropUnit));
+                            } else {
+                                lblQuantity.setText(String.format("%.1f %s", quantity, cropUnit));
+                            }
                             lblHarvestDate.setText(harvestDate != null ? harvestDate : "N/A");
                             lblLocation.setText(district != null ? district : "N/A");
                             lblTransport.setText(transport != null ? transport : "N/A");
@@ -343,6 +356,25 @@ public class CropDetailController {
         }
     }
 
+    private void loadOrderQuantity(int orderId) {
+        String sql = "SELECT quantity_kg FROM orders WHERE id = ?";
+        DatabaseService.executeQueryAsync(sql, new Object[]{orderId},
+            rs -> {
+                Platform.runLater(() -> {
+                    try {
+                        if (rs.next()) {
+                            orderedQuantity = rs.getDouble("quantity_kg");
+                            System.out.println("Ordered quantity: " + orderedQuantity);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            },
+            err -> err.printStackTrace()
+        );
+    }
+
     @FXML
     private void onViewFarmerProfile() {
         // Store farmer ID and navigate to public farmer profile view
@@ -352,6 +384,8 @@ public class CropDetailController {
 
     @FXML
     private void onBack() {
+        // Clear order context when going back
+        App.setCurrentOrderId(-1);
         App.loadScene("crop-feed-view.fxml", "সকল ফসল");
     }
 

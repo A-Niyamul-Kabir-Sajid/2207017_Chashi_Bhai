@@ -308,6 +308,7 @@ public class OrderDetailController {
     @FXML
     private void onViewCrop() {
         App.setCurrentCropId(cropId);
+        App.setCurrentOrderId(orderId); // Pass order context to show ordered quantity
         App.loadScene("crop-detail-view.fxml", "ফসলের বিস্তারিত");
     }
 

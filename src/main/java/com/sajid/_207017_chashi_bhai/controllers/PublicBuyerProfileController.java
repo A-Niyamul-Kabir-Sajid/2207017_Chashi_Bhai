@@ -83,10 +83,10 @@ public class PublicBuyerProfileController {
         }
 
         String sql = "SELECT u.*, " +
-                    "(SELECT COUNT(*) FROM orders WHERE buyer_id = u.id AND status = 'delivered') as total_purchases, " +
-                    "(SELECT COALESCE(SUM(o.quantity * c.price), 0) FROM orders o " +
-                    " JOIN crops c ON o.crop_id = c.id WHERE o.buyer_id = u.id AND o.status = 'delivered') as total_spent, " +
-                    "(SELECT COALESCE(AVG(r.rating), 0.0) FROM ratings r WHERE r.buyer_id = u.id) as avg_rating " +
+                    "(SELECT COUNT(*) FROM orders WHERE buyer_id = u.id AND status IN ('delivered', 'completed')) as total_purchases, " +
+                    "(SELECT COALESCE(SUM(o.quantity_kg * o.price_per_kg), 0) FROM orders o " +
+                    " WHERE o.buyer_id = u.id AND o.status IN ('delivered', 'completed')) as total_spent, " +
+                    "(SELECT COALESCE(AVG(r.rating), 0.0) FROM reviews r WHERE r.reviewer_id = u.id) as avg_rating " +
                     "FROM users u WHERE u.id = ?";
 
         DatabaseService.executeQueryAsync(sql, new Object[]{buyerId},
