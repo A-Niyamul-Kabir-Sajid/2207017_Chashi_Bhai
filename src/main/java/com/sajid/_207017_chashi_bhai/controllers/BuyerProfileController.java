@@ -3,11 +3,13 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -15,6 +17,7 @@ import java.io.File;
 
 /**
  * BuyerProfileController - Display buyer profile with purchase history stats
+ * Features real-time sync with database polling
  */
 public class BuyerProfileController {
 
@@ -28,12 +31,16 @@ public class BuyerProfileController {
     @FXML private Label lblTotalSpent;
     @FXML private Label lblMemberSince;
     @FXML private Button btnEditProfile;
+    @FXML private Label lblLastUpdated;
+    @FXML private ProgressIndicator progressIndicator;
 
     private User currentUser;
+    private DataSyncManager syncManager;
 
     @FXML
     public void initialize() {
         currentUser = App.getCurrentUser();
+        syncManager = DataSyncManager.getInstance();
         
         if (currentUser == null || !"buyer".equals(currentUser.getRole())) {
             showError("অ্যাক্সেস অস্বীকার", "শুধুমাত্র ক্রেতারা এই পেজ দেখতে পারবেন।");
@@ -42,12 +49,27 @@ public class BuyerProfileController {
         }
 
         loadProfileData();
+        
+        // Start real-time sync polling
+        syncManager.startProfileSync(currentUser.getId(), this::loadProfileData);
+    }
+
+    /**
+     * Refresh button handler
+     */
+    @FXML
+    private void onRefresh() {
+        loadProfileData();
     }
 
     /**
      * Load buyer profile data from database
      */
     private void loadProfileData() {
+        if (progressIndicator != null) {
+            progressIndicator.setVisible(true);
+        }
+        
         DatabaseService.executeQueryAsync(
             "SELECT u.*, " +
             "(SELECT COUNT(*) FROM orders WHERE buyer_id = u.id AND status = 'delivered') as total_purchases, " +
@@ -92,11 +114,22 @@ public class BuyerProfileController {
                     } catch (Exception e) {
                         e.printStackTrace();
                         showError("ত্রুটি", "প্রোফাইল লোড করতে ব্যর্থ হয়েছে।");
+                    } finally {
+                        if (progressIndicator != null) {
+                            progressIndicator.setVisible(false);
+                        }
+                        // Update last updated label
+                        if (lblLastUpdated != null) {
+                            lblLastUpdated.setText("সর্বশেষ আপডেট: এখনই");
+                        }
                     }
                 });
             },
             error -> {
                 Platform.runLater(() -> {
+                    if (progressIndicator != null) {
+                        progressIndicator.setVisible(false);
+                    }
                     showError("ডাটাবেস ত্রুটি", "প্রোফাইল ডেটা লোড করতে সমস্যা হয়েছে।");
                     error.printStackTrace();
                 });
@@ -112,6 +145,10 @@ public class BuyerProfileController {
 
     @FXML
     private void onBack() {
+        // Stop polling when leaving the view
+        if (syncManager != null && currentUser != null) {
+            syncManager.stopPolling("profile_" + currentUser.getId());
+        }
         App.loadScene("buyer-dashboard-view.fxml", "Dashboard");
     }
 

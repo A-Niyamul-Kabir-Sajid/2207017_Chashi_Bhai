@@ -20,6 +20,8 @@ public class App extends Application {
     private static User currentUser;
     private static int currentCropId = -1;
     private static int viewedUserId = -1; // For viewing other users' profiles
+    private static int currentOrderId = -1; // For viewing order details
+    private static String currentOrderNumber = ""; // For searching orders by number
     private static String searchQuery = "";
 
     @Override
@@ -157,6 +159,34 @@ public class App extends Application {
      */
     public static void setCurrentViewedUserId(int userId) {
         viewedUserId = userId;
+    }
+
+    /**
+     * Get current order ID (for viewing order details)
+     */
+    public static int getCurrentOrderId() {
+        return currentOrderId;
+    }
+
+    /**
+     * Set current order ID
+     */
+    public static void setCurrentOrderId(int orderId) {
+        currentOrderId = orderId;
+    }
+
+    /**
+     * Get current order number (for searching)
+     */
+    public static String getCurrentOrderNumber() {
+        return currentOrderNumber;
+    }
+
+    /**
+     * Set current order number
+     */
+    public static void setCurrentOrderNumber(String orderNumber) {
+        currentOrderNumber = orderNumber;
     }
 
     /**

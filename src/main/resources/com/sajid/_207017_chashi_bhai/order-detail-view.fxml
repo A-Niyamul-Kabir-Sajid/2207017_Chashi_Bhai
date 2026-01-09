@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.OrderDetailController" styleClass="root" minHeight="700" minWidth="1024">
+    
+    <!-- Top Navigation -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20" styleClass="nav-bar">
+            <padding>
+                <Insets top="15" bottom="15" left="20" right="20"/>
+            </padding>
+            <Button text="←" styleClass="back-button" fx:id="btnBack" onAction="#onBack"/>
+            <Label text="🌾 অর্ডার বিবরণ / Order Details" styleClass="app-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="btnCopyOrderNumber" text="📋 কপি" styleClass="button-secondary" onAction="#onCopyOrderNumber"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+            <VBox alignment="TOP_CENTER" spacing="25" styleClass="detail-container">
+                <padding>
+                    <Insets top="30" bottom="40" left="40" right="40"/>
+                </padding>
+
+                <!-- Order Header Card -->
+                <VBox alignment="CENTER" spacing="15" styleClass="card">
+                    <padding>
+                        <Insets top="25" bottom="25" left="30" right="30"/>
+                    </padding>
+                    
+                    <HBox alignment="CENTER" spacing="15">
+                        <Label text="📦" style="-fx-font-size: 32px;"/>
+                        <VBox spacing="5">
+                            <Label fx:id="lblOrderNumber" text="ORD-20260108-0001" styleClass="order-number" style="-fx-font-size: 22px; -fx-font-weight: bold;"/>
+                            <Label fx:id="lblOrderStatus" text="🟢 গৃহীত" styleClass="order-status"/>
+                        </VBox>
+                    </HBox>
+                    
+                    <Separator/>
+                    
+                    <GridPane hgap="30" vgap="15" alignment="CENTER">
+                        <Label text="তারিখ:" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="detail-label"/>
+                        <Label fx:id="lblOrderDate" text="2026-01-08" GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="detail-value"/>
+                        
+                        <Label text="পেমেন্ট:" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="detail-label"/>
+                        <Label fx:id="lblPaymentStatus" text="বকেয়া" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="detail-value"/>
+                        
+                        <Label text="মোট মূল্য:" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="detail-label"/>
+                        <Label fx:id="lblTotalAmount" text="৳ 5,000.00" GridPane.rowIndex="2" GridPane.columnIndex="1" styleClass="detail-value" style="-fx-font-weight: bold; -fx-text-fill: #4CAF50;"/>
+                    </GridPane>
+                </VBox>
+
+                <!-- Crop Details Card -->
+                <VBox spacing="15" styleClass="card">
+                    <padding>
+                        <Insets top="20" bottom="20" left="25" right="25"/>
+                    </padding>
+                    
+                    <Label text="🌾 ফসলের তথ্য / Crop Details" styleClass="section-title"/>
+                    
+                    <HBox spacing="20" alignment="CENTER_LEFT">
+                        <ImageView fx:id="imgCrop" fitWidth="120" fitHeight="100" preserveRatio="true" styleClass="crop-photo"/>
+                        
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label fx:id="lblCropName" text="তাজা টমেটো" styleClass="crop-name" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                                <Label fx:id="lblProductCode" text="CRP-20260108-0001" styleClass="product-code" style="-fx-font-size: 12px; -fx-text-fill: #888;"/>
+                            </HBox>
+                            <Label fx:id="lblCropCategory" text="সবজি (Vegetables)" styleClass="info-text"/>
+                            <HBox spacing="15">
+                                <VBox spacing="3">
+                                    <Label text="অর্ডারকৃত পরিমাণ:" styleClass="detail-label"/>
+                                    <Label fx:id="lblOrderedQuantity" text="50 কেজি" styleClass="detail-value" style="-fx-font-weight: bold;"/>
+                                </VBox>
+                                <VBox spacing="3">
+                                    <Label text="দাম/কেজি:" styleClass="detail-label"/>
+                                    <Label fx:id="lblPricePerKg" text="৳ 45.00" styleClass="detail-value"/>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                        
+                        <Button fx:id="btnViewCrop" text="👁 বিস্তারিত দেখুন" styleClass="button-secondary" onAction="#onViewCrop"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Farmer Details Card -->
+                <VBox spacing="15" styleClass="card">
+                    <padding>
+                        <Insets top="20" bottom="20" left="25" right="25"/>
+                    </padding>
+                    
+                    <Label text="👨‍🌾 কৃষকের তথ্য / Farmer Details" styleClass="section-title"/>
+                    
+                    <HBox spacing="20" alignment="CENTER_LEFT">
+                        <ImageView fx:id="imgFarmer" fitWidth="70" fitHeight="70" preserveRatio="true" styleClass="profile-photo"/>
+                        
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+                            <HBox spacing="8" alignment="CENTER_LEFT">
+                                <Label fx:id="lblFarmerName" text="আব্দুল করিম" styleClass="farmer-name" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                                <Label fx:id="lblFarmerVerified" text="✓" styleClass="verified-badge" visible="false"/>
+                            </HBox>
+                            <Label fx:id="lblFarmerId" text="ID: 1001" styleClass="info-text"/>
+                            <Label fx:id="lblFarmerPhone" text="📱 01712345678" styleClass="info-text"/>
+                            <Label fx:id="lblFarmerDistrict" text="📍 যশোর" styleClass="info-text"/>
+                        </VBox>
+                        
+                        <VBox spacing="8">
+                            <Button fx:id="btnCallFarmer" text="📞 কল করুন" styleClass="button-primary" onAction="#onCallFarmer" prefWidth="140"/>
+                            <Button fx:id="btnViewFarmerProfile" text="👤 প্রোফাইল দেখুন" styleClass="button-secondary" onAction="#onViewFarmerProfile" prefWidth="140"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- Buyer Details Card -->
+                <VBox spacing="15" styleClass="card">
+                    <padding>
+                        <Insets top="20" bottom="20" left="25" right="25"/>
+                    </padding>
+                    
+                    <Label text="🛒 ক্রেতার তথ্য / Buyer Details" styleClass="section-title"/>
+                    
+                    <GridPane hgap="30" vgap="12">
+                        <Label text="নাম:" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="detail-label"/>
+                        <Label fx:id="lblBuyerName" text="মোঃ রফিকুল ইসলাম" GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="detail-value"/>
+                        
+                        <Label text="ID:" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="detail-label"/>
+                        <Label fx:id="lblBuyerId" text="2002" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="detail-value"/>
+                        
+                        <Label text="ফোন:" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="detail-label"/>
+                        <Label fx:id="lblBuyerPhone" text="01812345678" GridPane.rowIndex="2" GridPane.columnIndex="1" styleClass="detail-value"/>
+                        
+                        <Label text="ডেলিভারি ঠিকানা:" GridPane.rowIndex="3" GridPane.columnIndex="0" styleClass="detail-label"/>
+                        <Label fx:id="lblDeliveryAddress" text="ঢাকা, মিরপুর-১০" GridPane.rowIndex="3" GridPane.columnIndex="1" styleClass="detail-value" wrapText="true"/>
+                    </GridPane>
+                </VBox>
+
+                <!-- Transport & Notes Card -->
+                <VBox spacing="15" styleClass="card">
+                    <padding>
+                        <Insets top="20" bottom="20" left="25" right="25"/>
+                    </padding>
+                    
+                    <Label text="🚚 পরিবহন ও নোট / Transport &amp; Notes" styleClass="section-title"/>
+                    
+                    <GridPane hgap="30" vgap="12">
+                        <Label text="পরিবহন:" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="detail-label"/>
+                        <Label fx:id="lblTransport" text="ক্রেতা নিয়ে যাবেন" GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="detail-value"/>
+                        
+                        <Label text="নোট:" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="detail-label"/>
+                        <Label fx:id="lblNotes" text="শীঘ্রই প্রয়োজন" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="detail-value" wrapText="true"/>
+                    </GridPane>
+                </VBox>
+
+                <!-- Action Buttons (for farmer) -->
+                <HBox fx:id="hboxFarmerActions" spacing="15" alignment="CENTER" visible="false" managed="false">
+                    <Button fx:id="btnAcceptOrder" text="✓ গ্রহণ করুন" styleClass="button-success" onAction="#onAcceptOrder" prefWidth="150"/>
+                    <Button fx:id="btnRejectOrder" text="✕ বাতিল করুন" styleClass="button-danger" onAction="#onRejectOrder" prefWidth="150"/>
+                    <Button fx:id="btnMarkDelivered" text="📦 ডেলিভারি সম্পন্ন" styleClass="button-primary" onAction="#onMarkDelivered" prefWidth="180"/>
+                </HBox>
+
+                <!-- Action Buttons (for buyer) -->
+                <HBox fx:id="hboxBuyerActions" spacing="15" alignment="CENTER" visible="false" managed="false">
+                    <Button fx:id="btnCancelOrder" text="✕ অর্ডার বাতিল" styleClass="button-danger" onAction="#onCancelOrder" prefWidth="150"/>
+                    <Button fx:id="btnRateOrder" text="⭐ রেটিং দিন" styleClass="button-primary" onAction="#onRateOrder" prefWidth="150"/>
+                </HBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+    
+</BorderPane>

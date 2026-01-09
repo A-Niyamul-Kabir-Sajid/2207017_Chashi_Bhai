@@ -8,5 +8,12 @@
       <jdbc-url>jdbc:sqlite:D:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai\database_schema.sql</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="database_schema.sql [2]" uuid="f909b13d-f259-4877-bf86-ba43590ba47c">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:database_schema.sql</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>
