@@ -16,10 +16,13 @@
             <padding>
                 <Insets top="15" bottom="15" left="20" right="20"/>
             </padding>
+            <Button text="←" styleClass="back-button" fx:id="btnBack" onAction="#onBack"/>
             <Label text="🌾 চাষী ভাই" styleClass="app-title"/>
             <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="btnFeed" text="📋 ফিড" styleClass="button-primary" onAction="#onGoToFeed"/>
             <MenuButton text="⋮" styleClass="icon-button" fx:id="btnMenu">
                 <items>
+                    <MenuItem text="🔄 রিফ্রেশ / Refresh" onAction="#onRefresh"/>
                     <MenuItem text="🚪 Sign Out" onAction="#onSignOut"/>
                 </items>
             </MenuButton>

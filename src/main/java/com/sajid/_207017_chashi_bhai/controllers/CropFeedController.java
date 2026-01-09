@@ -154,6 +154,84 @@ public class CropFeedController {
         });
     }
 
+    @FXML
+    private void onSearchOrder() {
+        // Show order number search dialog
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("অর্ডার নম্বর দিয়ে খুঁজুন");
+        dialog.setHeaderText("অর্ডার খুঁজুন / Search Order by Number");
+        dialog.setContentText("অর্ডার নম্বর লিখুন (যেমন: ORD-20260108-0001):");
+
+        dialog.showAndWait().ifPresent(orderNum -> {
+            String trimmed = orderNum.trim();
+            if (!trimmed.isEmpty()) {
+                searchOrderByNumber(trimmed);
+            }
+        });
+    }
+
+    private void searchOrderByNumber(String orderNumber) {
+        String sql = "SELECT o.id, o.order_number, o.status, o.total_amount, o.created_at, " +
+                    "c.name as crop_name, f.name as farmer_name, b.name as buyer_name " +
+                    "FROM orders o " +
+                    "JOIN crops c ON o.crop_id = c.id " +
+                    "JOIN users f ON o.farmer_id = f.id " +
+                    "JOIN users b ON o.buyer_id = b.id " +
+                    "WHERE o.order_number LIKE ? OR o.id = ?";
+        
+        int orderId = -1;
+        try { orderId = Integer.parseInt(orderNumber); } catch (Exception e) {}
+        
+        final int finalOrderId = orderId;
+        DatabaseService.executeQueryAsync(sql, new Object[]{"%" + orderNumber + "%", finalOrderId},
+            rs -> {
+                Platform.runLater(() -> {
+                    try {
+                        if (rs.next()) {
+                            int id = rs.getInt("id");
+                            String orderNum = rs.getString("order_number");
+                            String status = rs.getString("status");
+                            double total = rs.getDouble("total_amount");
+                            String cropName = rs.getString("crop_name");
+                            String farmerName = rs.getString("farmer_name");
+                            String buyerName = rs.getString("buyer_name");
+
+                            // Show order info and ask to view details
+                            Alert info = new Alert(Alert.AlertType.CONFIRMATION);
+                            info.setTitle("অর্ডার পাওয়া গেছে / Order Found");
+                            info.setHeaderText(orderNum);
+                            info.setContentText(
+                                "ফসল: " + cropName + "\n" +
+                                "কৃষক: " + farmerName + "\n" +
+                                "ক্রেতা: " + buyerName + "\n" +
+                                "মোট: ৳" + String.format("%.2f", total) + "\n" +
+                                "স্ট্যাটাস: " + status + "\n\n" +
+                                "বিস্তারিত দেখতে চান?"
+                            );
+
+                            info.showAndWait().ifPresent(response -> {
+                                if (response == ButtonType.OK) {
+                                    App.setCurrentOrderId(id);
+                                    App.setCurrentOrderNumber(orderNum);
+                                    App.loadScene("order-detail-view.fxml", "অর্ডার বিবরণ");
+                                }
+                            });
+                        } else {
+                            showError("পাওয়া যায়নি", "এই নম্বরের কোনো অর্ডার পাওয়া যায়নি।");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        showError("ত্রুটি", "অর্ডার খুঁজতে ব্যর্থ হয়েছে।");
+                    }
+                });
+            },
+            err -> {
+                Platform.runLater(() -> showError("ডাটাবেস ত্রুটি", "অর্ডার সার্চ করতে সমস্যা হয়েছে।"));
+                err.printStackTrace();
+            }
+        );
+    }
+
     private void searchUserById(int userId) {
         String sql = "SELECT id, role, name, phone, district, is_verified FROM users WHERE id = ?";
         
@@ -185,8 +263,7 @@ public class CropFeedController {
                                     if (userRole.equals("farmer")) {
                                         App.loadScene("public-farmer-profile-view.fxml", "কৃষকের প্রোফাইল");
                                     } else {
-                                        // TODO: Create public buyer profile view
-                                        showInfo("Coming Soon", "Buyer profile view coming soon!");
+                                        App.loadScene("public-buyer-profile-view.fxml", "ক্রেতার প্রোফাইল");
                                     }
                                 }
                             });

@@ -27,6 +27,8 @@ public class FarmerDashboardController {
     @FXML private Button btnMyOrders;
     @FXML private Button btnHistory;
     @FXML private Button btnProfile;
+    @FXML private Button btnBack;
+    @FXML private Button btnFeed;
     
     @FXML private ProgressIndicator progressIndicator;
 
@@ -147,7 +149,14 @@ public class FarmerDashboardController {
 
     @FXML
     private void onBack() {
-        App.loadScene("welcome-view.fxml", "Chashi Bhai");
+        // Navigate to main feed
+        App.loadScene("crop-feed-view.fxml", "ফসলের তালিকা");
+    }
+
+    @FXML
+    private void onGoToFeed() {
+        // Navigate to main feed
+        App.loadScene("crop-feed-view.fxml", "ফসলের তালিকা");
     }
 
     @FXML

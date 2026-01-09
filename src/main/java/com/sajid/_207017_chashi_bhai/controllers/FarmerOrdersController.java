@@ -2,6 +2,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
+import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -17,6 +18,7 @@ import java.util.Optional;
 
 /**
  * FarmerOrdersController - Manage incoming buyer orders
+ * Features real-time sync with database polling
  */
 public class FarmerOrdersController {
 
@@ -32,10 +34,12 @@ public class FarmerOrdersController {
 
     private User currentUser;
     private String currentFilter = "all";
+    private DataSyncManager syncManager;
 
     @FXML
     public void initialize() {
         currentUser = App.getCurrentUser();
+        syncManager = DataSyncManager.getInstance();
         
         if (currentUser == null || !"farmer".equals(currentUser.getRole())) {
             showError("অ্যাক্সেস অস্বীকার", "শুধুমাত্র কৃষকরা এই পেজ দেখতে পারবেন।");
@@ -44,6 +48,9 @@ public class FarmerOrdersController {
         }
 
         loadOrders(currentFilter);
+        
+        // Start real-time sync polling for orders (every 15 seconds)
+        syncManager.startOrdersSync(currentUser.getId(), () -> loadOrders(currentFilter));
     }
 
     @FXML
@@ -430,6 +437,10 @@ public class FarmerOrdersController {
 
     @FXML
     private void onBack() {
+        // Stop polling when leaving the view
+        if (syncManager != null && currentUser != null) {
+            syncManager.stopPolling("orders_" + currentUser.getId());
+        }
         App.loadScene("farmer-dashboard-view.fxml", "Dashboard");
     }
 

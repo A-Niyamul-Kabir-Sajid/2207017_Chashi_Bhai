@@ -3,6 +3,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.utils.BangladeshData;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -56,11 +57,21 @@ public class PostCropController {
             return;
         }
 
-        // Initialize ComboBoxes
-        cbCategory.getItems().addAll("শস্য (Crops)", "সবজি (Vegetables)", "ফল (Fruits)", "মসলা (Spices)", "ডাল (Pulses)");
-        cbUnit.getItems().addAll("কেজি (kg)", "মণ (maund)", "টন (ton)", "পিস (piece)");
-        cbDistrict.getItems().addAll("ঢাকা", "চট্টগ্রাম", "রাজশাহী", "খুলনা", "বরিশাল", "সিলেট", "রংপুর", "ময়মনসিংহ");
-        cbTransport.getItems().addAll("বিক্রেতা সরবরাহ করবেন", "ক্রেতা নিয়ে যাবেন", "আলোচনা সাপেক্ষ");
+        // Initialize ComboBoxes with complete data
+        cbCategory.setItems(BangladeshData.getCropCategories());
+        cbUnit.setItems(BangladeshData.getUnits());
+        cbDistrict.setItems(BangladeshData.getDistrictsList());
+        cbTransport.setItems(BangladeshData.getTransportOptions());
+        
+        // Pre-select farmer's district if available
+        if (currentUser.getDistrict() != null && !currentUser.getDistrict().isEmpty()) {
+            for (String district : BangladeshData.DISTRICTS) {
+                if (district.contains(currentUser.getDistrict())) {
+                    cbDistrict.getSelectionModel().select(district);
+                    break;
+                }
+            }
+        }
 
         // Set default date to today
         dpAvailableDate.setValue(LocalDate.now());
@@ -125,13 +136,20 @@ public class PostCropController {
         LocalDate harvestDate = dpAvailableDate.getValue();
         String district = cbDistrict.getValue();
         String transport = cbTransport.getValue();
-        String description = txtDescription.getText().trim();
+        String description = txtDescription.getText() != null ? txtDescription.getText().trim() : "";
 
-        // Insert crop into database
+        // Generate product code: CRP-YYYYMMDD-XXXX
+        String dateStr = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String productCode = String.format("CRP-%s-%04d", dateStr, System.currentTimeMillis() % 10000);
+
+        // Insert crop into database - match the actual schema columns
+        // Try first with the new schema columns, fallback to old if fails
+        String insertSql = "INSERT INTO crops (product_code, farmer_id, name, category, price_per_kg, initial_quantity_kg, available_quantity_kg, description, district, harvest_date, status, created_at) " +
+                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', datetime('now'))";
+        
         DatabaseService.executeUpdateAsync(
-            "INSERT INTO crops (farmer_id, name, category, price, unit, quantity, harvest_date, district, transport_info, description, status, created_at) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', datetime('now'))",
-            new Object[]{currentUser.getId(), cropName, category, price, unit, quantity, harvestDate.toString(), district, transport, description},
+            insertSql,
+            new Object[]{productCode, currentUser.getId(), cropName, category, price, quantity, quantity, description, district, harvestDate != null ? harvestDate.toString() : null},
             rowsAffected -> {
                 if (rowsAffected > 0) {
                     // Get the last inserted crop ID
@@ -167,12 +185,53 @@ public class PostCropController {
                     });
                 }
             },
+            // Error handler - try with old schema
             error -> {
-                Platform.runLater(() -> {
-                    btnPostCrop.setDisable(false);
-                    showError("ডাটাবেস ত্রুটি", "ফসল সংরক্ষণ করতে সমস্যা হয়েছে।");
-                    error.printStackTrace();
-                });
+                // Try with old schema format
+                String oldInsertSql = "INSERT INTO crops (farmer_id, name, category, price, unit, quantity, harvest_date, district, transport_info, description, status, created_at) " +
+                                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', datetime('now'))";
+                DatabaseService.executeUpdateAsync(
+                    oldInsertSql,
+                    new Object[]{currentUser.getId(), cropName, category, price, unit, quantity, harvestDate != null ? harvestDate.toString() : null, district, transport, description},
+                    rowsAffected2 -> {
+                        if (rowsAffected2 > 0) {
+                            DatabaseService.executeQueryAsync(
+                                "SELECT last_insert_rowid() as crop_id",
+                                new Object[]{},
+                                resultSet -> {
+                                    try {
+                                        if (resultSet.next()) {
+                                            int cropId = resultSet.getInt("crop_id");
+                                            savePhotos(cropId);
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                        Platform.runLater(() -> {
+                                            btnPostCrop.setDisable(false);
+                                            showError("ত্রুটি", "ফসল সংরক্ষণে সমস্যা হয়েছে।");
+                                        });
+                                    }
+                                },
+                                err2 -> Platform.runLater(() -> {
+                                    btnPostCrop.setDisable(false);
+                                    showError("ত্রুটি", "ফসল ID পেতে সমস্যা হয়েছে।");
+                                })
+                            );
+                        } else {
+                            Platform.runLater(() -> {
+                                btnPostCrop.setDisable(false);
+                                lblError.setText("ফসল যোগ করতে ব্যর্থ হয়েছে।");
+                            });
+                        }
+                    },
+                    err2 -> {
+                        Platform.runLater(() -> {
+                            btnPostCrop.setDisable(false);
+                            showError("ডাটাবেস ত্রুটি", "ফসল সংরক্ষণ করতে সমস্যা হয়েছে: " + err2.getMessage());
+                            err2.printStackTrace();
+                        });
+                    }
+                );
             }
         );
     }
