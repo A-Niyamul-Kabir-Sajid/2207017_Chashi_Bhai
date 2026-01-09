@@ -72,8 +72,8 @@ public class BuyerProfileController {
         
         DatabaseService.executeQueryAsync(
             "SELECT u.*, " +
-            "(SELECT COUNT(*) FROM orders WHERE buyer_id = u.id AND status = 'delivered') as total_purchases, " +
-            "(SELECT COALESCE(SUM(o.quantity * c.price), 0) FROM orders o JOIN crops c ON o.crop_id = c.id WHERE o.buyer_id = u.id AND o.status = 'delivered') as total_spent " +
+            "(SELECT COUNT(*) FROM orders WHERE buyer_id = u.id AND status IN ('delivered', 'completed')) as total_purchases, " +
+            "(SELECT COALESCE(SUM(o.quantity_kg * o.price_per_kg), 0) FROM orders o WHERE o.buyer_id = u.id AND o.status IN ('delivered', 'completed')) as total_spent " +
             "FROM users u WHERE u.id = ?",
             new Object[]{currentUser.getId()},
             resultSet -> {

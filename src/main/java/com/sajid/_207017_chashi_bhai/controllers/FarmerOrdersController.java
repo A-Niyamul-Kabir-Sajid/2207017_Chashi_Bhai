@@ -2,7 +2,9 @@ package com.sajid._207017_chashi_bhai.controllers;
 
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
+import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -104,50 +106,58 @@ public class FarmerOrdersController {
         }
         vboxOrdersList.getChildren().clear();
 
-        // TODO: Replace with actual database call later
-        // Hardcoded dummy data for testing
-        try {
-            // Create 3 dummy orders with different statuses
-            String[] statuses = {"pending", "accepted", "in_transit"};
-            String[] buyers = {"রহিম মিয়া", "করিম আলী", "সালাম হোসেন"};
-            String[] phones = {"01712345678", "01823456789", "01934567890"};
-            String[] districts = {"যশোর", "খুলনা", "বরিশাল"};
-            
-            for (int i = 0; i < 3; i++) {
-                String orderStatus = statuses[i];
-                
-                // Filter check
-                if (!filter.equals("all") && !filter.equals(orderStatus)) {
-                    continue;
-                }
-                
-                HBox orderCard = createDummyOrderCard(
-                    i + 1,
-                    "তাজা টমেটো",
-                    buyers[i],
-                    phones[i],
-                    districts[i],
-                    50.0 + (i * 10),
-                    45.0,
-                    "কেজি",
-                    orderStatus,
-                    "2025-12-" + (20 + i)
-                );
-                vboxOrdersList.getChildren().add(orderCard);
-            }
-            
-            boolean hasResults = vboxOrdersList.getChildren().size() > 0;
-            vboxEmptyState.setVisible(!hasResults);
-            vboxOrdersList.setVisible(hasResults);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            showError("ত্রুটি", "অর্ডার লোড করতে ব্যর্থ হয়েছে।");
-        } finally {
-            if (progressIndicator != null) {
-                progressIndicator.setVisible(false);
-            }
+        String query = "SELECT o.*, c.name as crop_name, c.price_per_kg as price, " +
+                      "u.name as buyer_name, u.phone as buyer_phone, u.district as buyer_district, " +
+                      "(SELECT photo_path FROM crop_photos WHERE crop_id = c.id ORDER BY photo_order LIMIT 1) as crop_photo " +
+                      "FROM orders o " +
+                      "JOIN crops c ON o.crop_id = c.id " +
+                      "JOIN users u ON o.buyer_id = u.id " +
+                      "WHERE c.farmer_id = ?";
+        
+        if (!"all".equals(filter)) {
+            query += " AND o.status = ?";
         }
+        query += " ORDER BY o.created_at DESC";
+
+        Object[] params = "all".equals(filter) ? 
+            new Object[]{currentUser.getId()} : 
+            new Object[]{currentUser.getId(), filter};
+
+        DatabaseService.executeQueryAsync(
+            query,
+            params,
+            resultSet -> {
+                Platform.runLater(() -> {
+                    try {
+                        boolean hasResults = false;
+                        while (resultSet.next()) {
+                            hasResults = true;
+                            HBox orderCard = createOrderCardFromResultSet(resultSet);
+                            vboxOrdersList.getChildren().add(orderCard);
+                        }
+
+                        vboxEmptyState.setVisible(!hasResults);
+                        vboxOrdersList.setVisible(hasResults);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        showError("ত্রুটি", "অর্ডার লোড করতে ব্যর্থ হয়েছে।");
+                    } finally {
+                        if (progressIndicator != null) {
+                            progressIndicator.setVisible(false);
+                        }
+                    }
+                });
+            },
+            error -> {
+                Platform.runLater(() -> {
+                    if (progressIndicator != null) {
+                        progressIndicator.setVisible(false);
+                    }
+                    showError("ডাটাবেস ত্রুটি", "অর্ডার লোড করতে সমস্যা হয়েছে।");
+                    error.printStackTrace();
+                });
+            }
+        );
     }
 
     private HBox createDummyOrderCard(int orderId, String cropName, String buyerName, 
@@ -207,17 +217,15 @@ public class FarmerOrdersController {
         return card;
     }
 
-    // Kept for future database integration
-    @SuppressWarnings("unused")
     private HBox createOrderCardFromResultSet(java.sql.ResultSet rs) throws Exception {
         int orderId = rs.getInt("id");
         String cropName = rs.getString("crop_name");
         String buyerName = rs.getString("buyer_name");
         String buyerPhone = rs.getString("buyer_phone");
         String buyerDistrict = rs.getString("buyer_district");
-        double quantity = rs.getDouble("quantity");
+        double quantity = rs.getDouble("quantity_kg");
         double price = rs.getDouble("price");
-        String unit = rs.getString("unit");
+        String unit = "কেজি";
         String status = rs.getString("status");
         String createdAt = rs.getString("created_at");
         String photoPath = rs.getString("crop_photo");
@@ -285,6 +293,7 @@ public class FarmerOrdersController {
         VBox actionsBox = new VBox(10);
         
         switch (status) {
+            case "new":
             case "pending":
                 Button btnAccept = new Button("✓ গ্রহণ করুন");
                 btnAccept.getStyleClass().add("button-success");
@@ -352,11 +361,14 @@ public class FarmerOrdersController {
 
     private String getStatusText(String status) {
         switch (status) {
+            case "new":
             case "pending": return "🔔 নতুন অর্ডার";
             case "accepted": return "✓ গৃহীত";
             case "in_transit": return "🚚 পাঠানো হচ্ছে";
             case "delivered": return "✓ ডেলিভার হয়েছে";
             case "rejected": return "✗ প্রত্যাখ্যান";
+            case "completed": return "✓ সম্পূর্ণ";
+            case "cancelled": return "✗ বাতিল";
             default: return status;
         }
     }
@@ -369,9 +381,24 @@ public class FarmerOrdersController {
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            // TODO: Replace with actual database call later
-            showSuccess("সফল", "অর্ডার স্ট্যাটাস আপডেট করা হয়েছে।");
-            loadOrders(currentFilter);
+            DatabaseService.executeUpdateAsync(
+                "UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?",
+                new Object[]{newStatus, orderId},
+                rowsAffected -> {
+                    Platform.runLater(() -> {
+                        if (rowsAffected > 0) {
+                            showSuccess("সফল", "অর্ডার স্ট্যাটাস আপডেট করা হয়েছে।");
+                            loadOrders(currentFilter);
+                        }
+                    });
+                },
+                error -> {
+                    Platform.runLater(() -> {
+                        showError("ত্রুটি", "স্ট্যাটাস আপডেট করতে সমস্যা হয়েছে।");
+                        error.printStackTrace();
+                    });
+                }
+            );
         }
     }
 

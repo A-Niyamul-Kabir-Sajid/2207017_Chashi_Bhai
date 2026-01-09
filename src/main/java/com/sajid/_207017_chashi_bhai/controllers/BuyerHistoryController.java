@@ -54,17 +54,16 @@ public class BuyerHistoryController {
     private void loadSummaryStats() {
         DatabaseService.executeQueryAsync(
             "SELECT " +
-            "(SELECT COALESCE(SUM(o.quantity * c.price), 0) FROM orders o " +
-            " JOIN crops c ON o.crop_id = c.id " +
-            " WHERE o.buyer_id = ? AND o.status = 'delivered') as total_expense, " +
+            "(SELECT COALESCE(SUM(o.quantity_kg * o.price_per_kg), 0) FROM orders o " +
+            " WHERE o.buyer_id = ? AND o.status IN ('delivered', 'completed')) as total_expense, " +
             "(SELECT c.name FROM orders o " +
             " JOIN crops c ON o.crop_id = c.id " +
-            " WHERE o.buyer_id = ? AND o.status = 'delivered' " +
+            " WHERE o.buyer_id = ? AND o.status IN ('delivered', 'completed') " +
             " GROUP BY c.name ORDER BY COUNT(*) DESC LIMIT 1) as most_bought, " +
             "(SELECT COUNT(DISTINCT c.farmer_id) FROM orders o " +
             " JOIN crops c ON o.crop_id = c.id " +
-            " WHERE o.buyer_id = ? AND o.status = 'delivered') as favorite_farmers, " +
-            "(SELECT COUNT(*) FROM orders WHERE buyer_id = ? AND status = 'delivered') as total_orders",
+            " WHERE o.buyer_id = ? AND o.status IN ('delivered', 'completed')) as favorite_farmers, " +
+            "(SELECT COUNT(*) FROM orders WHERE buyer_id = ? AND status IN ('delivered', 'completed')) as total_orders",
             new Object[]{currentUser.getId(), currentUser.getId(), currentUser.getId(), currentUser.getId()},
             resultSet -> {
                 Platform.runLater(() -> {
@@ -117,18 +116,19 @@ public class BuyerHistoryController {
         }
         vboxHistoryList.getChildren().clear();
 
-        String query = "SELECT o.*, c.name as crop_name, c.price, c.unit, " +
+        String query = "SELECT o.*, c.name as crop_name, c.price_per_kg as price, 'কেজি' as unit, " +
                       "u.name as farmer_name, u.is_verified, " +
-                      "(SELECT rating FROM ratings WHERE order_id = o.id LIMIT 1) as my_rating " +
+                      "(SELECT rating FROM ratings WHERE order_id = o.id LIMIT 1) as my_rating, " +
+                      "(SELECT rating FROM reviews WHERE order_id = o.id AND reviewer_id = ? LIMIT 1) as my_review_rating " +
                       "FROM orders o " +
                       "JOIN crops c ON o.crop_id = c.id " +
                       "JOIN users u ON c.farmer_id = u.id " +
-                      "WHERE o.buyer_id = ? AND o.status = 'delivered' " +
+                      "WHERE o.buyer_id = ? AND o.status IN ('delivered', 'completed') " +
                       "ORDER BY o.updated_at DESC";
 
         DatabaseService.executeQueryAsync(
             query,
-            new Object[]{currentUser.getId()},
+            new Object[]{currentUser.getId(), currentUser.getId()},
             resultSet -> {
                 Platform.runLater(() -> {
                     try {
@@ -164,11 +164,11 @@ public class BuyerHistoryController {
         String farmerName = rs.getString("farmer_name");
         boolean isVerified = rs.getBoolean("is_verified");
         String cropName = rs.getString("crop_name");
-        double quantity = rs.getDouble("quantity");
+        double quantity = rs.getDouble("quantity_kg");
         double price = rs.getDouble("price");
         String unit = rs.getString("unit");
         double totalPrice = quantity * price;
-        Object myRatingObj = rs.getObject("my_rating");
+        Object myRatingObj = rs.getObject("my_review_rating");
         Integer myRating = myRatingObj != null ? ((Number) myRatingObj).intValue() : null;
 
         HBox card = new HBox(20);

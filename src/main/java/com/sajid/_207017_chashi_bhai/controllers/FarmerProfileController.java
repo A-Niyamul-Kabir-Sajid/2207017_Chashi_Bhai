@@ -85,8 +85,8 @@ public class FarmerProfileController {
         DatabaseService.executeQueryAsync(
             "SELECT u.*, " +
             "COALESCE(CAST((julianday('now') - julianday(u.created_at)) / 365 AS INTEGER), 0) as years_farming, " +
-            "(SELECT COUNT(*) FROM orders o JOIN crops c ON o.crop_id = c.id WHERE c.farmer_id = u.id AND o.status = 'delivered') as total_sales, " +
-            "(SELECT COALESCE(AVG(r.rating), 0.0) FROM ratings r WHERE r.farmer_id = u.id) as avg_rating " +
+            "(SELECT COUNT(*) FROM orders o WHERE o.farmer_id = u.id AND o.status IN ('delivered', 'completed')) as total_sales, " +
+            "(SELECT COALESCE(AVG(r.rating), 0.0) FROM reviews r WHERE r.reviewee_id = u.id) as avg_rating " +
             "FROM users u WHERE u.id = ?",
             new Object[]{currentUser.getId()},
             resultSet -> {
