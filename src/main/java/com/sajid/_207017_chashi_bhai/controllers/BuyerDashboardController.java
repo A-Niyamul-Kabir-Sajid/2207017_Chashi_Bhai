@@ -89,7 +89,7 @@ public class BuyerDashboardController {
         }
 
         DatabaseService.executeQueryAsync(
-            "SELECT c.*, u.name as farmer_name, u.is_verified, " +
+            "SELECT c.*, u.name as farmer_name, u.phone as farmer_phone, u.is_verified, " +
             "(SELECT photo_path FROM crop_photos WHERE crop_id = c.id ORDER BY photo_order LIMIT 1) as photo " +
             "FROM crops c " +
             "JOIN users u ON c.farmer_id = u.id " +
@@ -129,8 +129,8 @@ public class BuyerDashboardController {
         String name = rs.getString("name");
         String farmerName = rs.getString("farmer_name");
         boolean isVerified = rs.getBoolean("is_verified");
-        double price = rs.getDouble("price");
-        String unit = rs.getString("unit");
+        double price = rs.getDouble("price_per_kg");
+        String unit = "কেজি";
         String district = rs.getString("district");
         String photoPath = rs.getString("photo");
 

@@ -90,6 +90,9 @@ public class MyCropsController {
         vboxCropsList.getChildren().clear();
 
         String query = "SELECT c.*, " +
+                      "c.price_per_kg as price, " +
+                      "c.available_quantity_kg as quantity, " +
+                      "'কেজি' as unit, " +
                       "(SELECT photo_path FROM crop_photos WHERE crop_id = c.id ORDER BY photo_order LIMIT 1) as first_photo " +
                       "FROM crops c WHERE c.farmer_id = ?";
         

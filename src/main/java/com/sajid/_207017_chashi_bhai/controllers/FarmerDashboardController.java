@@ -69,13 +69,11 @@ public class FarmerDashboardController {
 
         DatabaseService.executeQueryAsync(
             "SELECT " +
-            "(SELECT COALESCE(SUM(o.quantity * c.price), 0) FROM orders o " +
-            " JOIN crops c ON o.crop_id = c.id " +
-            " WHERE c.farmer_id = ? AND o.status = 'delivered') as total_earnings, " +
+            "(SELECT COALESCE(SUM(o.quantity_kg * o.price_per_kg), 0) FROM orders o " +
+            " WHERE o.farmer_id = ? AND o.status IN ('delivered', 'completed')) as total_earnings, " +
             "(SELECT COUNT(*) FROM crops WHERE farmer_id = ? AND status = 'active') as active_crops, " +
             "(SELECT COUNT(*) FROM orders o " +
-            " JOIN crops c ON o.crop_id = c.id " +
-            " WHERE c.farmer_id = ? AND o.status IN ('pending', 'accepted')) as pending_orders",
+            " WHERE o.farmer_id = ? AND o.status IN ('new', 'pending', 'accepted')) as pending_orders",
             new Object[]{currentUser.getId(), currentUser.getId(), currentUser.getId()},
             resultSet -> {
                 Platform.runLater(() -> {

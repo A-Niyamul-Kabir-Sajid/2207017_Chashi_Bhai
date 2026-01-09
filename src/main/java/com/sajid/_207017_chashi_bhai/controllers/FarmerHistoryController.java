@@ -72,16 +72,14 @@ public class FarmerHistoryController {
     private void loadSummaryStats() {
         DatabaseService.executeQueryAsync(
             "SELECT " +
-            "(SELECT COALESCE(SUM(o.quantity * c.price), 0) FROM orders o " +
-            " JOIN crops c ON o.crop_id = c.id " +
-            " WHERE c.farmer_id = ? AND o.status = 'delivered') as total_income, " +
+            "(SELECT COALESCE(SUM(o.quantity_kg * o.price_per_kg), 0) FROM orders o " +
+            " WHERE o.farmer_id = ? AND o.status IN ('delivered', 'completed')) as total_income, " +
             "(SELECT c.name FROM orders o " +
+            " WHERE o.farmer_id = ? AND o.status IN ('delivered', 'completed') " +
             " JOIN crops c ON o.crop_id = c.id " +
-            " WHERE c.farmer_id = ? AND o.status = 'delivered' " +
             " GROUP BY c.id ORDER BY COUNT(*) DESC LIMIT 1) as most_sold, " +
             "(SELECT COUNT(*) FROM orders o " +
-            " JOIN crops c ON o.crop_id = c.id " +
-            " WHERE c.farmer_id = ? AND o.status = 'delivered') as total_orders",
+            " WHERE o.farmer_id = ? AND o.status IN ('delivered', 'completed')) as total_orders",
             new Object[]{currentUser.getId(), currentUser.getId(), currentUser.getId()},
             resultSet -> {
                 Platform.runLater(() -> {
@@ -110,11 +108,11 @@ public class FarmerHistoryController {
         }
         vboxHistoryList.getChildren().clear();
 
-        String query = "SELECT o.*, c.name as crop_name, c.price, c.unit, u.name as buyer_name " +
+        String query = "SELECT o.*, c.name as crop_name, c.price_per_kg as price, 'কেজি' as unit, u.name as buyer_name " +
                       "FROM orders o " +
                       "JOIN crops c ON o.crop_id = c.id " +
                       "JOIN users u ON o.buyer_id = u.id " +
-                      "WHERE c.farmer_id = ? AND o.status = 'delivered' " +
+                      "WHERE o.farmer_id = ? AND o.status IN ('delivered', 'completed') " +
                       "ORDER BY o.updated_at DESC";
 
         DatabaseService.executeQueryAsync(
@@ -154,7 +152,7 @@ public class FarmerHistoryController {
         String date = rs.getString("updated_at").substring(0, 10);
         String buyerName = rs.getString("buyer_name");
         String cropName = rs.getString("crop_name");
-        double quantity = rs.getDouble("quantity");
+        double quantity = rs.getDouble("quantity_kg");
         double price = rs.getDouble("price");
         String unit = rs.getString("unit");
         double totalPrice = quantity * price;

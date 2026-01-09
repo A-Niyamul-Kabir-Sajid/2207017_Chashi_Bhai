@@ -142,8 +142,7 @@ public class PostCropController {
         String dateStr = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
         String productCode = String.format("CRP-%s-%04d", dateStr, System.currentTimeMillis() % 10000);
 
-        // Insert crop into database - match the actual schema columns
-        // Try first with the new schema columns, fallback to old if fails
+        // Insert crop into database using correct schema
         String insertSql = "INSERT INTO crops (product_code, farmer_id, name, category, price_per_kg, initial_quantity_kg, available_quantity_kg, description, district, harvest_date, status, created_at) " +
                           "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', datetime('now'))";
         
@@ -185,53 +184,12 @@ public class PostCropController {
                     });
                 }
             },
-            // Error handler - try with old schema
             error -> {
-                // Try with old schema format
-                String oldInsertSql = "INSERT INTO crops (farmer_id, name, category, price, unit, quantity, harvest_date, district, transport_info, description, status, created_at) " +
-                                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', datetime('now'))";
-                DatabaseService.executeUpdateAsync(
-                    oldInsertSql,
-                    new Object[]{currentUser.getId(), cropName, category, price, unit, quantity, harvestDate != null ? harvestDate.toString() : null, district, transport, description},
-                    rowsAffected2 -> {
-                        if (rowsAffected2 > 0) {
-                            DatabaseService.executeQueryAsync(
-                                "SELECT last_insert_rowid() as crop_id",
-                                new Object[]{},
-                                resultSet -> {
-                                    try {
-                                        if (resultSet.next()) {
-                                            int cropId = resultSet.getInt("crop_id");
-                                            savePhotos(cropId);
-                                        }
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                        Platform.runLater(() -> {
-                                            btnPostCrop.setDisable(false);
-                                            showError("ত্রুটি", "ফসল সংরক্ষণে সমস্যা হয়েছে।");
-                                        });
-                                    }
-                                },
-                                err2 -> Platform.runLater(() -> {
-                                    btnPostCrop.setDisable(false);
-                                    showError("ত্রুটি", "ফসল ID পেতে সমস্যা হয়েছে।");
-                                })
-                            );
-                        } else {
-                            Platform.runLater(() -> {
-                                btnPostCrop.setDisable(false);
-                                lblError.setText("ফসল যোগ করতে ব্যর্থ হয়েছে।");
-                            });
-                        }
-                    },
-                    err2 -> {
-                        Platform.runLater(() -> {
-                            btnPostCrop.setDisable(false);
-                            showError("ডাটাবেস ত্রুটি", "ফসল সংরক্ষণ করতে সমস্যা হয়েছে: " + err2.getMessage());
-                            err2.printStackTrace();
-                        });
-                    }
-                );
+                Platform.runLater(() -> {
+                    btnPostCrop.setDisable(false);
+                    showError("ডাটাবেস ত্রুটি", "ফসল সংরক্ষণ করতে সমস্যা হয়েছে: " + error.getMessage());
+                    error.printStackTrace();
+                });
             }
         );
     }
