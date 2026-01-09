@@ -23,20 +23,15 @@ import java.util.List;
  */
 public class CropFeedController {
 
-    @FXML private Label lblTitle;
-    @FXML private TextField txtSearch;
-    @FXML private Button btnToggleFilter;
-    @FXML private VBox vboxCrops;
-    @FXML private GridPane myCropsGrid;
-    @FXML private HBox hboxMyCropsHeader;
-    @FXML private VBox filterPane;
-    @FXML private ComboBox<String> cmbCategory;
-    @FXML private ComboBox<String> cmbDistrict;
-    @FXML private TextField tfPriceMin;
-    @FXML private TextField tfPriceMax;
+    // FXML fields matching crop-feed-view.fxml
+    @FXML private TextField txtQuickSearch;
+    @FXML private ComboBox<String> cbFilterCropType;
+    @FXML private ComboBox<String> cbFilterDistrict;
+    @FXML private Slider sliderPriceMin;
+    @FXML private Label lblPriceRange;
     @FXML private CheckBox chkVerifiedOnly;
-    @FXML private Label lblTotalCount;
-    @FXML private ProgressIndicator progressIndicator;
+    @FXML private GridPane gridCropFeed;
+    @FXML private VBox vboxEmptyState;
 
     private User currentUser;
     private String role; // "farmer" or "buyer"
@@ -89,24 +84,23 @@ public class CropFeedController {
         }
         role = currentUser.getRole();
         
-        // Populate filter dropdowns
-        cmbDistrict.setItems(FXCollections.observableArrayList(DISTRICTS));
-        cmbCategory.setItems(FXCollections.observableArrayList(CATEGORIES));
-
-        // Set dynamic title by role
-        if ("farmer".equals(role)) {
-            lblTitle.setText("বাজারের ফসল এবং আমার তালিকা");
-        } else {
-            lblTitle.setText("আজকের উপলব্ধ ফসলসমূহ");
+        // Initialize filter dropdowns if they exist
+        if (cbFilterDistrict != null) {
+            cbFilterDistrict.setItems(FXCollections.observableArrayList(DISTRICTS));
+        }
+        if (cbFilterCropType != null) {
+            cbFilterCropType.setItems(FXCollections.observableArrayList(CATEGORIES));
         }
 
         // Pre-select district for farmer
-        if ("farmer".equals(role) && currentUser.getDistrict() != null) {
-            cmbDistrict.getSelectionModel().select(currentUser.getDistrict());
+        if ("farmer".equals(role) && currentUser.getDistrict() != null && cbFilterDistrict != null) {
+            cbFilterDistrict.getSelectionModel().select(currentUser.getDistrict());
         }
 
         // Live search
-        txtSearch.textProperty().addListener((obs, oldV, newV) -> filterLocally(newV));
+        if (txtQuickSearch != null) {
+            txtQuickSearch.textProperty().addListener((obs, oldV, newV) -> filterLocally(newV));
+        }
 
         // Initial load
         loadCrops(false);
@@ -214,13 +208,14 @@ public class CropFeedController {
 
     @FXML
     private void onToggleFilter() {
-        boolean visible = filterPane.isVisible();
-        filterPane.setVisible(!visible);
+        // Filter pane toggle - not in current FXML
     }
 
     @FXML
     private void onSearchKeyUp() {
-        filterLocally(txtSearch.getText().trim());
+        if (txtQuickSearch != null) {
+            filterLocally(txtQuickSearch.getText().trim());
+        }
     }
 
     @FXML
@@ -230,12 +225,10 @@ public class CropFeedController {
 
     @FXML
     private void onResetFilter() {
-        cmbCategory.getSelectionModel().clearSelection();
-        cmbDistrict.getSelectionModel().clearSelection();
-        tfPriceMin.clear();
-        tfPriceMax.clear();
-        chkVerifiedOnly.setSelected(false);
-        txtSearch.clear();
+        if (cbFilterCropType != null) cbFilterCropType.getSelectionModel().clearSelection();
+        if (cbFilterDistrict != null) cbFilterDistrict.getSelectionModel().clearSelection();
+        if (chkVerifiedOnly != null) chkVerifiedOnly.setSelected(false);
+        if (txtQuickSearch != null) txtQuickSearch.clear();
         loadCrops(false);
     }
 
@@ -243,10 +236,8 @@ public class CropFeedController {
      * Load crops from DB with optional filters.
      */
     private void loadCrops(boolean useFilters) {
-        if (progressIndicator != null) progressIndicator.setVisible(true);
-        vboxCrops.getChildren().clear();
-        myCropsGrid.setVisible(false);
-        hboxMyCropsHeader.setVisible(false);
+        if (gridCropFeed != null) gridCropFeed.getChildren().clear();
+        if (vboxEmptyState != null) vboxEmptyState.setVisible(false);
         loadedCrops.clear();
 
         StringBuilder sql = new StringBuilder();
@@ -257,27 +248,17 @@ public class CropFeedController {
         List<Object> params = new ArrayList<>();
 
         if (useFilters) {
-            String category = cmbCategory.getSelectionModel().getSelectedItem();
-            String district = cmbDistrict.getSelectionModel().getSelectedItem();
-            String pMin = tfPriceMin.getText().trim();
-            String pMax = tfPriceMax.getText().trim();
-            boolean verifiedOnly = chkVerifiedOnly.isSelected();
+            String category = cbFilterCropType != null ? cbFilterCropType.getSelectionModel().getSelectedItem() : null;
+            String district = cbFilterDistrict != null ? cbFilterDistrict.getSelectionModel().getSelectedItem() : null;
+            boolean verifiedOnly = chkVerifiedOnly != null && chkVerifiedOnly.isSelected();
 
-            if (category != null && !category.isEmpty() && !"সব".equals(category)) {
+            if (category != null && !category.isEmpty() && !category.contains("সব") && !category.contains("All")) {
                 sql.append(" AND c.category = ?");
                 params.add(category);
             }
-            if (district != null && !district.isEmpty() && !"সব".equals(district)) {
+            if (district != null && !district.isEmpty() && !district.contains("সব") && !district.contains("All")) {
                 sql.append(" AND c.district = ?");
                 params.add(district);
-            }
-            if (!pMin.isEmpty()) {
-                sql.append(" AND c.price >= ?");
-                try { params.add(Double.parseDouble(pMin)); } catch (Exception ignored) {}
-            }
-            if (!pMax.isEmpty()) {
-                sql.append(" AND c.price <= ?");
-                try { params.add(Double.parseDouble(pMax)); } catch (Exception ignored) {}
             }
             if (verifiedOnly) {
                 sql.append(" AND u.is_verified = 1");
@@ -301,36 +282,38 @@ public class CropFeedController {
         DatabaseService.executeQueryAsync(sql.toString(), params.toArray(), rs -> {
             Platform.runLater(() -> {
                 try {
-                    int myCropPreviewCount = 0;
+                    int colCount = 3; // Number of columns in the grid
+                    int row = 0, col = 0;
+                    
                     while (rs.next()) {
                         CropItem item = mapItem(rs);
                         loadedCrops.add(item);
 
-                        // For farmer: populate top highlights with own crops (first 3)
-                        if ("farmer".equals(role) && item.farmerId == currentUser.getId() && myCropPreviewCount < 3) {
-                            addMyCropPreview(item, myCropPreviewCount++);
+                        if (gridCropFeed != null) {
+                            gridCropFeed.add(buildCropCard(item), col, row);
+                            col++;
+                            if (col >= colCount) {
+                                col = 0;
+                                row++;
+                            }
                         }
-
-                        vboxCrops.getChildren().add(buildCropCard(item));
                     }
 
-                    // Show farmer highlights section if any
-                    if ("farmer".equals(role) && myCropPreviewCount > 0) {
-                        hboxMyCropsHeader.setVisible(true);
-                        myCropsGrid.setVisible(true);
+                    // Show empty state if no crops found
+                    if (loadedCrops.isEmpty() && vboxEmptyState != null) {
+                        vboxEmptyState.setVisible(true);
+                        if (gridCropFeed != null) gridCropFeed.setVisible(false);
+                    } else {
+                        if (vboxEmptyState != null) vboxEmptyState.setVisible(false);
+                        if (gridCropFeed != null) gridCropFeed.setVisible(true);
                     }
-
-                    lblTotalCount.setText("মোট ফসল: " + loadedCrops.size() + "টি");
                 } catch (Exception e) {
                     e.printStackTrace();
                     showError("ত্রুটি", "ফসলের তালিকা লোড করতে ব্যর্থ হয়েছে।");
-                } finally {
-                    if (progressIndicator != null) progressIndicator.setVisible(false);
                 }
             });
         }, err -> {
             Platform.runLater(() -> {
-                if (progressIndicator != null) progressIndicator.setVisible(false);
                 showError("ডাটাবেস ত্রুটি", "ফসল লোডে সমস্যা হয়েছে।");
                 err.printStackTrace();
             });
@@ -360,21 +343,8 @@ public class CropFeedController {
     }
 
     private void addMyCropPreview(CropItem item, int index) {
-        VBox preview = new VBox(6);
-        preview.getStyleClass().add("crop-card");
-        preview.setPadding(new Insets(8));
-
-        Label name = new Label(item.name);
-        name.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
-        Label price = new Label(String.format("৳%.2f/%s", item.price, item.unit));
-        price.setStyle("-fx-font-size: 12px; -fx-text-fill: #4CAF50;");
-        Label district = new Label("📍 " + item.district);
-        district.setStyle("-fx-font-size: 12px; -fx-text-fill: #888;");
-
-        preview.getChildren().addAll(name, price, district);
-        preview.setOnMouseClicked(e -> openDetails(item.id));
-
-        myCropsGrid.add(preview, index % 3, index / 3);
+        // Note: myCropsGrid is not available in current FXML, skipping preview
+        // This method is kept for future use when the FXML is updated
     }
 
     private Pane buildCropCard(CropItem item) {
@@ -488,19 +458,37 @@ public class CropFeedController {
 
     private void filterLocally(String query) {
         String q = query == null ? "" : query.trim().toLowerCase();
-        vboxCrops.getChildren().clear();
+        if (gridCropFeed != null) gridCropFeed.getChildren().clear();
         int count = 0;
+        int colCount = 3;
+        int row = 0, col = 0;
+        
         for (CropItem item : loadedCrops) {
             if (q.isEmpty() || 
                 (item.name != null && item.name.toLowerCase().contains(q)) ||
                 (item.district != null && item.district.toLowerCase().contains(q)) ||
                 (item.farmerName != null && item.farmerName.toLowerCase().contains(q)) ||
                 (item.productCode != null && item.productCode.toLowerCase().contains(q))) {
-                vboxCrops.getChildren().add(buildCropCard(item));
+                if (gridCropFeed != null) {
+                    gridCropFeed.add(buildCropCard(item), col, row);
+                    col++;
+                    if (col >= colCount) {
+                        col = 0;
+                        row++;
+                    }
+                }
                 count++;
             }
         }
-        lblTotalCount.setText("মোট ফসল: " + count + "টি");
+        
+        // Show/hide empty state
+        if (count == 0 && vboxEmptyState != null) {
+            vboxEmptyState.setVisible(true);
+            if (gridCropFeed != null) gridCropFeed.setVisible(false);
+        } else {
+            if (vboxEmptyState != null) vboxEmptyState.setVisible(false);
+            if (gridCropFeed != null) gridCropFeed.setVisible(true);
+        }
     }
 
     private void openDetails(int cropId) {
