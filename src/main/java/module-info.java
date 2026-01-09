@@ -7,6 +7,11 @@ module com.sajid._207017_chashi_bhai {
     requires org.xerial.sqlitejdbc;
     requires jbcrypt;
     requires com.google.gson;
+    
+    // Firebase requires unnamed modules
+    requires static firebase.admin;
+    requires static com.google.auth;
+    requires static com.google.auth.oauth2;
 
     opens com.sajid._207017_chashi_bhai to javafx.fxml;
     opens com.sajid._207017_chashi_bhai.controllers to javafx.fxml;
