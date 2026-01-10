@@ -153,7 +153,7 @@ public class PublicBuyerProfileController {
     }
 
     private void loadPurchaseHistory() {
-        String sql = "SELECT o.*, c.name as crop_name, c.unit, c.price, " +
+        String sql = "SELECT o.*, c.name as crop_name, c.price_per_kg as price, " +
                     "u.name as farmer_name, u.is_verified " +
                     "FROM orders o " +
                     "JOIN crops c ON o.crop_id = c.id " +

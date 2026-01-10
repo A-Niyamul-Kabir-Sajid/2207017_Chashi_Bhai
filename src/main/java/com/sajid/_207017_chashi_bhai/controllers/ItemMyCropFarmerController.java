@@ -113,6 +113,7 @@ public class ItemMyCropFarmerController {
     private void onViewCrop() {
         if (cropId > 0) {
             App.setCurrentCropId(cropId);
+            App.setCurrentOrderId(-1); // Clear order context - show full quantity
             App.loadScene("crop-detail-view.fxml", "ফসলের বিস্তারিত");
         }
     }

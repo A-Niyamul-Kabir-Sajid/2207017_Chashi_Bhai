@@ -1,104 +1,108 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
 <?import java.lang.String?>
 <?import javafx.collections.FXCollections?>
-<?import javafx.scene.chart.PieChart?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.FarmerHistoryController" styleClass="root" minHeight="700" minWidth="1024">
+<BorderPane minHeight="700" minWidth="1024" styleClass="root" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25" fx:controller="com.sajid._207017_chashi_bhai.controllers.FarmerHistoryController">
     
     <!-- Top Navigation -->
     <top>
         <HBox alignment="CENTER_LEFT" spacing="20" styleClass="nav-bar">
             <padding>
-                <Insets top="15" bottom="15" left="20" right="20"/>
+                <Insets bottom="15" left="20" right="20" top="15" />
             </padding>
-            <Button text="←" styleClass="back-button" fx:id="btnBack" onAction="#onBack"/>
-            <Label text="বিক্রয় ইতিহাস / Sales History" styleClass="page-title"/>
-            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="btnBack" onAction="#onBack" styleClass="back-button" text="←" />
+            <Label styleClass="page-title" text="বিক্রয় ইতিহাস / Sales History" />
+            <Region HBox.hgrow="ALWAYS" />
         </HBox>
     </top>
 
     <center>
         <VBox spacing="25">
             <padding>
-                <Insets top="25" bottom="25" left="30" right="30"/>
+                <Insets bottom="25" left="30" right="30" top="25" />
             </padding>
 
             <!-- Summary Cards -->
-            <HBox spacing="20" alignment="CENTER">
+            <HBox alignment="CENTER" spacing="20">
                 <VBox alignment="CENTER" spacing="10" styleClass="summary-card, card-green">
                     <padding>
-                        <Insets top="20" bottom="20" left="35" right="35"/>
+                        <Insets bottom="20" left="35" right="35" top="20" />
                     </padding>
-                    <Label text="💰" styleClass="summary-icon"/>
-                    <Label fx:id="lblTotalIncome" text="৳ 1,50,000" styleClass="summary-value"/>
-                    <Label text="মোট আয়" styleClass="summary-label"/>
-                    <Label text="Total Income" styleClass="summary-sublabel"/>
+                    <Label styleClass="summary-icon" text="💰" />
+                    <Label fx:id="lblTotalIncome" styleClass="summary-value" text="৳ 1,50,000" />
+                    <Label styleClass="summary-label" text="মোট আয়" />
+                    <Label styleClass="summary-sublabel" text="Total Income" />
                 </VBox>
 
                 <VBox alignment="CENTER" spacing="10" styleClass="summary-card, card-blue">
                     <padding>
-                        <Insets top="20" bottom="20" left="35" right="35"/>
+                        <Insets bottom="20" left="35" right="35" top="20" />
                     </padding>
-                    <Label text="🌾" styleClass="summary-icon"/>
-                    <Label fx:id="lblMostSold" text="ধান (Rice)" styleClass="summary-value"/>
-                    <Label text="সবচেয়ে বেশি বিক্রিত" styleClass="summary-label"/>
-                    <Label text="Most Sold Crop" styleClass="summary-sublabel"/>
+                    <Label styleClass="summary-icon" text="🌾" />
+                    <Label fx:id="lblMostSold" styleClass="summary-value" text="ধান (Rice)" />
+                    <Label styleClass="summary-label" text="সবচেয়ে বেশি বিক্রিত" />
+                    <Label styleClass="summary-sublabel" text="Most Sold Crop" />
                 </VBox>
 
                 <VBox alignment="CENTER" spacing="10" styleClass="summary-card, card-purple">
                     <padding>
-                        <Insets top="20" bottom="20" left="35" right="35"/>
+                        <Insets bottom="20" left="35" right="35" top="20" />
                     </padding>
-                    <Label text="📦" styleClass="summary-icon"/>
-                    <Label fx:id="lblTotalOrders" text="45" styleClass="summary-value"/>
-                    <Label text="মোট অর্ডার" styleClass="summary-label"/>
-                    <Label text="Total Orders" styleClass="summary-sublabel"/>
+                    <Label styleClass="summary-icon" text="📦" />
+                    <Label fx:id="lblTotalAcceptedOrders" styleClass="summary-value" text="45" />
+                    <Label styleClass="summary-label" text="মোট অর্ডার" />
+                    <Label styleClass="summary-sublabel" text="Total Accepted Orders" />
                 </VBox>
             </HBox>
 
             <!-- Filter Section -->
-            <HBox spacing="15" alignment="CENTER_LEFT" styleClass="filter-bar">
+            <HBox alignment="CENTER_LEFT" spacing="15" styleClass="filter-bar">
                 <padding>
-                    <Insets top="15" bottom="15" left="20" right="20"/>
+                    <Insets bottom="15" left="20" right="20" top="15" />
                 </padding>
-                <Label text="ফিল্টার:" styleClass="filter-label"/>
-                <ComboBox fx:id="cbFilterMonth" promptText="মাস নির্বাচন করুন" styleClass="form-input" prefWidth="180">
+                <Region HBox.hgrow="ALWAYS" />
+                <Label styleClass="filter-label" text="ফিল্টার:" />
+                <ComboBox fx:id="cbFilterMonth" prefWidth="180" promptText="মাস নির্বাচন করুন" styleClass="form-input">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
-                            <String fx:value="সব সময় (All Time)"/>
-                            <String fx:value="এই মাস (This Month)"/>
-                            <String fx:value="গত মাস (Last Month)"/>
-                            <String fx:value="গত ৩ মাস (Last 3 Months)"/>
-                            <String fx:value="এই বছর (This Year)"/>
+                            <String fx:value="সব সময় (All Time)" />
+                            <String fx:value="এই মাস (This Month)" />
+                            <String fx:value="গত মাস (Last Month)" />
+                            <String fx:value="গত ৩ মাস (Last 3 Months)" />
+                            <String fx:value="এই বছর (This Year)" />
                         </FXCollections>
                     </items>
                 </ComboBox>
                 
-                <ComboBox fx:id="cbFilterCrop" promptText="ফসল নির্বাচন করুন" styleClass="form-input" prefWidth="200">
+                <ComboBox fx:id="cbFilterCrop" prefWidth="200" promptText="ফসল নির্বাচন করুন" styleClass="form-input">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
-                            <String fx:value="সব ফসল (All Crops)"/>
-                            <String fx:value="ধান (Rice)"/>
-                            <String fx:value="আলু (Potato)"/>
-                            <String fx:value="টমেটো (Tomato)"/>
+                            <String fx:value="সব ফসল (All Crops)" />
+                            <String fx:value="ধান (Rice)" />
+                            <String fx:value="আলু (Potato)" />
+                            <String fx:value="টমেটো (Tomato)" />
                         </FXCollections>
                     </items>
                 </ComboBox>
                 
-                <Button fx:id="btnApplyFilter" text="🔍 প্রয়োগ করুন" styleClass="button-primary"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Button fx:id="btnExport" text="📥 ডাউনলোড" styleClass="button-secondary"/>
+                <Button fx:id="btnApplyFilter" styleClass="button-primary" text="🔍 প্রয়োগ করুন" />
             </HBox>
 
             <!-- History List -->
-            <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS" styleClass="scroll-pane">
+            <ScrollPane fitToHeight="true" fitToWidth="true" styleClass="scroll-pane" VBox.vgrow="ALWAYS">
                 <VBox fx:id="vboxHistoryList" spacing="15" styleClass="history-list">
                     <padding>
-                        <Insets top="10" bottom="10" left="10" right="10"/>
+                        <Insets bottom="10" left="10" right="10" top="10" />
                     </padding>
                 </VBox>
             </ScrollPane>

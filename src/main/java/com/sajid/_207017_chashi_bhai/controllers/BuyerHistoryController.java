@@ -166,7 +166,7 @@ public class BuyerHistoryController {
         String cropName = rs.getString("crop_name");
         double quantity = rs.getDouble("quantity_kg");
         double price = rs.getDouble("price");
-        String unit = rs.getString("unit");
+        String unit = "কেজি"; // All crops measured in kg
         double totalPrice = quantity * price;
         Object myRatingObj = rs.getObject("my_review_rating");
         Integer myRating = myRatingObj != null ? ((Number) myRatingObj).intValue() : null;
@@ -274,7 +274,7 @@ public class BuyerHistoryController {
 
     private void showOrderDetails(int orderId) {
         DatabaseService.executeQueryAsync(
-            "SELECT o.*, c.name as crop_name, c.price, c.unit, c.farmer_id, " +
+            "SELECT o.*, c.name as crop_name, c.price_per_kg as price, c.farmer_id, " +
             "u.name as farmer_name, u.phone as farmer_phone " +
             "FROM orders o " +
             "JOIN crops c ON o.crop_id = c.id " +
@@ -291,7 +291,7 @@ public class BuyerHistoryController {
                             
                             double quantity = resultSet.getDouble("quantity");
                             double price = resultSet.getDouble("price");
-                            String unit = resultSet.getString("unit");
+                            String unit = "কেজি"; // All crops measured in kg
                             
                             alert.setContentText(
                                 "ফসল: " + resultSet.getString("crop_name") + "\n" +

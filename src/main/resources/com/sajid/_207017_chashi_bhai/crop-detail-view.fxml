@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 
-<BorderPane minHeight="700" minWidth="1024" styleClass="root" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25" fx:controller="com.sajid._207017_chashi_bhai.controllers.CropDetailController">
+<BorderPane minHeight="700" minWidth="1024" styleClass="root" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.sajid._207017_chashi_bhai.controllers.CropDetailController">
     
     <!-- Top Navigation -->
     <top>
@@ -68,7 +68,7 @@
                             <Label fx:id="lblCropName" styleClass="detail-crop-name" text="ধান (Rice)" />
                             <HBox alignment="CENTER_LEFT" spacing="15">
                                 <Label fx:id="lblCropPrice" styleClass="detail-price" text="৳ 45" />
-                                <Label styleClass="detail-unit" text="প্রতি কেজি" />
+                                <Label fx:id="lblUnit" styleClass="detail-unit" text="প্রতি কেজি" />
                                 <Region HBox.hgrow="ALWAYS" />
                                 <Label styleClass="status-active" text="✓ সক্রিয়" />
                             </HBox>
@@ -94,12 +94,7 @@
                                 <Label fx:id="lblQuantity" styleClass="detail-value" text="১০০ কেজি" />
                             </VBox>
                             
-                            <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="1">
-                                <Label styleClass="detail-label" text="কাটার তারিখ / Harvest Date" />
-                                <Label fx:id="lblHarvestDate" styleClass="detail-value" text="১৫ ডিসেম্বর ২০২৫" />
-                            </VBox>
-                            
-                            <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                            <VBox spacing="5" GridPane.rowIndex="1">
                                 <Label styleClass="detail-label" text="অবস্থান / Location" />
                                 <Label fx:id="lblLocation" styleClass="detail-value" text="ঢাকা" />
                             </VBox>

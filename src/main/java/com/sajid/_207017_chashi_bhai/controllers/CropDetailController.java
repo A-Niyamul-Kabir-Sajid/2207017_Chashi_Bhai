@@ -22,8 +22,6 @@ import java.util.List;
 public class CropDetailController {
 
     @FXML private ImageView imgMainPhoto;
-    @FXML private Button btnPrevPhoto;
-    @FXML private Button btnNextPhoto;
     @FXML private HBox hboxThumbnails;
     @FXML private Label lblCropName;
     @FXML private Label lblCropPrice;
@@ -31,7 +29,6 @@ public class CropDetailController {
     @FXML private Button btnCopyCode;
     @FXML private Label lblCategory;
     @FXML private Label lblQuantity;
-    @FXML private Label lblHarvestDate;
     @FXML private Label lblLocation;
     @FXML private Label lblTransport;
     @FXML private Label lblDescription;
@@ -89,8 +86,8 @@ public class CropDetailController {
 
     private void loadCropDetails() {
         String sql = "SELECT c.*, " +
-                    "COALESCE(c.price_per_kg, c.price) as unit_price, " +
-                    "COALESCE(c.available_quantity_kg, c.quantity) as available_qty, " +
+                    "c.price_per_kg as unit_price, " +
+                    "c.available_quantity_kg as available_qty, " +
                     "u.id as farmer_id, u.name as farmer_name, u.phone as farmer_phone, " +
                     "u.district as farmer_district, u.is_verified as farmer_verified, " +
                     "u.profile_photo as farmer_photo, " +
@@ -112,7 +109,7 @@ public class CropDetailController {
                         String pCode = rs.getString("product_code");
                         String category = rs.getString("category");
                         double unitPrice = rs.getDouble("unit_price");
-                        String unit = rs.getString("unit") != null ? rs.getString("unit") : "কেজি";
+                        String unit = "কেজি"; // All crops measured in kg
                         double quantity = rs.getDouble("available_qty");
                         String harvestDate = rs.getString("harvest_date");
                         String district = rs.getString("district");
@@ -152,7 +149,7 @@ public class CropDetailController {
                                 } else {
                                     lblQuantity.setText(String.format("%.1f %s", quantity, cropUnit));
                                 }
-                                lblHarvestDate.setText(harvestDate != null ? harvestDate : "N/A");
+
                                 lblLocation.setText(district != null ? district : "N/A");
                                 lblTransport.setText(transport != null ? transport : "N/A");
                                 lblDescription.setText(description != null ? description : "কোনো বিবরণ নেই");
@@ -218,9 +215,6 @@ public class CropDetailController {
                             loadPhoto(0);
                             loadThumbnails();
                         }
-                        
-                        if (btnPrevPhoto != null) btnPrevPhoto.setDisable(photoPaths.length <= 1);
-                        if (btnNextPhoto != null) btnNextPhoto.setDisable(photoPaths.length <= 1);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -237,10 +231,6 @@ public class CropDetailController {
             if (photoFile.exists()) {
                 imgMainPhoto.setImage(new Image(photoFile.toURI().toString()));
             }
-
-            // Enable/disable navigation buttons
-            btnPrevPhoto.setDisable(index == 0);
-            btnNextPhoto.setDisable(index == photoPaths.length - 1);
         }
     }
 
@@ -381,16 +371,24 @@ public class CropDetailController {
         String sql = "SELECT quantity_kg FROM orders WHERE id = ?";
         DatabaseService.executeQueryAsync(sql, new Object[]{orderId},
             rs -> {
-                Platform.runLater(() -> {
-                    try {
-                        if (rs.next()) {
-                            orderedQuantity = rs.getDouble("quantity_kg");
+                try {
+                    // Read ResultSet data BEFORE Platform.runLater
+                    if (rs.next()) {
+                        double qty = rs.getDouble("quantity_kg");
+                        
+                        // Now update UI on JavaFX thread with pre-loaded data
+                        Platform.runLater(() -> {
+                            orderedQuantity = qty;
                             System.out.println("Ordered quantity: " + orderedQuantity);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                            // Refresh quantity display if already loaded
+                            if (lblQuantity != null && cropUnit != null) {
+                                // This will be properly shown when loadCropDetails completes
+                            }
+                        });
                     }
-                });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             },
             err -> err.printStackTrace()
         );

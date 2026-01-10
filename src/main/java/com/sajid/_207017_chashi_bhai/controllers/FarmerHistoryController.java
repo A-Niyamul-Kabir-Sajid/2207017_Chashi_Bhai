@@ -203,7 +203,7 @@ public class FarmerHistoryController {
         String cropName = rs.getString("crop_name");
         double quantity = rs.getDouble("quantity_kg");
         double price = rs.getDouble("price");
-        String unit = rs.getString("unit");
+        String unit = "কেজি"; // All crops measured in kg
         double totalPrice = quantity * price;
         String paymentStatus = rs.getString("payment_status");
 

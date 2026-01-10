@@ -114,7 +114,7 @@ public class OrderDetailController {
 
     private void loadOrderDetails() {
         String sql = "SELECT o.*, c.name as crop_name, c.product_code, c.category, " +
-                    "COALESCE(c.price_per_kg, c.price) as unit_price, " +
+                    "c.price_per_kg as unit_price, " +
                     "(SELECT photo_path FROM crop_photos WHERE crop_id = c.id ORDER BY photo_order LIMIT 1) as crop_photo, " +
                     "f.name as farmer_name, f.phone as farmer_phone, f.district as farmer_district, f.is_verified as farmer_verified, f.profile_photo as farmer_photo, " +
                     "b.name as buyer_name_db, b.phone as buyer_phone_db " +
