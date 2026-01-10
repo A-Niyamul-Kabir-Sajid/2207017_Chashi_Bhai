@@ -81,32 +81,51 @@ public class EditCropController {
             "SELECT * FROM crops WHERE id = ? AND farmer_id = ?",
             new Object[]{cropId, currentUser.getId()},
             resultSet -> {
-                Platform.runLater(() -> {
-                    try {
-                        if (resultSet.next()) {
-                            txtCropName.setText(resultSet.getString("name"));
-                            cbCategory.setValue(resultSet.getString("category"));
-                            txtPrice.setText(String.valueOf(resultSet.getDouble("price_per_kg")));
-                            cbUnit.setValue("কেজি (kg)");
-                            txtQuantity.setText(String.valueOf(resultSet.getDouble("available_quantity_kg")));
-                            
-                            String harvestDateStr = resultSet.getString("harvest_date");
-                            if (harvestDateStr != null) {
-                                dpAvailableDate.setValue(LocalDate.parse(harvestDateStr));
+                try {
+                    // Read ALL data from ResultSet FIRST (before Platform.runLater)
+                    if (resultSet.next()) {
+                        String name = resultSet.getString("name");
+                        String category = resultSet.getString("category");
+                        double pricePerKg = resultSet.getDouble("price_per_kg");
+                        double quantityKg = resultSet.getDouble("available_quantity_kg");
+                        String harvestDateStr = resultSet.getString("harvest_date");
+                        String district = resultSet.getString("district");
+                        String transport = resultSet.getString("transport_info");
+                        String description = resultSet.getString("description");
+                        
+                        // NOW use Platform.runLater with the data we've already read
+                        Platform.runLater(() -> {
+                            try {
+                                txtCropName.setText(name);
+                                cbCategory.setValue(category);
+                                txtPrice.setText(String.valueOf(pricePerKg));
+                                cbUnit.setValue("কেজি (kg)");
+                                txtQuantity.setText(String.valueOf(quantityKg));
+                                
+                                if (harvestDateStr != null) {
+                                    dpAvailableDate.setValue(LocalDate.parse(harvestDateStr));
+                                }
+                                
+                                cbDistrict.setValue(district);
+                                cbTransport.setValue(transport);
+                                txtDescription.setText(description);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                showError("ত্রুটি", "ফসল লোড করতে ব্যর্থ হয়েছে।");
                             }
-                            
-                            cbDistrict.setValue(resultSet.getString("district"));
-                            cbTransport.setValue(resultSet.getString("transport_info"));
-                            txtDescription.setText(resultSet.getString("description"));
-                        } else {
+                        });
+                    } else {
+                        Platform.runLater(() -> {
                             showError("ত্রুটি", "ফসল খুঁজে পাওয়া যায়নি।");
                             onCancel();
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        showError("ত্রুটি", "ফসল লোড করতে ব্যর্থ হয়েছে।");
+                        });
                     }
-                });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Platform.runLater(() -> {
+                        showError("ত্রুটি", "ফসল লোড করতে ব্যর্থ হয়েছে।");
+                    });
+                }
             },
             error -> {
                 Platform.runLater(() -> {
@@ -125,43 +144,52 @@ public class EditCropController {
             "SELECT photo_path, photo_order FROM crop_photos WHERE crop_id = ? ORDER BY photo_order",
             new Object[]{cropId},
             resultSet -> {
-                Platform.runLater(() -> {
-                    try {
-                        ImageView[] imageViews = {imgPhoto1, imgPhoto2, imgPhoto3, imgPhoto4, imgPhoto5};
-                        int index = 0;
-                        while (resultSet.next() && index < 5) {
-                            String photoPath = resultSet.getString("photo_path");
-                            existingPhotoPaths.set(index, photoPath);
-                            
-                            File photoFile = new File(photoPath);
-                            if (photoFile.exists()) {
-                                imageViews[index].setImage(new Image(photoFile.toURI().toString()));
-                            }
-                            index++;
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                try {
+                    // Read ALL photo data from ResultSet FIRST
+                    java.util.List<String> photoPaths = new java.util.ArrayList<>();
+                    while (resultSet.next()) {
+                        photoPaths.add(resultSet.getString("photo_path"));
                     }
-                });
+                    
+                    // NOW use Platform.runLater with the data we've already read
+                    Platform.runLater(() -> {
+                        try {
+                            ImageView[] imageViews = {imgPhoto1, imgPhoto2, imgPhoto3, imgPhoto4, imgPhoto5};
+                            for (int i = 0; i < photoPaths.size() && i < 5; i++) {
+                                String photoPath = photoPaths.get(i);
+                                existingPhotoPaths.set(i, photoPath);
+                                
+                                File photoFile = new File(photoPath);
+                                if (photoFile.exists()) {
+                                    imageViews[i].setImage(new Image(photoFile.toURI().toString()));
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             },
             error -> error.printStackTrace()
         );
     }
 
     @FXML
-    private void onChangePhoto1() { changePhoto(0, imgPhoto1); }
+    private void onEditPhoto1() { changePhoto(0, imgPhoto1); }
     
     @FXML
-    private void onChangePhoto2() { changePhoto(1, imgPhoto2); }
+    private void onEditPhoto2() { changePhoto(1, imgPhoto2); }
     
     @FXML
-    private void onChangePhoto3() { changePhoto(2, imgPhoto3); }
+    private void onEditPhoto3() { changePhoto(2, imgPhoto3); }
     
     @FXML
-    private void onChangePhoto4() { changePhoto(3, imgPhoto4); }
+    private void onEditPhoto4() { changePhoto(3, imgPhoto4); }
     
     @FXML
-    private void onChangePhoto5() { changePhoto(4, imgPhoto5); }
+    private void onEditPhoto5() { changePhoto(4, imgPhoto5); }
 
     private void changePhoto(int index, ImageView imageView) {
         FileChooser fileChooser = new FileChooser();
@@ -199,9 +227,9 @@ public class EditCropController {
         String description = txtDescription.getText().trim();
 
         DatabaseService.executeUpdateAsync(
-            "UPDATE crops SET name = ?, category = ?, price = ?, unit = ?, quantity = ?, harvest_date = ?, district = ?, transport_info = ?, description = ? " +
+            "UPDATE crops SET name = ?, category = ?, price_per_kg = ?, available_quantity_kg = ?, harvest_date = ?, district = ?, transport_info = ?, description = ? " +
             "WHERE id = ? AND farmer_id = ?",
-            new Object[]{cropName, category, price, unit, quantity, harvestDate.toString(), district, transport, description, cropId, currentUser.getId()},
+            new Object[]{cropName, category, price, quantity, harvestDate.toString(), district, transport, description, cropId, currentUser.getId()},
             rowsAffected -> {
                 if (rowsAffected > 0) {
                     updatePhotos();
@@ -295,6 +323,11 @@ public class EditCropController {
             return false;
         }
         return true;
+    }
+
+    @FXML
+    private void onBack() {
+        App.loadScene("my-crops-view.fxml", "আমার ফসলসমূহ");
     }
 
     @FXML

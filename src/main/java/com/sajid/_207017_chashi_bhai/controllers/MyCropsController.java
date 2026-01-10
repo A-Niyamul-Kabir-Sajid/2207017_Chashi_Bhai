@@ -5,6 +5,7 @@ import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -124,6 +125,7 @@ public class MyCropsController {
                         cropData.put("unit", resultSet.getString("unit"));
                         cropData.put("quantity", resultSet.getDouble("quantity"));
                         cropData.put("harvest_date", resultSet.getString("harvest_date"));
+                        cropData.put("district", resultSet.getString("district"));
                         cropData.put("status", resultSet.getString("status"));
                         cropData.put("first_photo", resultSet.getString("first_photo"));
                         cropDataList.add(cropData);
@@ -135,8 +137,10 @@ public class MyCropsController {
                     Platform.runLater(() -> {
                         try {
                             for (java.util.Map<String, Object> cropData : cropDataList) {
-                                HBox cropCard = createCropCard(cropData);
-                                vboxCropsList.getChildren().add(cropCard);
+                                HBox cropCard = loadCropCard(cropData);
+                                if (cropCard != null) {
+                                    vboxCropsList.getChildren().add(cropCard);
+                                }
                             }
 
                             if (cropDataList.isEmpty()) {
@@ -179,86 +183,44 @@ public class MyCropsController {
         );
     }
 
-    private HBox createCropCard(java.util.Map<String, Object> data) throws Exception {
-        int cropId = (int) data.get("id");
-        String name = (String) data.get("name");
-        String category = (String) data.get("category");
-        double price = (double) data.get("price");
-        String unit = (String) data.get("unit");
-        double quantity = (double) data.get("quantity");
-        String harvestDate = (String) data.get("harvest_date");
-        String status = (String) data.get("status");
-        String photoPath = (String) data.get("first_photo");
+    private HBox loadCropCard(java.util.Map<String, Object> data) {
+        try {
+            int cropId = (int) data.get("id");
+            String name = (String) data.get("name");
+            String category = (String) data.get("category");
+            double price = (double) data.get("price");
+            String unit = (String) data.get("unit");
+            double quantity = (double) data.get("quantity");
+            String harvestDate = (String) data.get("harvest_date");
+            String district = (String) data.get("district");
+            String status = (String) data.get("status");
+            String photoPath = (String) data.get("first_photo");
 
-        HBox card = new HBox(15);
-        card.getStyleClass().add("crop-card");
-        card.setPadding(new Insets(15));
-
-        // Image
-        ImageView imageView = new ImageView();
-        imageView.setFitWidth(100);
-        imageView.setFitHeight(100);
-        imageView.setPreserveRatio(true);
-        if (photoPath != null && !photoPath.isEmpty()) {
-            File photoFile = new File(photoPath);
-            if (photoFile.exists()) {
-                imageView.setImage(new Image(photoFile.toURI().toString()));
-            }
-        }
-
-        // Details
-        VBox detailsBox = new VBox(5);
-        detailsBox.setPrefWidth(400);
-        Label lblName = new Label(name);
-        lblName.getStyleClass().add("crop-name");
-        lblName.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
-        
-        Label lblCategory = new Label(category);
-        lblCategory.setStyle("-fx-font-size: 14px; -fx-text-fill: #888;");
-        
-        Label lblPrice = new Label(String.format("৳%.2f/%s", price, unit));
-        lblPrice.setStyle("-fx-font-size: 16px; -fx-text-fill: #4CAF50; -fx-font-weight: bold;");
-        
-        Label lblQuantity = new Label(String.format("পরিমাণ: %.1f %s", quantity, unit));
-        Label lblDate = new Label("তারিখ: " + harvestDate);
-        
-        Label lblStatus = new Label(getStatusText(status));
-        lblStatus.getStyleClass().add("status-" + status);
-        lblStatus.setStyle("-fx-padding: 4px 8px; -fx-border-radius: 4px; -fx-background-radius: 4px;");
-
-        detailsBox.getChildren().addAll(lblName, lblCategory, lblPrice, lblQuantity, lblDate, lblStatus);
-
-        // Action buttons
-        VBox actionsBox = new VBox(10);
-        actionsBox.setPrefWidth(150);
-        
-        Button btnEdit = new Button("সম্পাদনা করুন");
-        btnEdit.getStyleClass().add("button-info");
-        btnEdit.setMaxWidth(Double.MAX_VALUE);
-        btnEdit.setOnAction(e -> onEditCrop(cropId));
-        
-        Button btnDelete = new Button("মুছে ফেলুন");
-        btnDelete.getStyleClass().add("button-danger");
-        btnDelete.setMaxWidth(Double.MAX_VALUE);
-        btnDelete.setOnAction(e -> onDeleteCrop(cropId, name));
-        
-        Button btnStats = new Button("পরিসংখ্যান");
-        btnStats.getStyleClass().add("button-secondary");
-        btnStats.setMaxWidth(Double.MAX_VALUE);
-        btnStats.setOnAction(e -> showCropStats(cropId));
-
-        actionsBox.getChildren().addAll(btnEdit, btnDelete, btnStats);
-
-        card.getChildren().addAll(imageView, detailsBox, actionsBox);
-        return card;
-    }
-
-    private String getStatusText(String status) {
-        switch (status) {
-            case "active": return "✓ সক্রিয়";
-            case "sold": return "✓ বিক্রীত";
-            case "expired": return "⏰ মেয়াদোত্তীর্ণ";
-            default: return status;
+            // Load FXML template
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/sajid/_207017_chashi_bhai/item-my-crop-farmer.fxml"));
+            HBox card = loader.load();
+            
+            // Get controller and set data
+            ItemMyCropFarmerController controller = loader.getController();
+            controller.setCropData(
+                cropId,
+                name,
+                category,
+                price,
+                unit,
+                quantity,
+                harvestDate,
+                district,
+                status,
+                photoPath,
+                () -> onDeleteCrop(cropId, name)  // Delete callback
+            );
+            
+            return card;
+        } catch (Exception e) {
+            System.err.println("[MyCrops] Error loading crop card: " + e.getMessage());
+            e.printStackTrace();
+            return null;
         }
     }
 

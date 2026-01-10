@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<HBox alignment="CENTER_LEFT" spacing="20" styleClass="crop-card" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25">
+<HBox fx:id="root" alignment="CENTER_LEFT" spacing="20" styleClass="crop-card" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25" fx:controller="com.sajid._207017_chashi_bhai.controllers.ItemMyCropFarmerController">
     <padding>
         <Insets bottom="15" left="20" right="20" top="15" />
     </padding>
@@ -36,7 +36,7 @@
     
     <!-- Action Buttons -->
     <VBox alignment="CENTER_RIGHT" spacing="10">
-        <Button fx:id="btnEdit" prefWidth="120" styleClass="button-secondary" text="✎ সম্পাদনা" />
-        <Button fx:id="btnDelete" prefWidth="120" styleClass="button-danger" text="🗑 মুছুন" />
+        <Button fx:id="btnEdit" prefWidth="120" styleClass="button-secondary" text="✎ সম্পাদনা" onAction="#onEditClicked" />
+        <Button fx:id="btnDelete" prefWidth="120" styleClass="button-danger" text="🗑 মুছুন" onAction="#onDeleteClicked" />
     </VBox>
 </HBox>
