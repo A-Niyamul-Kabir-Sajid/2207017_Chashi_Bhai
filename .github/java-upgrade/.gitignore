@@ -1,0 +1,20 @@
+# Firebase service account keys and credentials
+firebase-credentials.json
+serviceAccountKey.json
+google-services.json
+*.firebase.json
+
+# Common sensitive files
+*.key
+*.pem
+*.p12
+*.json.key
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# Firebase local emulator / config folders
+.firebase/
+firebase-debug.log

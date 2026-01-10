@@ -1,0 +1,953 @@
+2025-12-22T20:34:49.106Z [INFO] ----------------------invoke build_java_project----------------------
+2025-12-22T20:34:49.106Z [INFO] [Tool.invoke]({name: build_java_project, input: {
+  "projectPath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai",
+  "codeChangesMessage": "Fix duplicate controller and module exports",
+  "codeChangesDetails": "- Remove duplicate `CropFeedController` class and trailing imports in `controllers/CropFeedController.java`\n- Update `module-info.java` to `requires transitive javafx.graphics`\n- Export and open `com.sajid._207017_chashi_bhai.models` for FXML and public APIs"
+}}).
+2025-12-22T20:34:49.106Z [INFO] [Task.start](): Starting task toolCall
+2025-12-22T20:34:49.106Z [INFO] [Task.start](): Started task toolCall
+2025-12-22T20:34:49.107Z [INFO] [Tool.invoke] validate GitHub Copilot license.
+2025-12-22T20:34:49.107Z [INFO] [Tool.invoke] do pre-invoke.
+2025-12-22T20:34:49.107Z [INFO] Project d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai is a maven project, try to get java version from pom.xml
+2025-12-22T20:34:49.108Z [INFO] Project java version: 25
+2025-12-22T20:34:49.108Z [INFO] Maven project detected.
+2025-12-22T20:34:49.108Z [INFO] Build tool type: mvnw
+2025-12-22T20:34:49.117Z [INFO] [Environment] Running command (Java 25): java -version
+java version "25.0.1" 2025-10-21 LTS
+Java(TM) SE Runtime Environment (build 25.0.1+8-LTS-27)
+Java HotSpot(TM) 64-Bit Server VM (build 25.0.1+8-LTS-27, mixed mode, sharing)
+2025-12-22T20:34:49.186Z [INFO] [JdkEnvironment] Got real Java version: 25.0.1
+2025-12-22T20:34:49.186Z [INFO] JDK: {
+  "name": "java",
+  "path": "C:\\Program Files\\Java\\jdk-25\\bin",
+  "version": "25"
+}
+2025-12-22T20:34:49.196Z [INFO] [Environment] Running command (Java 25): mvnw --version
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/C:/Users/varia/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/lib/jansi-2.4.0.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+Apache Maven 3.8.5 (3599d3414f046de2324203b78ddcf9b5e4388aa0)
+Maven home: C:\Users\varia\.m2\wrapper\dists\apache-maven-3.8.5-bin\5i5jha092a3i37g0paqnfr15e0\apache-maven-3.8.5
+Java version: 25.0.1, vendor: Oracle Corporation, runtime: C:\Program Files\Java\jdk-25
+Default locale: en_US, platform encoding: UTF-8
+OS name: "windows 11", version: "10.0", arch: "amd64", family: "windows"
+2025-12-22T20:34:49.404Z [INFO] Real build tool version: 3.8.5
+2025-12-22T20:34:49.405Z [INFO] Build tool: {
+  "name": "mvnw",
+  "path": ".",
+  "version": "3.8.5"
+}
+2025-12-22T20:34:49.405Z [INFO] Project config: {
+  "buildTool": {
+    "path": ".",
+    "name": "mvnw",
+    "version": "3.8.5"
+  },
+  "jdk": {
+    "path": "C:\\Program Files\\Java\\jdk-25\\bin",
+    "name": "java",
+    "version": "25"
+  },
+  "name": "2207017_Chashi_Bhai",
+  "dir": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai"
+}
+2025-12-22T20:34:49.409Z [INFO] [Tool.invoke] do invoke.
+2025-12-22T20:34:49.410Z [INFO] [BaseBuildTool] Firing config modified event for mvnw, sleeping for 5 seconds
+2025-12-22T20:34:49.410Z [INFO] [Environment] Running command (Java 25): mvnw --version
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/C:/Users/varia/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/lib/jansi-2.4.0.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+Apache Maven 3.8.5 (3599d3414f046de2324203b78ddcf9b5e4388aa0)
+Maven home: C:\Users\varia\.m2\wrapper\dists\apache-maven-3.8.5-bin\5i5jha092a3i37g0paqnfr15e0\apache-maven-3.8.5
+Java version: 25.0.1, vendor: Oracle Corporation, runtime: C:\Program Files\Java\jdk-25
+Default locale: en_US, platform encoding: UTF-8
+OS name: "windows 11", version: "10.0", arch: "amd64", family: "windows"
+2025-12-22T20:34:49.697Z [INFO] [BaseBuildTool] New version of mvnw: 3.8.5 -> 3.8.5
+2025-12-22T20:34:49.697Z [INFO] [MavenBuildTool] Getting Java version of d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai from pom.xml
+2025-12-22T20:34:49.697Z [INFO] [MavenBuildTool] Searching for pom.xml files in d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai
+2025-12-22T20:34:49.697Z [INFO] [MavenBuildTool] Getting all module coordinates of d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai
+2025-12-22T20:34:49.698Z [INFO] [MavenBuildTool] Getting effective POMs of d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai
+2025-12-22T20:34:49.698Z [INFO] [Environment] Running command (Java 25): mvnw help:effective-pom -Doutput=effective-pom-94aed6d0-2b3f-4980-9218-646f3fc12712.log
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/C:/Users/varia/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/lib/jansi-2.4.0.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper (file:/C:/Users/varia/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/lib/guava-25.1-android.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------< com.Sajid:2207017_Chashi_Bhai >--------------------
+[INFO] Building 2207017_Chashi_Bhai 1.0-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-help-plugin:3.5.1:effective-pom (default-cli) @ 2207017_Chashi_Bhai ---
+[INFO] Effective-POM written to: d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai\effective-pom-94aed6d0-2b3f-4980-9218-646f3fc12712.log
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  0.356 s
+[INFO] Finished at: 2025-12-23T02:34:50+06:00
+[INFO] ------------------------------------------------------------------------
+2025-12-22T20:34:51.042Z [INFO] [MavenBuildTool] Found pom.xml files: d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai\pom.xml
+2025-12-22T20:34:51.043Z [INFO] [MavenBuildTool] Java version found in d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai\pom.xml: 25
+2025-12-22T20:34:51.043Z [INFO] [BaseBuildTool] Notifying Java version/Config change: '25' || '21'
+2025-12-22T20:34:51.043Z [INFO] [Project 2207017_Chashi_Bhai]: Java version of project 2207017_Chashi_Bhai is changed.
+2025-12-22T20:34:51.043Z [INFO] [Project 2207017_Chashi_Bhai]: Java version of project 2207017_Chashi_Bhai is changed to '25' || '21'
+2025-12-22T20:34:51.043Z [INFO] [Project 2207017_Chashi_Bhai]: build tool config of project 2207017_Chashi_Bhai is modified.
+2025-12-22T20:34:51.043Z [INFO] [Project 2207017_Chashi_Bhai]: dependencies of project 2207017_Chashi_Bhai may be changed, resetting promise.
+2025-12-22T20:34:51.043Z [INFO] [MavenBuildTool] Getting build errors of d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai using Maven
+2025-12-22T20:34:51.044Z [INFO] [Environment] Running command (Java 25): mvnw clean test-compile -q -B -fn
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/C:/Users/varia/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/lib/jansi-2.4.0.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper (file:/C:/Users/varia/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/lib/guava-25.1-android.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+[ERROR] COMPILATION ERROR : 
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[453,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[455,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[456,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[459,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[460,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[461,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[462,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[464,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[468,9] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[473,9] invalid method declaration; return type required
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[474,5] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[479,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[493,9] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[498,9] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[503,9] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[508,9] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[512,9] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[516,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[518,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[525,25] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[531,25] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[538,21] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[540,25] invalid method declaration; return type required
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[540,35] illegal start of type
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[541,21] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[544,25] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[547,13] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[552,21] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[554,21] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[555,17] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[556,13] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[558,5] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[577,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[578,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[582,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[583,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[584,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[585,9] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[594,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[597,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[601,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[602,9] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[612,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[615,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[622,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[626,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[629,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[630,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[631,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[634,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[635,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[636,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[638,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[640,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[641,9] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[642,5] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[646,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[647,5] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[684,1] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[1,1] compact source file should not have package declaration
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.13.0:compile (default-compile) on project 2207017_Chashi_Bhai: Compilation failure: Compilation failure: 
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[453,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[455,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[456,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[459,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[460,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[461,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[462,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[464,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[468,9] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[473,9] invalid method declaration; return type required
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[474,5] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[479,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[493,9] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[498,9] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[503,9] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[508,9] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[512,9] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[516,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[518,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[525,25] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[531,25] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[538,21] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[540,25] invalid method declaration; return type required
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[540,35] illegal start of type
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[541,21] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[544,25] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[547,13] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[552,21] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[554,21] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[555,17] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[556,13] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[558,5] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[577,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[578,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[582,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[583,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[584,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[585,9] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[594,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[597,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[601,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[602,9] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[612,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[615,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[622,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[626,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[629,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[630,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[631,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[634,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[635,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[636,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[638,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[640,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[641,9] statements not expected outside of methods and initializers
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[642,5] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[646,9] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[647,5] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[684,1] class, interface, enum, or record expected
+[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[1,1] compact source file should not have package declaration
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+2025-12-22T20:34:52.600Z [INFO] [MavenBuildTool] parsing compilation errors.
+2025-12-22T20:34:52.602Z [INFO] [BaseBuildTool] Found 1 modules: .
+2025-12-22T20:34:52.608Z [INFO] [BaseBuildTool] Finish counting Java and class files
+2025-12-22T20:34:52.609Z [INFO] [MavenBuildTool] Cleaning d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai using Maven
+2025-12-22T20:34:52.609Z [INFO] [Environment] Running command (Java 25): mvnw clean -q -B -fn
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/C:/Users/varia/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/lib/jansi-2.4.0.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper (file:/C:/Users/varia/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/lib/guava-25.1-android.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+2025-12-22T20:34:53.422Z [INFO] [Project 2207017_Chashi_Bhai]: Compilation errors of project 2207017_Chashi_Bhai is updated: 0 -> 60
+2025-12-22T20:34:53.423Z [INFO] [Tool.invoke]({result: {
+  "message": "Build failed with 60 errors using command: `mvnw clean test-compile -q -B -fn`.\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[453,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[455,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[456,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[459,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[460,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[461,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[462,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[464,9] class, interface, enum, or record expected\n  ```\n- statements not expected outside of methods and initializers\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[468,9] statements not expected outside of methods and initializers\n  ```\n- invalid method declaration; return type required\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[473,9] invalid method declaration; return type required\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[474,5] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[479,9] class, interface, enum, or record expected\n  ```\n- statements not expected outside of methods and initializers\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[493,9] statements not expected outside of methods and initializers\n  ```\n- statements not expected outside of methods and initializers\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[498,9] statements not expected outside of methods and initializers\n  ```\n- statements not expected outside of methods and initializers\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[503,9] statements not expected outside of methods and initializers\n  ```\n- statements not expected outside of methods and initializers\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[508,9] statements not expected outside of methods and initializers\n  ```\n- statements not expected outside of methods and initializers\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[512,9] statements not expected outside of methods and initializers\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[516,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[518,9] class, interface, enum, or record expected\n  ```\n- statements not expected outside of methods and initializers\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[525,25] statements not expected outside of methods and initializers\n  ```\n- statements not expected outside of methods and initializers\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[531,25] statements not expected outside of methods and initializers\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[538,21] class, interface, enum, or record expected\n  ```\n- invalid method declaration; return type required\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[540,25] invalid method declaration; return type required\n  ```\n- illegal start of type\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[540,35] illegal start of type\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[541,21] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[544,25] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[547,13] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[552,21] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[554,21] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[555,17] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[556,13] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[558,5] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[577,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[578,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[582,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[583,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[584,9] class, interface, enum, or record expected\n  ```\n- statements not expected outside of methods and initializers\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[585,9] statements not expected outside of methods and initializers\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[594,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[597,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[601,9] class, interface, enum, or record expected\n  ```\n- statements not expected outside of methods and initializers\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[602,9] statements not expected outside of methods and initializers\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[612,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[615,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[622,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[626,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[629,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[630,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[631,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[634,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[635,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[636,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[638,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[640,9] class, interface, enum, or record expected\n  ```\n- statements not expected outside of methods and initializers\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[641,9] statements not expected outside of methods and initializers\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[642,5] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[646,9] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[647,5] class, interface, enum, or record expected\n  ```\n- class, interface, enum, or record expected\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[684,1] class, interface, enum, or record expected\n  ```\n- compact source file should not have package declaration\n  ```\n  [ERROR] /d:/Codes/KUET/2207017\\_Chashi\\_Bhai/2207017\\_Chashi\\_Bhai/src/main/java/com/sajid/\\_207017\\_chashi\\_bhai/controllers/CropFeedController.java:[1,1] compact source file should not have package declaration\n  ```",
+  "result": {
+    "numOfJavaFiles": 44,
+    "numOfClassFiles": 0,
+    "modulesBuildResult": {
+      ".": {
+        "numOfJavaFiles": 44,
+        "numOfClassFiles": 0
+      }
+    },
+    "errors": [
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "453",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[453,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "455",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[455,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "456",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[456,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "459",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[459,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "460",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[460,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "461",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[461,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "462",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[462,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "464",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[464,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "468",
+        "colNumber": "9",
+        "errorMessage": "statements not expected outside of methods and initializers",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[468,9] statements not expected outside of methods and initializers"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "473",
+        "colNumber": "9",
+        "errorMessage": "invalid method declaration; return type required",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[473,9] invalid method declaration; return type required"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "474",
+        "colNumber": "5",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[474,5] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "479",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[479,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "493",
+        "colNumber": "9",
+        "errorMessage": "statements not expected outside of methods and initializers",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[493,9] statements not expected outside of methods and initializers"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "498",
+        "colNumber": "9",
+        "errorMessage": "statements not expected outside of methods and initializers",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[498,9] statements not expected outside of methods and initializers"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "503",
+        "colNumber": "9",
+        "errorMessage": "statements not expected outside of methods and initializers",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[503,9] statements not expected outside of methods and initializers"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "508",
+        "colNumber": "9",
+        "errorMessage": "statements not expected outside of methods and initializers",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[508,9] statements not expected outside of methods and initializers"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "512",
+        "colNumber": "9",
+        "errorMessage": "statements not expected outside of methods and initializers",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[512,9] statements not expected outside of methods and initializers"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "516",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[516,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "518",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[518,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "525",
+        "colNumber": "25",
+        "errorMessage": "statements not expected outside of methods and initializers",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[525,25] statements not expected outside of methods and initializers"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "531",
+        "colNumber": "25",
+        "errorMessage": "statements not expected outside of methods and initializers",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[531,25] statements not expected outside of methods and initializers"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "538",
+        "colNumber": "21",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[538,21] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "540",
+        "colNumber": "25",
+        "errorMessage": "invalid method declaration; return type required",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[540,25] invalid method declaration; return type required"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "540",
+        "colNumber": "35",
+        "errorMessage": "illegal start of type",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[540,35] illegal start of type"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "541",
+        "colNumber": "21",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[541,21] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "544",
+        "colNumber": "25",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[544,25] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "547",
+        "colNumber": "13",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[547,13] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "552",
+        "colNumber": "21",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[552,21] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "554",
+        "colNumber": "21",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[554,21] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "555",
+        "colNumber": "17",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[555,17] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "556",
+        "colNumber": "13",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[556,13] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "558",
+        "colNumber": "5",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[558,5] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "577",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[577,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "578",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[578,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "582",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[582,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "583",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[583,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "584",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[584,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "585",
+        "colNumber": "9",
+        "errorMessage": "statements not expected outside of methods and initializers",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[585,9] statements not expected outside of methods and initializers"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "594",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[594,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "597",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[597,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "601",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[601,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "602",
+        "colNumber": "9",
+        "errorMessage": "statements not expected outside of methods and initializers",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[602,9] statements not expected outside of methods and initializers"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "612",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[612,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "615",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[615,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "622",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[622,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "626",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[626,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "629",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[629,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "630",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[630,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "631",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[631,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "634",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[634,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "635",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[635,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "636",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[636,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "638",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[638,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "640",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[640,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "641",
+        "colNumber": "9",
+        "errorMessage": "statements not expected outside of methods and initializers",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[641,9] statements not expected outside of methods and initializers"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "642",
+        "colNumber": "5",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[642,5] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "646",
+        "colNumber": "9",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[646,9] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "647",
+        "colNumber": "5",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[647,5] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "684",
+        "colNumber": "1",
+        "errorMessage": "class, interface, enum, or record expected",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[684,1] class, interface, enum, or record expected"
+      },
+      {
+        "filepath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai\\src\\main\\java\\com\\sajid\\_207017_chashi_bhai\\controllers\\CropFeedController.java",
+        "lineNumber": "1",
+        "colNumber": "1",
+        "errorMessage": "compact source file should not have package declaration",
+        "raw": "[ERROR] /d:/Codes/KUET/2207017_Chashi_Bhai/2207017_Chashi_Bhai/src/main/java/com/sajid/_207017_chashi_bhai/controllers/CropFeedController.java:[1,1] compact source file should not have package declaration"
+      }
+    ],
+    "command": "mvnw clean test-compile -q -B -fn"
+  },
+  "telemetry": {
+    "result": "failed"
+  }
+}}).
+2025-12-22T20:34:53.423Z [INFO] [Task.complete](): Completing task toolCall
+2025-12-22T20:34:53.424Z [INFO] [Task.complete](): Completed task toolCall
+2025-12-22T20:34:53.424Z [INFO] [Tool.invoke]({message: Build failed with 60 errors using command: `mvnw clean test-compile -q -B -fn`.
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[453,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[455,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[456,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[459,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[460,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[461,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[462,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[464,9] class, interface, enum, or record expected
+  ```
+- statements not expected outside of methods and initializers
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[468,9] statements not expected outside of methods and initializers
+  ```
+- invalid method declaration; return type required
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[473,9] invalid method declaration; return type required
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[474,5] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[479,9] class, interface, enum, or record expected
+  ```
+- statements not expected outside of methods and initializers
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[493,9] statements not expected outside of methods and initializers
+  ```
+- statements not expected outside of methods and initializers
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[498,9] statements not expected outside of methods and initializers
+  ```
+- statements not expected outside of methods and initializers
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[503,9] statements not expected outside of methods and initializers
+  ```
+- statements not expected outside of methods and initializers
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[508,9] statements not expected outside of methods and initializers
+  ```
+- statements not expected outside of methods and initializers
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[512,9] statements not expected outside of methods and initializers
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[516,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[518,9] class, interface, enum, or record expected
+  ```
+- statements not expected outside of methods and initializers
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[525,25] statements not expected outside of methods and initializers
+  ```
+- statements not expected outside of methods and initializers
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[531,25] statements not expected outside of methods and initializers
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[538,21] class, interface, enum, or record expected
+  ```
+- invalid method declaration; return type required
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[540,25] invalid method declaration; return type required
+  ```
+- illegal start of type
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[540,35] illegal start of type
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[541,21] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[544,25] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[547,13] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[552,21] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[554,21] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[555,17] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[556,13] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[558,5] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[577,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[578,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[582,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[583,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[584,9] class, interface, enum, or record expected
+  ```
+- statements not expected outside of methods and initializers
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[585,9] statements not expected outside of methods and initializers
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[594,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[597,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[601,9] class, interface, enum, or record expected
+  ```
+- statements not expected outside of methods and initializers
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[602,9] statements not expected outside of methods and initializers
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[612,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[615,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[622,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[626,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[629,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[630,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[631,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[634,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[635,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[636,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[638,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[640,9] class, interface, enum, or record expected
+  ```
+- statements not expected outside of methods and initializers
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[641,9] statements not expected outside of methods and initializers
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[642,5] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[646,9] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[647,5] class, interface, enum, or record expected
+  ```
+- class, interface, enum, or record expected
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[684,1] class, interface, enum, or record expected
+  ```
+- compact source file should not have package declaration
+  ```
+  [ERROR] /d:/Codes/KUET/2207017\_Chashi\_Bhai/2207017\_Chashi\_Bhai/src/main/java/com/sajid/\_207017\_chashi\_bhai/controllers/CropFeedController.java:[1,1] compact source file should not have package declaration
+  ```}).
+2025-12-22T20:34:53.424Z [INFO] ----------------------invoked build_java_project----------------------
+2025-12-22T20:35:30.965Z [INFO] ---------------------prepare build_java_project----------------------
+2025-12-22T20:35:30.966Z [INFO] [Tool.prepareInvocation]({name: build_java_project, input: {
+  "projectPath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai",
+  "codeChangesMessage": "Clean up duplicated controller code",
+  "codeChangesDetails": "- Removed leftover code after closing brace in `controllers/CropFeedController.java` to fix class duplication errors"
+}}).
+2025-12-22T20:35:30.966Z [INFO] [Tool.prepareInvocation] do prepare invocation.
+2025-12-22T20:35:30.966Z [INFO] [Tool.prepareInvocation]({result: {
+  "invocationMessage": "Build project"
+}}).
+2025-12-22T20:35:30.966Z [INFO] ----------------------prepared build_java_project----------------------

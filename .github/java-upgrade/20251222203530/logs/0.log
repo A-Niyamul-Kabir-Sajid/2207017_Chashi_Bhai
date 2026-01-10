@@ -1,0 +1,153 @@
+2025-12-22T20:35:30.993Z [INFO] ----------------------invoke build_java_project----------------------
+2025-12-22T20:35:30.993Z [INFO] [Tool.invoke]({name: build_java_project, input: {
+  "projectPath": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai",
+  "codeChangesMessage": "Clean up duplicated controller code",
+  "codeChangesDetails": "- Removed leftover code after closing brace in `controllers/CropFeedController.java` to fix class duplication errors"
+}}).
+2025-12-22T20:35:30.993Z [INFO] [Task.start](): Starting task toolCall
+2025-12-22T20:35:30.994Z [INFO] [Task.start](): Started task toolCall
+2025-12-22T20:35:30.994Z [INFO] [Tool.invoke] validate GitHub Copilot license.
+2025-12-22T20:35:30.994Z [INFO] [Tool.invoke] do pre-invoke.
+2025-12-22T20:35:30.995Z [INFO] Project d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai is a maven project, try to get java version from pom.xml
+2025-12-22T20:35:30.996Z [INFO] Project java version: 25
+2025-12-22T20:35:30.996Z [INFO] Maven project detected.
+2025-12-22T20:35:30.996Z [INFO] Build tool type: mvnw
+2025-12-22T20:35:31.003Z [INFO] [Environment] Running command (Java 25): java -version
+java version "25.0.1" 2025-10-21 LTS
+Java(TM) SE Runtime Environment (build 25.0.1+8-LTS-27)
+Java HotSpot(TM) 64-Bit Server VM (build 25.0.1+8-LTS-27, mixed mode, sharing)
+2025-12-22T20:35:31.076Z [INFO] [JdkEnvironment] Got real Java version: 25.0.1
+2025-12-22T20:35:31.076Z [INFO] JDK: {
+  "name": "java",
+  "path": "C:\\Program Files\\Java\\jdk-25\\bin",
+  "version": "25"
+}
+2025-12-22T20:35:31.080Z [INFO] [Environment] Running command (Java 25): mvnw --version
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/C:/Users/varia/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/lib/jansi-2.4.0.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+Apache Maven 3.8.5 (3599d3414f046de2324203b78ddcf9b5e4388aa0)
+Maven home: C:\Users\varia\.m2\wrapper\dists\apache-maven-3.8.5-bin\5i5jha092a3i37g0paqnfr15e0\apache-maven-3.8.5
+Java version: 25.0.1, vendor: Oracle Corporation, runtime: C:\Program Files\Java\jdk-25
+Default locale: en_US, platform encoding: UTF-8
+OS name: "windows 11", version: "10.0", arch: "amd64", family: "windows"
+2025-12-22T20:35:31.307Z [INFO] Real build tool version: 3.8.5
+2025-12-22T20:35:31.307Z [INFO] Build tool: {
+  "name": "mvnw",
+  "path": ".",
+  "version": "3.8.5"
+}
+2025-12-22T20:35:31.307Z [INFO] Project config: {
+  "buildTool": {
+    "path": ".",
+    "name": "mvnw",
+    "version": "3.8.5"
+  },
+  "jdk": {
+    "path": "C:\\Program Files\\Java\\jdk-25\\bin",
+    "name": "java",
+    "version": "25"
+  },
+  "name": "2207017_Chashi_Bhai",
+  "dir": "d:\\Codes\\KUET\\2207017_Chashi_Bhai\\2207017_Chashi_Bhai"
+}
+2025-12-22T20:35:31.312Z [INFO] [Tool.invoke] do invoke.
+2025-12-22T20:35:31.312Z [INFO] [BaseBuildTool] Firing config modified event for mvnw, sleeping for 5 seconds
+2025-12-22T20:35:31.312Z [INFO] [Environment] Running command (Java 25): mvnw --version
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/C:/Users/varia/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/lib/jansi-2.4.0.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+Apache Maven 3.8.5 (3599d3414f046de2324203b78ddcf9b5e4388aa0)
+Maven home: C:\Users\varia\.m2\wrapper\dists\apache-maven-3.8.5-bin\5i5jha092a3i37g0paqnfr15e0\apache-maven-3.8.5
+Java version: 25.0.1, vendor: Oracle Corporation, runtime: C:\Program Files\Java\jdk-25
+Default locale: en_US, platform encoding: UTF-8
+OS name: "windows 11", version: "10.0", arch: "amd64", family: "windows"
+2025-12-22T20:35:31.590Z [INFO] [BaseBuildTool] New version of mvnw: 3.8.5 -> 3.8.5
+2025-12-22T20:35:31.590Z [INFO] [MavenBuildTool] Getting Java version of d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai from pom.xml
+2025-12-22T20:35:31.590Z [INFO] [MavenBuildTool] Searching for pom.xml files in d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai
+2025-12-22T20:35:31.590Z [INFO] [MavenBuildTool] Getting all module coordinates of d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai
+2025-12-22T20:35:31.590Z [INFO] [MavenBuildTool] Getting effective POMs of d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai
+2025-12-22T20:35:31.591Z [INFO] [Environment] Running command (Java 25): mvnw help:effective-pom -Doutput=effective-pom-9c5d3bb2-8f44-4662-a6c2-b847a3b1823d.log
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/C:/Users/varia/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/lib/jansi-2.4.0.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper (file:/C:/Users/varia/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/lib/guava-25.1-android.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------< com.Sajid:2207017_Chashi_Bhai >--------------------
+[INFO] Building 2207017_Chashi_Bhai 1.0-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-help-plugin:3.5.1:effective-pom (default-cli) @ 2207017_Chashi_Bhai ---
+[INFO] Effective-POM written to: d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai\effective-pom-9c5d3bb2-8f44-4662-a6c2-b847a3b1823d.log
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  0.384 s
+[INFO] Finished at: 2025-12-23T02:35:32+06:00
+[INFO] ------------------------------------------------------------------------
+2025-12-22T20:35:33.061Z [INFO] [MavenBuildTool] Found pom.xml files: d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai\pom.xml
+2025-12-22T20:35:33.062Z [INFO] [MavenBuildTool] Java version found in d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai\pom.xml: 25
+2025-12-22T20:35:33.062Z [INFO] [BaseBuildTool] Notifying Java version/Config change: '25' || '21'
+2025-12-22T20:35:33.062Z [INFO] [Project 2207017_Chashi_Bhai]: Java version of project 2207017_Chashi_Bhai is changed.
+2025-12-22T20:35:33.063Z [INFO] [Project 2207017_Chashi_Bhai]: Java version of project 2207017_Chashi_Bhai is changed to '25' || '21'
+2025-12-22T20:35:33.063Z [INFO] [Project 2207017_Chashi_Bhai]: build tool config of project 2207017_Chashi_Bhai is modified.
+2025-12-22T20:35:33.063Z [INFO] [Project 2207017_Chashi_Bhai]: dependencies of project 2207017_Chashi_Bhai may be changed, resetting promise.
+2025-12-22T20:35:33.063Z [INFO] [MavenBuildTool] Getting build errors of d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai using Maven
+2025-12-22T20:35:33.063Z [INFO] [Environment] Running command (Java 25): mvnw clean test-compile -q -B -fn
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/C:/Users/varia/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/lib/jansi-2.4.0.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper (file:/C:/Users/varia/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/lib/guava-25.1-android.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+2025-12-22T20:35:35.288Z [INFO] [MavenBuildTool] parsing compilation errors.
+2025-12-22T20:35:35.288Z [INFO] [BaseBuildTool] Found 1 modules: .
+2025-12-22T20:35:35.293Z [INFO] [BaseBuildTool] Finish counting Java and class files
+2025-12-22T20:35:35.293Z [INFO] [MavenBuildTool] Cleaning d:\Codes\KUET\2207017_Chashi_Bhai\2207017_Chashi_Bhai using Maven
+2025-12-22T20:35:35.294Z [INFO] [Environment] Running command (Java 25): mvnw clean -q -B -fn
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/C:/Users/varia/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/lib/jansi-2.4.0.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper (file:/C:/Users/varia/.m2/wrapper/dists/apache-maven-3.8.5-bin/5i5jha092a3i37g0paqnfr15e0/apache-maven-3.8.5/lib/guava-25.1-android.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+2025-12-22T20:35:36.156Z [INFO] [Project 2207017_Chashi_Bhai]: Compilation errors of project 2207017_Chashi_Bhai is updated: 0 -> 0
+2025-12-22T20:35:36.157Z [INFO] Build succeeded! There are no build errors in the project.
+2025-12-22T20:35:36.157Z [INFO] [Tool.invoke]({result: {
+  "message": "Build succeeded! There are no build errors in the project.",
+  "result": {
+    "numOfJavaFiles": 44,
+    "numOfClassFiles": 27,
+    "modulesBuildResult": {
+      ".": {
+        "numOfJavaFiles": 44,
+        "numOfClassFiles": 27
+      }
+    },
+    "errors": [],
+    "command": "mvnw clean test-compile -q -B -fn"
+  },
+  "telemetry": {
+    "result": "succeeded"
+  }
+}}).
+2025-12-22T20:35:36.157Z [INFO] [Task.complete](): Completing task toolCall
+2025-12-22T20:35:36.157Z [INFO] [Task.complete](): Completed task toolCall
+2025-12-22T20:35:36.157Z [INFO] [Tool.invoke]({message: Build succeeded! There are no build errors in the project.}).
+2025-12-22T20:35:36.158Z [INFO] ----------------------invoked build_java_project----------------------
