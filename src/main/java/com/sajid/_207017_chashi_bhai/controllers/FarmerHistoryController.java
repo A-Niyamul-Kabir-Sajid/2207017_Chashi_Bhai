@@ -21,7 +21,7 @@ public class FarmerHistoryController {
 
     @FXML private Label lblTotalIncome;
     @FXML private Label lblMostSold;
-    @FXML private Label lblTotalOrders;
+    @FXML private Label lblTotalAcceptedOrders;
     @FXML private ComboBox<String> cbFilterMonth;
     @FXML private ComboBox<String> cbFilterCrop;
     @FXML private Button btnApplyFilter;
@@ -85,16 +85,22 @@ public class FarmerHistoryController {
             "WHERE o.farmer_id = ? AND o.status IN ('delivered', 'completed')",
             new Object[]{currentUser.getId()},
             resultSet -> {
-                Platform.runLater(() -> {
-                    try {
-                        if (resultSet.next()) {
-                            double income = resultSet.getDouble("total_income");
-                            lblTotalIncome.setText(String.format("৳%.2f", income));
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                try {
+                    double income = 0.0;
+                    if (resultSet.next()) {
+                        income = resultSet.getDouble("total_income");
                     }
-                });
+                    final double finalIncome = income;
+                    Platform.runLater(() -> {
+                        try {
+                            lblTotalIncome.setText(String.format("৳%.2f", finalIncome));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             },
             error -> error.printStackTrace()
         );
@@ -109,39 +115,50 @@ public class FarmerHistoryController {
             "ORDER BY count DESC LIMIT 1",
             new Object[]{currentUser.getId()},
             resultSet -> {
-                Platform.runLater(() -> {
-                    try {
-                        if (resultSet.next()) {
-                            String mostSold = resultSet.getString("most_sold");
-                            lblMostSold.setText(mostSold != null ? mostSold : "N/A");
-                        } else {
-                            lblMostSold.setText("N/A");
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                try {
+                    String mostSold = "N/A";
+                    if (resultSet.next()) {
+                        String name = resultSet.getString("most_sold");
+                        mostSold = name != null ? name : "N/A";
                     }
-                });
+                    final String finalMostSold = mostSold;
+                    Platform.runLater(() -> {
+                        try {
+                            lblMostSold.setText(finalMostSold);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             },
             error -> error.printStackTrace()
         );
 
-        // Get total orders
+        // Get total accepted orders
         DatabaseService.executeQueryAsync(
             "SELECT COUNT(*) as total_orders " +
             "FROM orders o " +
             "WHERE o.farmer_id = ? AND o.status IN ('delivered', 'completed')",
             new Object[]{currentUser.getId()},
             resultSet -> {
-                Platform.runLater(() -> {
-                    try {
-                        if (resultSet.next()) {
-                            int totalOrders = resultSet.getInt("total_orders");
-                            lblTotalOrders.setText(String.valueOf(totalOrders));
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                try {
+                    int totalOrders = 0;
+                    if (resultSet.next()) {
+                        totalOrders = resultSet.getInt("total_orders");
                     }
-                });
+                    final int finalTotalOrders = totalOrders;
+                    Platform.runLater(() -> {
+                        try {
+                            lblTotalAcceptedOrders.setText(String.valueOf(finalTotalOrders));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             },
             error -> error.printStackTrace()
         );

@@ -17,6 +17,10 @@ CREATE TABLE IF NOT EXISTS users (
     nid TEXT,
     is_verified BOOLEAN DEFAULT 0,
     profile_photo TEXT,
+    total_accepted_orders INTEGER DEFAULT 0,
+    most_sold_crop TEXT,
+    total_income REAL DEFAULT 0.0,
+    rating REAL DEFAULT 0.0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -14,6 +14,12 @@ public class User {
     private String profilePhoto;
     private boolean isVerified;
     private String createdAt;
+    
+    // Farmer statistics
+    private int totalAcceptedOrders;
+    private String mostSoldCrop;
+    private double totalIncome;
+    private double rating;
 
     // Constructors
     public User() {}
@@ -108,6 +114,38 @@ public class User {
 
     public String getUserId() {
         return "USR" + String.format("%06d", id);
+    }
+
+    public int getTotalAcceptedOrders() {
+        return totalAcceptedOrders;
+    }
+
+    public void setTotalAcceptedOrders(int totalAcceptedOrders) {
+        this.totalAcceptedOrders = totalAcceptedOrders;
+    }
+
+    public String getMostSoldCrop() {
+        return mostSoldCrop;
+    }
+
+    public void setMostSoldCrop(String mostSoldCrop) {
+        this.mostSoldCrop = mostSoldCrop;
+    }
+
+    public double getTotalIncome() {
+        return totalIncome;
+    }
+
+    public void setTotalIncome(double totalIncome) {
+        this.totalIncome = totalIncome;
+    }
+
+    public double getRating() {
+        return rating;
+    }
+
+    public void setRating(double rating) {
+        this.rating = rating;
     }
 
     @Override

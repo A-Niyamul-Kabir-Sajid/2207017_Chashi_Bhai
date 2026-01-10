@@ -20,7 +20,7 @@ public class BuyerHistoryController {
     @FXML private Label lblTotalExpense;
     @FXML private Label lblMostBought;
     @FXML private Label lblFavoriteFarmers;
-    @FXML private Label lblTotalOrders;
+    @FXML private Label lblTotalAcceptedOrders;
     @FXML private ComboBox<String> cbFilterMonth;
     @FXML private ComboBox<String> cbFilterCrop;
     @FXML private Button btnApplyFilter;
@@ -77,7 +77,7 @@ public class BuyerHistoryController {
                             lblTotalExpense.setText(String.format("৳%.2f", expense));
                             lblMostBought.setText(mostBought != null ? mostBought : "N/A");
                             lblFavoriteFarmers.setText(String.valueOf(favoriteFarmers));
-                            lblTotalOrders.setText(String.valueOf(totalOrders));
+                            lblTotalAcceptedOrders.setText(String.valueOf(totalOrders));
                         }
                     } catch (Exception e) {
                         e.printStackTrace();

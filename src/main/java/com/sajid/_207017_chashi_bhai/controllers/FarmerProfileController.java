@@ -85,9 +85,7 @@ public class FarmerProfileController {
         
         DatabaseService.executeQueryAsync(
             "SELECT u.*, " +
-            "COALESCE(CAST((julianday('now') - julianday(u.created_at)) / 365 AS INTEGER), 0) as years_farming, " +
-            "(SELECT COALESCE(SUM(o.total_amount), 0) FROM orders o JOIN crops c ON o.crop_id = c.id WHERE c.farmer_id = u.id AND o.status IN ('delivered', 'completed')) as total_sales, " +
-            "(SELECT COALESCE(AVG(r.rating), 0.0) FROM reviews r WHERE r.reviewee_id = u.id) as avg_rating " +
+            "COALESCE(CAST((julianday('now') - julianday(u.created_at)) / 365 AS INTEGER), 0) as years_farming " +
             "FROM users u WHERE u.id = ?",
             new Object[]{currentUser.getId()},
             resultSet -> {
@@ -99,8 +97,8 @@ public class FarmerProfileController {
                         String district = resultSet.getString("district");
                         boolean isVerified = resultSet.getBoolean("is_verified");
                         int yearsFarming = resultSet.getInt("years_farming");
-                        double totalSales = resultSet.getDouble("total_sales");
-                        double avgRating = resultSet.getDouble("avg_rating");
+                        double totalIncome = resultSet.getDouble("total_income");
+                        double rating = resultSet.getDouble("rating");
                         String photoPath = resultSet.getString("profile_photo");
 
                         // Now update UI on JavaFX thread with pre-loaded data
@@ -112,8 +110,8 @@ public class FarmerProfileController {
                                 lblPhone.setText(phone != null ? phone : "N/A");
                                 lblDistrict.setText(district != null ? district : "N/A");
                                 lblYearsFarming.setText(String.valueOf(yearsFarming));
-                                lblTotalSales.setText(String.format("৳%.2f", totalSales));
-                                lblRating.setText(String.format("%.1f ★", avgRating));
+                                lblTotalSales.setText(String.format("৳%.2f", totalIncome));
+                                lblRating.setText(String.format("%.1f ★", rating));
 
                                 // Verified badge
                                 if (isVerified) {

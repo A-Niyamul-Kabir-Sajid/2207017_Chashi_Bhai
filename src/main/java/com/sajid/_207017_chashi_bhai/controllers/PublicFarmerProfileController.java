@@ -69,9 +69,7 @@ public class PublicFarmerProfileController {
     private void loadFarmerProfile() {
         String sql = "SELECT u.*, " +
                     "COALESCE(CAST((julianday('now') - julianday(u.created_at)) / 365 AS INTEGER), 0) as years_farming, " +
-                    "(SELECT COUNT(*) FROM crops WHERE farmer_id = u.id AND status = 'active') as total_products, " +
-                    "(SELECT COUNT(*) FROM orders o JOIN crops c ON o.crop_id = c.id WHERE c.farmer_id = u.id AND o.status IN ('delivered', 'completed')) as total_sales, " +
-                    "(SELECT COALESCE(AVG(r.rating), 0.0) FROM reviews r WHERE r.reviewee_id = u.id) as avg_rating " +
+                    "(SELECT COUNT(*) FROM crops WHERE farmer_id = u.id AND status = 'active') as total_products " +
                     "FROM users u WHERE u.id = ?";
 
         DatabaseService.executeQueryAsync(sql, new Object[]{farmerId},
@@ -85,8 +83,8 @@ public class PublicFarmerProfileController {
                         boolean isVerified = rs.getBoolean("is_verified");
                         int yearsFarming = rs.getInt("years_farming");
                         int totalProducts = rs.getInt("total_products");
-                        int totalSales = rs.getInt("total_sales");
-                        double avgRating = rs.getDouble("avg_rating");
+                        int totalAcceptedOrders = rs.getInt("total_accepted_orders");
+                        double rating = rs.getDouble("rating");
                         String photoPath = rs.getString("profile_photo");
 
                         // Now update UI on JavaFX thread with pre-loaded data
@@ -99,8 +97,8 @@ public class PublicFarmerProfileController {
                                 lblDistrict.setText(district != null ? district : "N/A");
                                 lblYearsFarming.setText(String.valueOf(yearsFarming));
                                 lblTotalProducts.setText(String.valueOf(totalProducts));
-                                lblTotalSales.setText(String.valueOf(totalSales));
-                                lblRating.setText(String.format("%.1f", avgRating));
+                                lblTotalSales.setText(String.valueOf(totalAcceptedOrders));
+                                lblRating.setText(String.format("%.1f", rating));
 
                                 if (isVerified) {
                                     lblVerifiedBadge.setVisible(true);
