@@ -1,41 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 
-<HBox xmlns:fx="http://javafx.com/fxml" spacing="20" styleClass="crop-card" alignment="CENTER_LEFT">
+<HBox alignment="CENTER_LEFT" spacing="20" styleClass="crop-card" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25">
     <padding>
-        <Insets top="15" bottom="15" left="20" right="20"/>
+        <Insets bottom="15" left="20" right="20" top="15" />
     </padding>
     
     <!-- Crop Image -->
-    <ImageView fx:id="cropImage" fitWidth="100" fitHeight="100" preserveRatio="true" styleClass="crop-image"/>
+    <ImageView fx:id="cropImage" fitHeight="100" fitWidth="100" preserveRatio="true" styleClass="crop-image" />
     
     <!-- Crop Details -->
     <VBox spacing="8" HBox.hgrow="ALWAYS">
-        <Label fx:id="lblCropName" text="ফসলের নাম" styleClass="crop-name"/>
+        <Label fx:id="lblCropName" styleClass="crop-name" text="ফসলের নাম" />
         <HBox spacing="15">
-            <Label fx:id="lblPrice" text="৳ 0 / কেজি" styleClass="crop-price"/>
-            <Label text="•" styleClass="separator"/>
-            <Label fx:id="lblQuantity" text="0 কেজি উপলব্ধ" styleClass="crop-quantity"/>
+            <Label fx:id="lblPrice" styleClass="crop-price" text="৳ 0 / কেজি" />
+            <Label styleClass="separator" text="•" />
+            <Label fx:id="lblQuantity" styleClass="crop-quantity" text="0 কেজি উপলব্ধ" />
         </HBox>
         <HBox spacing="8">
-            <Label text="📅" styleClass="icon-small"/>
-            <Label fx:id="lblDate" text="পোস্ট: --" styleClass="crop-date"/>
+            <Label styleClass="icon-small" text="📅" />
+            <Label fx:id="lblDate" styleClass="crop-date" text="পোস্ট: --" />
         </HBox>
         <HBox spacing="8">
-            <Label text="📍" styleClass="icon-small"/>
-            <Label fx:id="lblDistrict" text="জেলা: --" styleClass="crop-district"/>
+            <Label styleClass="icon-small" text="📍" />
+            <Label fx:id="lblDistrict" styleClass="crop-district" text="জেলা: --" />
         </HBox>
-        <Label fx:id="lblStatus" text="✓ সক্রিয়" styleClass="status-active"/>
+        <Label fx:id="lblStatus" styleClass="status-active" text="✓ সক্রিয়" />
     </VBox>
     
     <!-- Action Buttons -->
-    <VBox spacing="10" alignment="CENTER_RIGHT">
-        <Button fx:id="btnEdit" text="✎ সম্পাদনা" styleClass="button-secondary" prefWidth="120"/>
-        <Button fx:id="btnDelete" text="🗑 মুছুন" styleClass="button-danger" prefWidth="120"/>
-        <Button fx:id="btnStats" text="📊 পরিসংখ্যান" styleClass="button-info" prefWidth="120"/>
+    <VBox alignment="CENTER_RIGHT" spacing="10">
+        <Button fx:id="btnEdit" prefWidth="120" styleClass="button-secondary" text="✎ সম্পাদনা" />
+        <Button fx:id="btnDelete" prefWidth="120" styleClass="button-danger" text="🗑 মুছুন" />
     </VBox>
 </HBox>

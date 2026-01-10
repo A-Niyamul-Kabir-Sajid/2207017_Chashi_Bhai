@@ -104,71 +104,85 @@ public class CropDetailController {
 
         DatabaseService.executeQueryAsync(sql, new Object[]{cropId},
             rs -> {
-                Platform.runLater(() -> {
-                    try {
-                        if (rs.next()) {
-                            // Crop details
-                            String name = rs.getString("name");
-                            productCode = rs.getString("product_code");
-                            String category = rs.getString("category");
-                            cropPrice = rs.getDouble("unit_price");
-                            cropUnit = rs.getString("unit") != null ? rs.getString("unit") : "কেজি";
-                            double quantity = rs.getDouble("available_qty");
-                            String harvestDate = rs.getString("harvest_date");
-                            String district = rs.getString("district");
-                            String transport = rs.getString("transport_info");
-                            String description = rs.getString("description");
+                // CRITICAL: Read ResultSet data BEFORE Platform.runLater to avoid closed ResultSet
+                try {
+                    if (rs.next()) {
+                        // Read all crop details from ResultSet
+                        String name = rs.getString("name");
+                        String pCode = rs.getString("product_code");
+                        String category = rs.getString("category");
+                        double unitPrice = rs.getDouble("unit_price");
+                        String unit = rs.getString("unit") != null ? rs.getString("unit") : "কেজি";
+                        double quantity = rs.getDouble("available_qty");
+                        String harvestDate = rs.getString("harvest_date");
+                        String district = rs.getString("district");
+                        String transport = rs.getString("transport_info");
+                        String description = rs.getString("description");
 
-                            lblCropName.setText(name != null ? name : "N/A");
-                            lblCropPrice.setText(String.format("৳%.2f/%s", cropPrice, cropUnit));
-                            lblProductCode.setText(productCode != null ? productCode : "N/A");
-                            lblCategory.setText(category != null ? category : "N/A");
-                            
-                            // Show ordered quantity if viewing from order, otherwise show available quantity
-                            if (orderedQuantity != null) {
-                                lblQuantity.setText(String.format("অর্ডার: %.1f %s (মোট: %.1f %s)", orderedQuantity, cropUnit, quantity, cropUnit));
-                            } else {
-                                lblQuantity.setText(String.format("%.1f %s", quantity, cropUnit));
-                            }
-                            lblHarvestDate.setText(harvestDate != null ? harvestDate : "N/A");
-                            lblLocation.setText(district != null ? district : "N/A");
-                            lblTransport.setText(transport != null ? transport : "N/A");
-                            lblDescription.setText(description != null ? description : "কোনো বিবরণ নেই");
+                        // Read all farmer details from ResultSet
+                        int fId = rs.getInt("farmer_id");
+                        String farmerName = rs.getString("farmer_name");
+                        String fPhone = rs.getString("farmer_phone");
+                        String farmerDistrict = rs.getString("farmer_district");
+                        boolean isVerified = rs.getBoolean("farmer_verified");
+                        int yearsFarming = rs.getInt("years_farming");
+                        int totalSales = rs.getInt("total_sales");
+                        double avgRating = rs.getDouble("avg_rating");
+                        int totalReviews = rs.getInt("total_reviews");
+                        String farmerPhotoPath = rs.getString("farmer_photo");
 
-                            // Farmer details
-                            farmerId = rs.getInt("farmer_id");
-                            String farmerName = rs.getString("farmer_name");
-                            farmerPhone = rs.getString("farmer_phone");
-                            String farmerDistrict = rs.getString("farmer_district");
-                            boolean isVerified = rs.getBoolean("farmer_verified");
-                            int yearsFarming = rs.getInt("years_farming");
-                            int totalSales = rs.getInt("total_sales");
-                            double avgRating = rs.getDouble("avg_rating");
-                            int totalReviews = rs.getInt("total_reviews");
+                        // Now update UI on JavaFX thread with pre-loaded data
+                        Platform.runLater(() -> {
+                            try {
+                                // Set crop details
+                                productCode = pCode;
+                                cropPrice = unitPrice;
+                                cropUnit = unit;
+                                farmerId = fId;
+                                farmerPhone = fPhone;
 
-                            lblFarmerName.setText(farmerName + (isVerified ? " ✓" : ""));
-                            lblFarmerRating.setText(String.format("★ %.1f", avgRating));
-                            lblTotalReviews.setText("(" + totalReviews + " রিভিউ)");
-                            lblFarmerYears.setText(yearsFarming + " বছর");
-                            lblFarmerSales.setText(totalSales + " বিক্রয়");
-                            lblFarmerDistrict.setText(farmerDistrict != null ? farmerDistrict : "N/A");
-
-                            // Load farmer photo
-                            String farmerPhotoPath = rs.getString("farmer_photo");
-                            if (farmerPhotoPath != null && !farmerPhotoPath.isEmpty()) {
-                                File photoFile = new File(farmerPhotoPath);
-                                if (photoFile.exists() && imgFarmerPhoto != null) {
-                                    imgFarmerPhoto.setImage(new Image(photoFile.toURI().toString()));
+                                lblCropName.setText(name != null ? name : "N/A");
+                                lblCropPrice.setText(String.format("৳%.2f/%s", cropPrice, cropUnit));
+                                lblProductCode.setText(productCode != null ? productCode : "N/A");
+                                lblCategory.setText(category != null ? category : "N/A");
+                                
+                                // Show ordered quantity if viewing from order, otherwise show available quantity
+                                if (orderedQuantity != null) {
+                                    lblQuantity.setText(String.format("অর্ডার: %.1f %s (মোট: %.1f %s)", orderedQuantity, cropUnit, quantity, cropUnit));
+                                } else {
+                                    lblQuantity.setText(String.format("%.1f %s", quantity, cropUnit));
                                 }
+                                lblHarvestDate.setText(harvestDate != null ? harvestDate : "N/A");
+                                lblLocation.setText(district != null ? district : "N/A");
+                                lblTransport.setText(transport != null ? transport : "N/A");
+                                lblDescription.setText(description != null ? description : "কোনো বিবরণ নেই");
+
+                                lblFarmerName.setText(farmerName + (isVerified ? " ✓" : ""));
+                                lblFarmerRating.setText(String.format("★ %.1f", avgRating));
+                                lblTotalReviews.setText("(" + totalReviews + " রিভিউ)");
+                                lblFarmerYears.setText(yearsFarming + " বছর");
+                                lblFarmerSales.setText(totalSales + " বিক্রয়");
+                                lblFarmerDistrict.setText(farmerDistrict != null ? farmerDistrict : "N/A");
+
+                                // Load farmer photo
+                                if (farmerPhotoPath != null && !farmerPhotoPath.isEmpty()) {
+                                    File photoFile = new File(farmerPhotoPath);
+                                    if (photoFile.exists() && imgFarmerPhoto != null) {
+                                        imgFarmerPhoto.setImage(new Image(photoFile.toURI().toString()));
+                                    }
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                showError("ত্রুটি", "ফসলের তথ্য প্রদর্শন করতে ব্যর্থ হয়েছে।");
                             }
-                        } else {
-                            showError("ত্রুটি", "ফসলের তথ্য পাওয়া যায়নি।");
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        showError("ত্রুটি", "ফসলের তথ্য লোড করতে ব্যর্থ হয়েছে।");
+                        });
+                    } else {
+                        Platform.runLater(() -> showError("ত্রুটি", "ফসলের তথ্য পাওয়া যায়নি।"));
                     }
-                });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Platform.runLater(() -> showError("ত্রুটি", "ফসলের তথ্য লোড করতে ব্যর্থ হয়েছে।"));
+                }
             },
             error -> {
                 Platform.runLater(() -> showError("ডাটাবেস ত্রুটি", "ফসলের তথ্য লোড করতে সমস্যা হয়েছে।"));
@@ -182,15 +196,22 @@ public class CropDetailController {
         
         DatabaseService.executeQueryAsync(sql, new Object[]{cropId},
             rs -> {
+                // CRITICAL: Read ResultSet data BEFORE Platform.runLater to avoid closed ResultSet
+                List<String> paths = new ArrayList<>();
+                try {
+                    while (rs.next()) {
+                        String path = rs.getString("photo_path");
+                        if (path != null && new File(path).exists()) {
+                            paths.add(path);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                
+                // Now update UI on JavaFX thread with pre-loaded data
                 Platform.runLater(() -> {
                     try {
-                        List<String> paths = new ArrayList<>();
-                        while (rs.next()) {
-                            String path = rs.getString("photo_path");
-                            if (path != null && new File(path).exists()) {
-                                paths.add(path);
-                            }
-                        }
                         photoPaths = paths.toArray(new String[0]);
                         
                         if (photoPaths.length > 0) {
@@ -198,8 +219,8 @@ public class CropDetailController {
                             loadThumbnails();
                         }
                         
-                        btnPrevPhoto.setDisable(photoPaths.length <= 1);
-                        btnNextPhoto.setDisable(photoPaths.length <= 1);
+                        if (btnPrevPhoto != null) btnPrevPhoto.setDisable(photoPaths.length <= 1);
+                        if (btnNextPhoto != null) btnNextPhoto.setDisable(photoPaths.length <= 1);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

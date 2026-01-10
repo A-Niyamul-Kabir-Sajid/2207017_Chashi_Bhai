@@ -6,6 +6,7 @@ import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -85,55 +86,72 @@ public class FarmerProfileController {
         DatabaseService.executeQueryAsync(
             "SELECT u.*, " +
             "COALESCE(CAST((julianday('now') - julianday(u.created_at)) / 365 AS INTEGER), 0) as years_farming, " +
-            "(SELECT COALESCE(SUM(o.quantity_kg * o.price_per_kg), 0) FROM orders o WHERE o.farmer_id = u.id AND o.status IN ('delivered', 'completed')) as total_sales, " +
+            "(SELECT COALESCE(SUM(o.total_amount), 0) FROM orders o JOIN crops c ON o.crop_id = c.id WHERE c.farmer_id = u.id AND o.status IN ('delivered', 'completed')) as total_sales, " +
             "(SELECT COALESCE(AVG(r.rating), 0.0) FROM reviews r WHERE r.reviewee_id = u.id) as avg_rating " +
             "FROM users u WHERE u.id = ?",
             new Object[]{currentUser.getId()},
             resultSet -> {
-                Platform.runLater(() -> {
-                    try {
-                        if (resultSet.next()) {
-                            String name = resultSet.getString("name");
-                            String phone = resultSet.getString("phone");
-                            String district = resultSet.getString("district");
-                            String upazila = resultSet.getString("upazila");
-                            String farmType = resultSet.getString("farm_type");
-                            boolean isVerified = resultSet.getBoolean("is_verified");
-                            int yearsFarming = resultSet.getInt("years_farming");
-                            double totalSales = resultSet.getDouble("total_sales");
-                            double avgRating = resultSet.getDouble("avg_rating");
-                            String photoPath = resultSet.getString("profile_photo");
+                // CRITICAL: Read ResultSet data BEFORE Platform.runLater to avoid closed ResultSet
+                try {
+                    if (resultSet.next()) {
+                        String name = resultSet.getString("name");
+                        String phone = resultSet.getString("phone");
+                        String district = resultSet.getString("district");
+                        boolean isVerified = resultSet.getBoolean("is_verified");
+                        int yearsFarming = resultSet.getInt("years_farming");
+                        double totalSales = resultSet.getDouble("total_sales");
+                        double avgRating = resultSet.getDouble("avg_rating");
+                        String photoPath = resultSet.getString("profile_photo");
 
-                            // Set profile data
-                            lblFarmerName.setText(name);
-                            lblUserId.setText("ID: " + currentUser.getId());
-                            lblPhone.setText(phone != null ? phone : "N/A");
-                            lblDistrict.setText(district != null ? district : "N/A");
-                            lblYearsFarming.setText(String.valueOf(yearsFarming));
-                            lblTotalSales.setText(String.format("৳%.2f", totalSales));
-                            lblRating.setText(String.format("%.1f ★", avgRating));
+                        // Now update UI on JavaFX thread with pre-loaded data
+                        Platform.runLater(() -> {
+                            try {
+                                // Set profile data
+                                lblFarmerName.setText(name);
+                                lblUserId.setText("ID: " + currentUser.getId());
+                                lblPhone.setText(phone != null ? phone : "N/A");
+                                lblDistrict.setText(district != null ? district : "N/A");
+                                lblYearsFarming.setText(String.valueOf(yearsFarming));
+                                lblTotalSales.setText(String.format("৳%.2f", totalSales));
+                                lblRating.setText(String.format("%.1f ★", avgRating));
 
-                            // Verified badge
-                            if (isVerified) {
-                                lblVerifiedBadge.setVisible(true);
-                                lblVerifiedBadge.setText("✓ যাচাইকৃত কৃষক");
-                            } else {
-                                lblVerifiedBadge.setVisible(false);
-                            }
-
-                            // Load profile photo
-                            if (photoPath != null && !photoPath.isEmpty()) {
-                                File photoFile = new File(photoPath);
-                                if (photoFile.exists()) {
-                                    imgProfilePhoto.setImage(new Image(photoFile.toURI().toString()));
+                                // Verified badge
+                                if (isVerified) {
+                                    lblVerifiedBadge.setVisible(true);
+                                    lblVerifiedBadge.setText("✓ যাচাইকৃত কৃষক");
+                                } else {
+                                    lblVerifiedBadge.setVisible(false);
                                 }
+
+                                // Load profile photo
+                                if (photoPath != null && !photoPath.isEmpty()) {
+                                    File photoFile = new File(photoPath);
+                                    if (photoFile.exists()) {
+                                        imgProfilePhoto.setImage(new Image(photoFile.toURI().toString()));
+                                    }
+                                }
+                                
+                                if (progressIndicator != null) {
+                                    progressIndicator.setVisible(false);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                showError("ত্রুটি", "প্রোফাইল প্রদর্শন করতে ব্যর্থ হয়েছে।");
                             }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        showError("ত্রুটি", "প্রোফাইল লোড করতে ব্যর্থ হয়েছে।");
+                        });
+                    } else {
+                        Platform.runLater(() -> {
+                            showError("ত্রুটি", "প্রোফাইল ডেটা পাওয়া যায়নি।");
+                            if (progressIndicator != null) progressIndicator.setVisible(false);
+                        });
                     }
-                });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Platform.runLater(() -> {
+                        showError("ত্রুটি", "প্রোফাইল লোড করতে ব্যর্থ হয়েছে।");
+                        if (progressIndicator != null) progressIndicator.setVisible(false);
+                    });
+                }
             },
             error -> {
                 Platform.runLater(() -> {
@@ -155,40 +173,83 @@ public class FarmerProfileController {
             "SELECT id, photo_path FROM farm_photos WHERE farmer_id = ? ORDER BY id LIMIT 10",
             new Object[]{currentUser.getId()},
             resultSet -> {
+                // CRITICAL: Read ResultSet data BEFORE Platform.runLater to avoid closed ResultSet
+                java.util.List<java.util.Map<String, Object>> photos = new java.util.ArrayList<>();
+                try {
+                    while (resultSet.next()) {
+                        int photoId = resultSet.getInt("id");
+                        String photoPath = resultSet.getString("photo_path");
+                        if (photoPath != null && new File(photoPath).exists()) {
+                            java.util.Map<String, Object> photo = new java.util.HashMap<>();
+                            photo.put("id", photoId);
+                            photo.put("path", photoPath);
+                            photos.add(photo);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                
+                // Now update UI on JavaFX thread with pre-loaded data
                 Platform.runLater(() -> {
                     try {
                         hboxFarmPhotos.getChildren().clear();
-                        boolean hasPhotos = false;
+                        boolean hasPhotos = !photos.isEmpty();
                         
-                        while (resultSet.next()) {
-                            hasPhotos = true;
-                            int photoId = resultSet.getInt("id");
-                            String photoPath = resultSet.getString("photo_path");
+                        for (java.util.Map<String, Object> photo : photos) {
+                            int photoId = (int) photo.get("id");
+                            String photoPath = (String) photo.get("path");
                             File photoFile = new File(photoPath);
                             
-                            if (photoFile.exists()) {
-                                // Create a StackPane to overlay delete button on image
-                                StackPane photoContainer = new StackPane();
-                                photoContainer.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 8;");
-                                
-                                ImageView imageView = new ImageView(new Image(photoFile.toURI().toString()));
-                                imageView.setFitWidth(180);
-                                imageView.setFitHeight(150);
-                                imageView.setPreserveRatio(true);
-                                imageView.setStyle("-fx-cursor: hand;");
-                                imageView.getStyleClass().add("farm-photo");
-                                
-                                // Delete button overlay
-                                Button btnDelete = new Button("✕");
-                                btnDelete.setStyle("-fx-background-color: rgba(220, 53, 69, 0.9); -fx-text-fill: white; " +
-                                                  "-fx-font-size: 12px; -fx-padding: 2 6; -fx-background-radius: 50; " +
-                                                  "-fx-cursor: hand;");
-                                btnDelete.setOnAction(e -> deleteFarmPhoto(photoId, photoPath));
-                                StackPane.setAlignment(btnDelete, Pos.TOP_RIGHT);
-                                
-                                photoContainer.getChildren().addAll(imageView, btnDelete);
-                                hboxFarmPhotos.getChildren().add(photoContainer);
+                            // Create a StackPane to overlay delete button on image
+                            StackPane photoContainer = new StackPane();
+                            photoContainer.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 8; -fx-padding: 5;");
+                            
+                            // Load image and get natural dimensions
+                            Image image = new Image(photoFile.toURI().toString());
+                            ImageView imageView = new ImageView(image);
+                            
+                            // Calculate dimensions to fit within max size while preserving aspect ratio
+                            double maxWidth = 200;
+                            double maxHeight = 200;
+                            double imageWidth = image.getWidth();
+                            double imageHeight = image.getHeight();
+                            double aspectRatio = imageWidth / imageHeight;
+                            
+                            double displayWidth, displayHeight;
+                            if (imageWidth > maxWidth || imageHeight > maxHeight) {
+                                if (aspectRatio > 1) {
+                                    // Wider than tall
+                                    displayWidth = maxWidth;
+                                    displayHeight = maxWidth / aspectRatio;
+                                } else {
+                                    // Taller than wide
+                                    displayHeight = maxHeight;
+                                    displayWidth = maxHeight * aspectRatio;
+                                }
+                            } else {
+                                displayWidth = imageWidth;
+                                displayHeight = imageHeight;
                             }
+                            
+                            imageView.setFitWidth(displayWidth);
+                            imageView.setFitHeight(displayHeight);
+                            imageView.setPreserveRatio(true);
+                            imageView.setSmooth(true);
+                            imageView.setStyle("-fx-cursor: hand;");
+                            imageView.getStyleClass().add("farm-photo");
+                            
+                            // Delete button overlay
+                            Button btnDelete = new Button("✕");
+                            btnDelete.setStyle("-fx-background-color: rgba(220, 53, 69, 0.9); -fx-text-fill: white; " +
+                                              "-fx-font-size: 14px; -fx-padding: 4 8; -fx-background-radius: 50; " +
+                                              "-fx-cursor: hand; -fx-font-weight: bold;");
+                            btnDelete.setOnAction(e -> deleteFarmPhoto(photoId, photoPath));
+                            StackPane.setAlignment(btnDelete, Pos.TOP_RIGHT);
+                            StackPane.setMargin(btnDelete, new Insets(5));
+                            
+                            photoContainer.getChildren().addAll(imageView, btnDelete);
+                            hboxFarmPhotos.getChildren().add(photoContainer);
                         }
                         
                         // Show/hide no photos label

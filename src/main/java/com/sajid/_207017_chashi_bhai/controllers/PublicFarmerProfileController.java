@@ -70,52 +70,61 @@ public class PublicFarmerProfileController {
         String sql = "SELECT u.*, " +
                     "COALESCE(CAST((julianday('now') - julianday(u.created_at)) / 365 AS INTEGER), 0) as years_farming, " +
                     "(SELECT COUNT(*) FROM crops WHERE farmer_id = u.id AND status = 'active') as total_products, " +
-                    "(SELECT COUNT(*) FROM orders o JOIN crops c ON o.crop_id = c.id WHERE c.farmer_id = u.id AND o.status = 'delivered') as total_sales, " +
+                    "(SELECT COUNT(*) FROM orders o JOIN crops c ON o.crop_id = c.id WHERE c.farmer_id = u.id AND o.status IN ('delivered', 'completed')) as total_sales, " +
                     "(SELECT COALESCE(AVG(r.rating), 0.0) FROM reviews r WHERE r.reviewee_id = u.id) as avg_rating " +
                     "FROM users u WHERE u.id = ?";
 
         DatabaseService.executeQueryAsync(sql, new Object[]{farmerId},
             rs -> {
-                Platform.runLater(() -> {
-                    try {
-                        if (rs.next()) {
-                            String name = rs.getString("name");
-                            String phone = rs.getString("phone");
-                            String district = rs.getString("district");
-                            boolean isVerified = rs.getBoolean("is_verified");
-                            int yearsFarming = rs.getInt("years_farming");
-                            int totalProducts = rs.getInt("total_products");
-                            int totalSales = rs.getInt("total_sales");
-                            double avgRating = rs.getDouble("avg_rating");
-                            String photoPath = rs.getString("profile_photo");
+                // CRITICAL: Read ResultSet data BEFORE Platform.runLater to avoid closed ResultSet
+                try {
+                    if (rs.next()) {
+                        String name = rs.getString("name");
+                        String phone = rs.getString("phone");
+                        String district = rs.getString("district");
+                        boolean isVerified = rs.getBoolean("is_verified");
+                        int yearsFarming = rs.getInt("years_farming");
+                        int totalProducts = rs.getInt("total_products");
+                        int totalSales = rs.getInt("total_sales");
+                        double avgRating = rs.getDouble("avg_rating");
+                        String photoPath = rs.getString("profile_photo");
 
-                            lblFarmerName.setText(name);
-                            lblUserId.setText("ID: " + farmerId);
-                            lblPhone.setText(phone != null ? phone : "N/A");
-                            farmerPhone = phone;
-                            lblDistrict.setText(district != null ? district : "N/A");
-                            lblYearsFarming.setText(String.valueOf(yearsFarming));
-                            lblTotalProducts.setText(String.valueOf(totalProducts));
-                            lblTotalSales.setText(String.valueOf(totalSales));
-                            lblRating.setText(String.format("%.1f", avgRating));
+                        // Now update UI on JavaFX thread with pre-loaded data
+                        Platform.runLater(() -> {
+                            try {
+                                lblFarmerName.setText(name);
+                                lblUserId.setText("ID: " + farmerId);
+                                lblPhone.setText(phone != null ? phone : "N/A");
+                                farmerPhone = phone;
+                                lblDistrict.setText(district != null ? district : "N/A");
+                                lblYearsFarming.setText(String.valueOf(yearsFarming));
+                                lblTotalProducts.setText(String.valueOf(totalProducts));
+                                lblTotalSales.setText(String.valueOf(totalSales));
+                                lblRating.setText(String.format("%.1f", avgRating));
 
-                            if (isVerified) {
-                                lblVerifiedBadge.setVisible(true);
-                                lblVerifiedText.setVisible(true);
-                            }
-
-                            if (photoPath != null && !photoPath.isEmpty()) {
-                                File photoFile = new File(photoPath);
-                                if (photoFile.exists()) {
-                                    imgProfilePhoto.setImage(new Image(photoFile.toURI().toString()));
+                                if (isVerified) {
+                                    lblVerifiedBadge.setVisible(true);
+                                    lblVerifiedText.setVisible(true);
                                 }
+
+                                if (photoPath != null && !photoPath.isEmpty()) {
+                                    File photoFile = new File(photoPath);
+                                    if (photoFile.exists()) {
+                                        imgProfilePhoto.setImage(new Image(photoFile.toURI().toString()));
+                                    }
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                showError("ত্রুটি", "প্রোফাইল প্রদর্শন করতে ব্যর্থ হয়েছে।");
                             }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        showError("ত্রুটি", "প্রোফাইল লোড করতে ব্যর্থ হয়েছে।");
+                        });
+                    } else {
+                        Platform.runLater(() -> showError("ত্রুটি", "প্রোফাইল ডেটা পাওয়া যায়নি।"));
                     }
-                });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Platform.runLater(() -> showError("ত্রুটি", "প্রোফাইল লোড করতে ব্যর্থ হয়েছে।"));
+                }
             },
             error -> {
                 Platform.runLater(() -> showError("ডাটাবেস ত্রুটি", "প্রোফাইল ডেটা লোড করতে সমস্যা হয়েছে।"));
@@ -130,21 +139,39 @@ public class PublicFarmerProfileController {
 
         DatabaseService.executeQueryAsync(sql, new Object[]{farmerId},
             rs -> {
+                // CRITICAL: Read ResultSet data BEFORE Platform.runLater to avoid closed ResultSet
+                java.util.List<java.util.Map<String, Object>> products = new java.util.ArrayList<>();
+                try {
+                    while (rs.next()) {
+                        java.util.Map<String, Object> product = new java.util.HashMap<>();
+                        product.put("id", rs.getInt("id"));
+                        product.put("name", rs.getString("name"));
+                        product.put("productCode", rs.getString("product_code"));
+                        product.put("price", rs.getDouble("price_per_kg"));
+                        product.put("quantity", rs.getDouble("available_quantity_kg"));
+                        product.put("district", rs.getString("district"));
+                        products.add(product);
+                        if (products.size() >= 6) break;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                
+                // Now update UI on JavaFX thread with pre-loaded data
                 Platform.runLater(() -> {
                     try {
                         gridProducts.getChildren().clear();
                         int index = 0;
-                        boolean hasProducts = false;
+                        boolean hasProducts = !products.isEmpty();
 
-                        while (rs.next() && index < 6) {
-                            hasProducts = true;
+                        for (java.util.Map<String, Object> product : products) {
                             VBox productCard = createProductCard(
-                                rs.getInt("id"),
-                                rs.getString("name"),
-                                rs.getString("product_code"),
-                                rs.getDouble("price_per_kg"),
-                                rs.getDouble("available_quantity_kg"),
-                                rs.getString("district")
+                                (int) product.get("id"),
+                                (String) product.get("name"),
+                                (String) product.get("productCode"),
+                                (double) product.get("price"),
+                                (double) product.get("quantity"),
+                                (String) product.get("district")
                             );
                             gridProducts.add(productCard, index % 3, index / 3);
                             index++;
