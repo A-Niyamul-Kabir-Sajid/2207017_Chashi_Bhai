@@ -4,16 +4,20 @@ import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import com.sajid._207017_chashi_bhai.services.FirebaseSyncService;
+import com.sajid._207017_chashi_bhai.services.OrderService;
 import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
-import com.sajid._207017_chashi_bhai.utils.StatisticsCalculator;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 import java.awt.Desktop;
 import java.io.File;
@@ -379,14 +383,19 @@ public class BuyerOrdersController {
                 btnContactAccepted.setMaxWidth(Double.MAX_VALUE);
                 btnContactAccepted.setOnAction(e -> contactFarmer(farmerPhone));
 
-                actionsBox.getChildren().addAll(btnContactAccepted, btnDetails);
+                Button btnCancelAccepted = new Button("✗ বাতিল");
+                btnCancelAccepted.getStyleClass().add("button-danger");
+                btnCancelAccepted.setMaxWidth(Double.MAX_VALUE);
+                btnCancelAccepted.setOnAction(e -> cancelOrder(orderId));
+
+                actionsBox.getChildren().addAll(btnContactAccepted, btnCancelAccepted, btnDetails);
                 break;
                 
             case "in_transit":
                 Button btnConfirm = new Button("✅ পণ্য পেয়েছি");
                 btnConfirm.getStyleClass().add("button-success");
                 btnConfirm.setMaxWidth(Double.MAX_VALUE);
-                btnConfirm.setOnAction(e -> updateOrderStatus(orderId, "completed"));
+                btnConfirm.setOnAction(e -> markReceived(orderId));
                 
                 Button btnContactTransit = new Button("📞 যোগাযোগ");
                 btnContactTransit.getStyleClass().add("button-info");
@@ -401,7 +410,6 @@ public class BuyerOrdersController {
                 actionsBox.getChildren().addAll(btnConfirm, btnContactTransit, btnTrack, btnDetails);
                 break;
                 
-            case "delivered":
             case "completed":
                 Button btnRate = new Button("⭐ রেটিং দিন");
                 btnRate.getStyleClass().add("button-success");
@@ -421,9 +429,23 @@ public class BuyerOrdersController {
                 actionsBox.getChildren().addAll(btnRate, btnContactDelivered, btnReorder, btnDetails);
                 break;
 
+            case "delivered":
+                Button btnContactDeliveredOnly = new Button("📞 যোগাযোগ");
+                btnContactDeliveredOnly.getStyleClass().add("button-info");
+                btnContactDeliveredOnly.setMaxWidth(Double.MAX_VALUE);
+                btnContactDeliveredOnly.setOnAction(e -> contactFarmer(farmerPhone));
+
+                actionsBox.getChildren().addAll(btnContactDeliveredOnly, btnDetails);
+                break;
+
             case "rejected":
             case "cancelled":
-                actionsBox.getChildren().add(btnDetails);
+                Button btnDelete = new Button("🗑 ডিলিট");
+                btnDelete.getStyleClass().add("button-danger");
+                btnDelete.setMaxWidth(Double.MAX_VALUE);
+                btnDelete.setOnAction(e -> deleteOrder(orderId));
+
+                actionsBox.getChildren().addAll(btnDelete, btnDetails);
                 break;
                 
             default:
@@ -454,7 +476,7 @@ public class BuyerOrdersController {
         return paymentStatus;
     }
 
-    private void updateOrderStatus(int orderId, String newStatus) {
+    private void markReceived(int orderId) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("নিশ্চিত করুন");
         confirm.setHeaderText("পণ্য গ্রহণ নিশ্চিত করবেন?");
@@ -462,60 +484,22 @@ public class BuyerOrdersController {
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            // First get farmer_id from the order
-            DatabaseService.executeQueryAsync(
-                "SELECT c.farmer_id FROM orders o JOIN crops c ON o.crop_id = c.id WHERE o.id = ?",
-                new Object[]{orderId},
-                rs -> {
-                    try {
-                        if (rs.next()) {
-                            int farmerId = rs.getInt("farmer_id");
-                            
-                            // Update order status + timestamps
-                            String updateSql;
-                            Object[] updateParams;
-                            if ("completed".equals(newStatus)) {
-                                updateSql = "UPDATE orders SET status = ?, completed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?";
-                                updateParams = new Object[]{newStatus, orderId};
-                            } else {
-                                updateSql = "UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?";
-                                updateParams = new Object[]{newStatus, orderId};
-                            }
-
-                            DatabaseService.executeUpdateAsync(
-                                updateSql,
-                                updateParams,
-                                rowsAffected -> {
-                                    Platform.runLater(() -> {
-                                        if (rowsAffected > 0) {
-                                            showSuccess("সফল", "অর্ডার স্ট্যাটাস আপডেট করা হয়েছে।");
-                                            refreshOrders();
-
-                                            // Best-effort cloud sync
-                                            FirebaseSyncService.getInstance().syncOrderToFirebase(orderId);
-                                            FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, newStatus, null);
-                                            
-                                            // Update statistics if order completed
-                                            if ("completed".equals(newStatus)) {
-                                                StatisticsCalculator.updateFarmerStatistics(farmerId);
-                                                StatisticsCalculator.updateBuyerStatistics(currentUser.getId());
-                                            }
-                                        }
-                                    });
-                                },
-                                error -> {
-                                    Platform.runLater(() -> {
-                                        showError("ত্রুটি", "স্ট্যাটাস আপডেট করতে সমস্যা হয়েছে।");
-                                        error.printStackTrace();
-                                    });
-                                }
-                            );
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+            OrderService.markReceivedAsync(
+                orderId,
+                currentUser.getId(),
+                r -> {
+                    if (r.ok) {
+                        showSuccess("সফল", r.message);
+                        refreshOrders();
+                        FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "completed", null);
+                    } else {
+                        showError("ত্রুটি", r.message);
                     }
                 },
-                error -> error.printStackTrace()
+                err -> {
+                    showError("ত্রুটি", "স্ট্যাটাস আপডেট করতে সমস্যা হয়েছে।");
+                    err.printStackTrace();
+                }
             );
         }
     }
@@ -528,12 +512,116 @@ public class BuyerOrdersController {
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            updateOrderStatus(orderId, "cancelled");
+            OrderService.cancelOrderAsync(
+                orderId,
+                currentUser.getId(),
+                r -> {
+                    if (r.ok) {
+                        showSuccess("সফল", r.message);
+                        refreshOrders();
+                        FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "cancelled", null);
+                    } else {
+                        showError("ত্রুটি", r.message);
+                    }
+                },
+                err -> {
+                    showError("ত্রুটি", "অর্ডার বাতিল করতে সমস্যা হয়েছে।");
+                    err.printStackTrace();
+                }
+            );
         }
     }
 
     private void showRatingDialog(int orderId) {
-        showInfo("রেটিং", "রেটিং সিস্টেম শীঘ্রই আসছে...");
+        String sql = "SELECT o.order_number, o.status, o.farmer_id, c.name AS crop_name, u.name AS farmer_name " +
+                     "FROM orders o JOIN crops c ON o.crop_id = c.id JOIN users u ON o.farmer_id = u.id WHERE o.id = ?";
+        DatabaseService.executeQueryAsync(
+            sql,
+            new Object[]{orderId},
+            rs -> {
+                try {
+                    if (!rs.next()) {
+                        Platform.runLater(() -> showError("ত্রুটি", "অর্ডার খুঁজে পাওয়া যায়নি।"));
+                        return;
+                    }
+                    String status = rs.getString("status");
+                    if (!"completed".equals(status)) {
+                        Platform.runLater(() -> showInfo("রেটিং", "শুধুমাত্র সম্পন্ন (completed) অর্ডারের জন্য রেটিং দেওয়া যাবে।"));
+                        return;
+                    }
+                    String orderNumber = rs.getString("order_number");
+                    int farmerId = rs.getInt("farmer_id");
+                    String cropName = rs.getString("crop_name");
+                    String farmerName = rs.getString("farmer_name");
+                    Platform.runLater(() -> openRatingDialog(orderId, farmerId, orderNumber, farmerName, cropName));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Platform.runLater(() -> showError("ত্রুটি", "রেটিং ডায়ালগ খুলতে ব্যর্থ হয়েছে।"));
+                }
+            },
+            err -> {
+                err.printStackTrace();
+                Platform.runLater(() -> showError("ত্রুটি", "রেটিং ডায়ালগ খুলতে ব্যর্থ হয়েছে।"));
+            }
+        );
+    }
+
+    private void openRatingDialog(int orderId, int farmerId, String orderNumber, String farmerName, String cropName) {
+        try {
+            FXMLLoader loader = new FXMLLoader(App.class.getResource("rate-order-dialog.fxml"));
+            Scene scene = new Scene(loader.load());
+            scene.getStylesheets().add(App.class.getResource("styles.css").toExternalForm());
+            scene.getStylesheets().add(App.class.getResource("base.css").toExternalForm());
+            scene.getStylesheets().add(App.class.getResource("components.css").toExternalForm());
+            scene.getStylesheets().add(App.class.getResource("dashboard.css").toExternalForm());
+
+            Stage dialog = new Stage();
+            dialog.initOwner(App.getPrimaryStage());
+            dialog.initModality(Modality.APPLICATION_MODAL);
+            dialog.setTitle("রেটিং দিন");
+            dialog.setScene(scene);
+            dialog.setResizable(false);
+
+            Object controller = loader.getController();
+            if (controller instanceof RateOrderDialogController) {
+                RateOrderDialogController c = (RateOrderDialogController) controller;
+                c.setDialogStage(dialog);
+                c.setOrderDetails(orderId, farmerId, orderNumber, farmerName, cropName);
+            }
+
+            dialog.showAndWait();
+            refreshOrders();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("ত্রুটি", "রেটিং ডায়ালগ খুলতে ব্যর্থ হয়েছে।");
+        }
+    }
+
+    private void deleteOrder(int orderId) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("নিশ্চিত করুন");
+        confirm.setHeaderText("অর্ডার ডিলিট করবেন?");
+        confirm.setContentText("এই অর্ডারটি ডিলিট করলে আর ফেরত আনা যাবে না।");
+
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            OrderService.deleteOrderAsync(
+                orderId,
+                currentUser.getId(),
+                r -> {
+                    if (r.ok) {
+                        showSuccess("সফল", r.message);
+                        refreshOrders();
+                    } else {
+                        showError("ত্রুটি", r.message);
+                    }
+                },
+                err -> {
+                    showError("ত্রুটি", "অর্ডার ডিলিট করতে সমস্যা হয়েছে।");
+                    err.printStackTrace();
+                }
+            );
+        }
     }
 
     private void reorder(int orderId) {

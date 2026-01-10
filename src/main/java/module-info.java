@@ -7,6 +7,8 @@ module com.sajid._207017_chashi_bhai {
     requires org.xerial.sqlitejdbc;
     requires jbcrypt;
     requires com.google.gson;
+    requires google.cloud.firestore;
+    requires google.cloud.core;
     
     // Firebase Admin SDK (unnamed modules - accessed via classpath)
     requires static firebase.admin;

@@ -97,6 +97,11 @@ public class RateOrderDialogController {
 
     @FXML
     private void onSubmit() {
+        if (currentUser == null) {
+            showError("দয়া করে লগইন করুন");
+            return;
+        }
+
         // Validate rating
         if (selectedRating == 0) {
             showError("দয়া করে রেটিং দিন");
@@ -105,20 +110,54 @@ public class RateOrderDialogController {
 
         String comment = txtComment.getText().trim();
 
-        // Check if review already exists
-        String checkSql = "SELECT id FROM reviews WHERE order_id = ? AND reviewer_id = ?";
-        DatabaseService.executeQueryAsync(checkSql, new Object[]{orderId, currentUser.getId()},
+        // Verify order ownership + status first
+        String orderSql = "SELECT status, buyer_id, farmer_id FROM orders WHERE id = ?";
+        DatabaseService.executeQueryAsync(orderSql, new Object[]{orderId},
             rs -> {
                 try {
-                    if (rs.next()) {
-                        Platform.runLater(() -> showError("এই অর্ডারের জন্য আপনি ইতিমধ্যে রেটিং দিয়েছেন।"));
-                    } else {
-                        // Insert review
-                        insertReview(comment);
+                    if (!rs.next()) {
+                        Platform.runLater(() -> showError("অর্ডার খুঁজে পাওয়া যায়নি।"));
+                        return;
                     }
+                    String status = rs.getString("status");
+                    int buyerId = rs.getInt("buyer_id");
+                    int dbFarmerId = rs.getInt("farmer_id");
+
+                    if (buyerId != currentUser.getId()) {
+                        Platform.runLater(() -> showError("শুধুমাত্র এই অর্ডারের ক্রেতা রেটিং দিতে পারবেন।"));
+                        return;
+                    }
+                    if (!"completed".equals(status)) {
+                        Platform.runLater(() -> showError("শুধুমাত্র সম্পন্ন (completed) অর্ডারের জন্য রেটিং দেওয়া যাবে।"));
+                        return;
+                    }
+                    if (farmerId <= 0) {
+                        farmerId = dbFarmerId;
+                    }
+
+                    // Check if review already exists
+                    String checkSql = "SELECT id FROM reviews WHERE order_id = ? AND reviewer_id = ?";
+                    DatabaseService.executeQueryAsync(checkSql, new Object[]{orderId, currentUser.getId()},
+                        rs2 -> {
+                            try {
+                                if (rs2.next()) {
+                                    Platform.runLater(() -> showError("এই অর্ডারের জন্য আপনি ইতিমধ্যে রেটিং দিয়েছেন।"));
+                                } else {
+                                    insertReview(comment);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                Platform.runLater(() -> showError("রেটিং চেক করতে ব্যর্থ হয়েছে।"));
+                            }
+                        },
+                        error -> {
+                            Platform.runLater(() -> showError("ডাটাবেস ত্রুটি।"));
+                            error.printStackTrace();
+                        }
+                    );
                 } catch (Exception e) {
                     e.printStackTrace();
-                    Platform.runLater(() -> showError("রেটিং চেক করতে ব্যর্থ হয়েছে।"));
+                    Platform.runLater(() -> showError("অর্ডার যাচাই করতে ব্যর্থ হয়েছে।"));
                 }
             },
             error -> {
@@ -159,7 +198,14 @@ public class RateOrderDialogController {
                 });
             },
             error -> {
-                Platform.runLater(() -> showError("রেটিং জমা দিতে ব্যর্থ হয়েছে। আবার চেষ্টা করুন।"));
+                Platform.runLater(() -> {
+                    String msg = error.getMessage() != null ? error.getMessage() : "";
+                    if (msg.contains("UNIQUE") || msg.contains("unique")) {
+                        showError("এই অর্ডারের জন্য আপনি ইতিমধ্যে রেটিং দিয়েছেন।");
+                    } else {
+                        showError("রেটিং জমা দিতে ব্যর্থ হয়েছে। আবার চেষ্টা করুন।");
+                    }
+                });
                 error.printStackTrace();
             }
         );

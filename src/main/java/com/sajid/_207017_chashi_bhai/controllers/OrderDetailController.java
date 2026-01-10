@@ -4,12 +4,17 @@ import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import com.sajid._207017_chashi_bhai.services.FirebaseSyncService;
+import com.sajid._207017_chashi_bhai.services.OrderService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 import java.awt.Desktop;
 import java.io.File;
@@ -456,12 +461,17 @@ public class OrderDetailController {
                     hboxFarmerActions.setVisible(false);
                     hboxFarmerActions.setManaged(false);
             }
-        } else if ("buyer".equals(role)) {
+        } else if ("buyer".equals(role) && buyerId == currentUser.getId()) {
             hboxBuyerActions.setVisible(true);
             hboxBuyerActions.setManaged(true);
             
             switch (orderStatus) {
                 case "new":
+                    btnCancelOrder.setVisible(true);
+                    if (btnMarkReceived != null) btnMarkReceived.setVisible(false);
+                    btnRateOrder.setVisible(false);
+                    break;
+                case "accepted":
                     btnCancelOrder.setVisible(true);
                     if (btnMarkReceived != null) btnMarkReceived.setVisible(false);
                     btnRateOrder.setVisible(false);
@@ -472,7 +482,6 @@ public class OrderDetailController {
                     btnRateOrder.setVisible(false);
                     break;
                 case "completed":
-                case "delivered":
                     btnCancelOrder.setVisible(false);
                     if (btnMarkReceived != null) btnMarkReceived.setVisible(false);
                     btnRateOrder.setVisible(true);
@@ -481,6 +490,15 @@ public class OrderDetailController {
                     btnCancelOrder.setVisible(false);
                     if (btnMarkReceived != null) btnMarkReceived.setVisible(false);
                     btnRateOrder.setVisible(false);
+            }
+        } else {
+            if (hboxFarmerActions != null) {
+                hboxFarmerActions.setVisible(false);
+                hboxFarmerActions.setManaged(false);
+            }
+            if (hboxBuyerActions != null) {
+                hboxBuyerActions.setVisible(false);
+                hboxBuyerActions.setManaged(false);
             }
         }
     }
@@ -633,7 +651,31 @@ public class OrderDetailController {
 
     @FXML
     private void onAcceptOrder() {
-        updateOrderStatus("accepted", "✅ অর্ডার গৃহীত হয়েছে!");
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("নিশ্চিত করুন");
+        confirm.setHeaderText("অর্ডার গ্রহণ করবেন?");
+        confirm.setContentText("অর্ডার গ্রহণ করলে ফসলের পরিমাণ কমে যাবে।");
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                OrderService.acceptOrderAsync(
+                    orderId,
+                    currentUser.getId(),
+                    r -> {
+                        if (r.ok) {
+                            showInfo("সফল", r.message);
+                            FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "accepted", null);
+                            loadOrderDetails();
+                        } else {
+                            showError("ত্রুটি", r.message);
+                        }
+                    },
+                    err -> {
+                        showError("ত্রুটি", "অর্ডার গ্রহণ করতে সমস্যা হয়েছে।");
+                        err.printStackTrace();
+                    }
+                );
+            }
+        });
     }
 
     @FXML
@@ -643,19 +685,75 @@ public class OrderDetailController {
         confirm.setHeaderText("আপনি কি এই অর্ডারটি প্রত্যাখ্যান করতে চান?");
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                updateOrderStatus("rejected", "❌ অর্ডার প্রত্যাখ্যাত হয়েছে।");
+                OrderService.rejectOrderAsync(
+                    orderId,
+                    currentUser.getId(),
+                    r -> {
+                        if (r.ok) {
+                            showInfo("সফল", r.message);
+                            FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "rejected", null);
+                            loadOrderDetails();
+                        } else {
+                            showError("ত্রুটি", r.message);
+                        }
+                    },
+                    err -> {
+                        showError("ত্রুটি", "স্ট্যাটাস আপডেট করতে ব্যর্থ হয়েছে।");
+                        err.printStackTrace();
+                    }
+                );
             }
         });
     }
 
     @FXML
     private void onMarkDelivered() {
-        updateOrderStatus("in_transit", "🚚 ডেলিভারির জন্য পাঠানো হয়েছে!");
+        OrderService.markInTransitAsync(
+            orderId,
+            currentUser.getId(),
+            r -> {
+                if (r.ok) {
+                    showInfo("সফল", r.message);
+                    FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "in_transit", null);
+                    loadOrderDetails();
+                } else {
+                    showError("ত্রুটি", r.message);
+                }
+            },
+            err -> {
+                showError("ত্রুটি", "স্ট্যাটাস আপডেট করতে ব্যর্থ হয়েছে।");
+                err.printStackTrace();
+            }
+        );
     }
 
     @FXML
     private void onMarkReceived() {
-        updateOrderStatus("completed", "✅ পণ্য গ্রহণ নিশ্চিত করা হয়েছে!");
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("নিশ্চিত করুন");
+        confirm.setHeaderText("পণ্য গ্রহণ নিশ্চিত করবেন?");
+        confirm.setContentText("আপনি কি নিশ্চিত যে আপনি এই পণ্য পেয়েছেন?");
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                OrderService.markReceivedAsync(
+                    orderId,
+                    currentUser.getId(),
+                    r -> {
+                        if (r.ok) {
+                            showInfo("সফল", r.message);
+                            FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "completed", null);
+                            loadOrderDetails();
+                        } else {
+                            showError("ত্রুটি", r.message);
+                        }
+                    },
+                    err -> {
+                        showError("ত্রুটি", "স্ট্যাটাস আপডেট করতে ব্যর্থ হয়েছে।");
+                        err.printStackTrace();
+                    }
+                );
+            }
+        });
     }
 
     @FXML
@@ -665,56 +763,72 @@ public class OrderDetailController {
         confirm.setHeaderText("আপনি কি এই অর্ডারটি বাতিল করতে চান?");
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                updateOrderStatus("cancelled", "❌ অর্ডার বাতিল হয়েছে।");
+                OrderService.cancelOrderAsync(
+                    orderId,
+                    currentUser.getId(),
+                    r -> {
+                        if (r.ok) {
+                            showInfo("সফল", r.message);
+                            FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "cancelled", null);
+                            loadOrderDetails();
+                        } else {
+                            showError("ত্রুটি", r.message);
+                        }
+                    },
+                    err -> {
+                        showError("ত্রুটি", "অর্ডার বাতিল করতে ব্যর্থ হয়েছে।");
+                        err.printStackTrace();
+                    }
+                );
             }
         });
     }
 
     @FXML
     private void onRateOrder() {
-        App.setCurrentOrderId(orderId);
-        App.loadScene("rate-order-dialog.fxml", "রেটিং দিন");
-    }
-
-    private void updateOrderStatus(String newStatus, String successMessage) {
-        String sql;
-        Object[] params;
-        switch (newStatus) {
-            case "accepted" -> {
-                sql = "UPDATE orders SET status = ?, accepted_at = datetime('now'), updated_at = datetime('now') WHERE id = ?";
-                params = new Object[]{newStatus, orderId};
-            }
-            case "in_transit" -> {
-                sql = "UPDATE orders SET status = ?, in_transit_at = datetime('now'), updated_at = datetime('now') WHERE id = ?";
-                params = new Object[]{newStatus, orderId};
-            }
-            case "completed" -> {
-                sql = "UPDATE orders SET status = ?, completed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?";
-                params = new Object[]{newStatus, orderId};
-            }
-            default -> {
-                sql = "UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?";
-                params = new Object[]{newStatus, orderId};
-            }
+        if (buyerId != currentUser.getId()) {
+            showError("অ্যাক্সেস অস্বীকার", "শুধুমাত্র এই অর্ডারের ক্রেতা রেটিং দিতে পারবেন।");
+            return;
+        }
+        if (!"completed".equals(orderStatus)) {
+            showInfo("রেটিং", "শুধুমাত্র সম্পন্ন (completed) অর্ডারের জন্য রেটিং দেওয়া যাবে।");
+            return;
         }
 
-        DatabaseService.executeUpdateAsync(sql, params,
-            rows -> Platform.runLater(() -> {
-                if (rows > 0) {
-                    showInfo("সফল", successMessage);
+        openRatingDialog(orderId, farmerId, orderNumber,
+            lblFarmerName != null ? lblFarmerName.getText() : ("User " + farmerId),
+            lblCropName != null ? lblCropName.getText() : "");
+    }
 
-                    // Best-effort cloud sync
-                    FirebaseSyncService.getInstance().syncOrderToFirebase(orderId);
-                    FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, newStatus, null);
+    private void openRatingDialog(int orderId, int farmerId, String orderNumber, String farmerName, String cropName) {
+        try {
+            FXMLLoader loader = new FXMLLoader(App.class.getResource("rate-order-dialog.fxml"));
+            Scene scene = new Scene(loader.load());
+            scene.getStylesheets().add(App.class.getResource("styles.css").toExternalForm());
+            scene.getStylesheets().add(App.class.getResource("base.css").toExternalForm());
+            scene.getStylesheets().add(App.class.getResource("components.css").toExternalForm());
+            scene.getStylesheets().add(App.class.getResource("dashboard.css").toExternalForm());
 
-                    loadOrderDetails(); // Refresh
-                }
-            }),
-            err -> Platform.runLater(() -> {
-                showError("ত্রুটি", "স্ট্যাটাস আপডেট করতে ব্যর্থ হয়েছে।");
-                err.printStackTrace();
-            })
-        );
+            Stage dialog = new Stage();
+            dialog.initOwner(App.getPrimaryStage());
+            dialog.initModality(Modality.APPLICATION_MODAL);
+            dialog.setTitle("রেটিং দিন");
+            dialog.setScene(scene);
+            dialog.setResizable(false);
+
+            Object controller = loader.getController();
+            if (controller instanceof RateOrderDialogController) {
+                RateOrderDialogController c = (RateOrderDialogController) controller;
+                c.setDialogStage(dialog);
+                c.setOrderDetails(orderId, farmerId, orderNumber, farmerName, cropName);
+            }
+
+            dialog.showAndWait();
+            loadOrderDetails();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("ত্রুটি", "রেটিং ডায়ালগ খুলতে ব্যর্থ হয়েছে।");
+        }
     }
 
     private void showError(String title, String message) {

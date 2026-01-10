@@ -1,5 +1,7 @@
 package com.sajid._207017_chashi_bhai.services;
 
+import javafx.application.Platform;
+
 import java.sql.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -21,6 +23,46 @@ public class DatabaseService {
         thread.setName("DatabaseWorker");
         return thread;
     });
+    
+    public interface TransactionWork<T> {
+        T apply(Connection conn) throws Exception;
+    }
+    
+    public static <T> void executeTransactionAsync(TransactionWork<T> work,
+                                                   Consumer<T> onSuccess,
+                                                   Consumer<Exception> onError) {
+        dbExecutor.submit(() -> {
+            try (Connection conn = getConnection()) {
+                conn.setAutoCommit(false);
+                try {
+                    T result = work.apply(conn);
+                    conn.commit();
+                    if (onSuccess != null) {
+                        Platform.runLater(() -> onSuccess.accept(result));
+                    }
+                } catch (Exception e) {
+                    try {
+                        conn.rollback();
+                    } catch (Exception ignored) {
+                        // ignore rollback failures
+                    }
+                    if (onError != null) {
+                        Platform.runLater(() -> onError.accept(e));
+                    }
+                } finally {
+                    try {
+                        conn.setAutoCommit(true);
+                    } catch (Exception ignored) {
+                        // ignore
+                    }
+                }
+            } catch (Exception outer) {
+                if (onError != null) {
+                    Platform.runLater(() -> onError.accept(outer));
+                }
+            }
+        });
+    }
 
     private DatabaseService() {
         // Private constructor for singleton
@@ -330,23 +372,34 @@ public class DatabaseService {
                     "FOREIGN KEY (buyer_id) REFERENCES users(id) ON DELETE CASCADE)"
                 );
 
-                // Orders migrations
+                // Orders migrations - add missing columns if they don't exist
                 try {
                     stmt.execute("ALTER TABLE orders ADD COLUMN in_transit_at TIMESTAMP");
                     System.out.println("Added column: in_transit_at");
                 } catch (SQLException e) {
-                    if (!e.getMessage().contains("duplicate column name")) {
-                        throw e;
+                    String msg = e.getMessage().toLowerCase();
+                    if (!msg.contains("duplicate") && !msg.contains("already exists")) {
+                        System.err.println("Warning: Could not add in_transit_at column: " + e.getMessage());
                     }
                 }
 
                 try {
-                    stmt.execute("ALTER TABLE orders ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+                    // SQLite doesn't allow non-constant defaults in ALTER TABLE; add column without default
+                    stmt.execute("ALTER TABLE orders ADD COLUMN updated_at TIMESTAMP");
                     System.out.println("Added column: updated_at");
                 } catch (SQLException e) {
-                    if (!e.getMessage().contains("duplicate column name")) {
-                        throw e;
+                    String msg = e.getMessage().toLowerCase();
+                    if (!msg.contains("duplicate") && !msg.contains("already exists")) {
+                        System.err.println("Warning: Could not add updated_at column: " + e.getMessage());
                     }
+                }
+                
+                // Initialize updated_at for existing rows that don't have it
+                try {
+                    stmt.execute("UPDATE orders SET updated_at = created_at WHERE updated_at IS NULL");
+                    System.out.println("Initialized updated_at for existing orders");
+                } catch (SQLException e) {
+                    // Ignore - column might not exist yet or no rows to update
                 }
 
                 // Reviews table (replaces old ratings table)
@@ -357,12 +410,29 @@ public class DatabaseService {
                     "reviewer_id INTEGER NOT NULL, " +
                     "reviewee_id INTEGER NOT NULL, " +
                     "rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5), " +
-                    "review_text TEXT, " +
+                    "comment TEXT, " +
                     "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                     "FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE, " +
                     "FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE CASCADE, " +
                     "FOREIGN KEY (reviewee_id) REFERENCES users(id) ON DELETE CASCADE)"
                 );
+
+                // Enforce one-time rating per order per reviewer
+                stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_reviews_order_reviewer ON reviews(order_id, reviewer_id)");
+
+                // Best-effort migration for older DBs that used review_text
+                try {
+                    stmt.execute("ALTER TABLE reviews ADD COLUMN comment TEXT");
+                } catch (SQLException e) {
+                    if (!e.getMessage().contains("duplicate column name")) {
+                        throw e;
+                    }
+                }
+                try {
+                    stmt.execute("UPDATE reviews SET comment = COALESCE(comment, review_text)");
+                } catch (SQLException e) {
+                    // ignore (e.g., review_text column doesn't exist)
+                }
 
                 // Market prices table
                 stmt.execute(
