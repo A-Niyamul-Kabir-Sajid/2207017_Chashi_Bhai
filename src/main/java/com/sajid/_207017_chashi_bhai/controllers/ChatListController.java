@@ -5,6 +5,7 @@ import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -170,101 +171,43 @@ public class ChatListController {
     }
 
     private HBox buildChatItem(ConversationItem item) {
-        HBox container = new HBox(15);
-        container.getStyleClass().add("chat-list-item");
-        container.setAlignment(Pos.CENTER_LEFT);
-        container.setPadding(new Insets(12, 20, 12, 20));
-        container.setCursor(javafx.scene.Cursor.HAND);
-        
-        // Avatar with online indicator
-        StackPane avatarStack = new StackPane();
-        ImageView avatar = new ImageView();
-        avatar.setFitWidth(55);
-        avatar.setFitHeight(55);
-        avatar.setPreserveRatio(true);
-        avatar.getStyleClass().add("avatar-medium");
-        
-        // Default avatar
         try {
-            avatar.setImage(new Image(getClass().getResourceAsStream("/image/default-avatar.png")));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/sajid/_207017_chashi_bhai/item-chat-list.fxml"));
+            HBox row = loader.load();
+
+            ChatListItemController controller = loader.getController();
+            controller.setData(
+                    item.otherUserName,
+                    item.otherUserRole,
+                    item.otherUserVerified,
+                    item.otherUserId,
+                    item.otherUserPhone,
+                    item.lastMessage,
+                    item.lastMessageTime,
+                    item.cropId,
+                    item.cropName,
+                    item.unreadCount,
+                    item.isOnline,
+                    null
+            );
+            controller.setOnClick(() -> openConversation(item));
+
+            return row;
         } catch (Exception e) {
-            // Use placeholder if image not found
+            // Fallback: if FXML fails, keep old behavior minimal
+            HBox container = new HBox(15);
+            container.getStyleClass().add("chat-list-item");
+            container.setAlignment(Pos.CENTER_LEFT);
+            container.setPadding(new Insets(12, 20, 12, 20));
+            container.setCursor(javafx.scene.Cursor.HAND);
+
+            Label lblName = new Label(item.otherUserName + " (ID: " + item.otherUserId + ")");
+            lblName.getStyleClass().add("chat-user-name");
+            container.getChildren().add(lblName);
+
+            container.setOnMouseClicked(ev -> openConversation(item));
+            return container;
         }
-        
-        avatarStack.getChildren().add(avatar);
-        
-        // Online indicator
-        if (item.isOnline) {
-            Region onlineIndicator = new Region();
-            onlineIndicator.setPrefSize(12, 12);
-            onlineIndicator.getStyleClass().add("online-indicator");
-            StackPane.setAlignment(onlineIndicator, Pos.BOTTOM_RIGHT);
-            StackPane.setMargin(onlineIndicator, new Insets(0, 2, 2, 0));
-            avatarStack.getChildren().add(onlineIndicator);
-        }
-        
-        // Chat info
-        VBox infoBox = new VBox(4);
-        HBox.setHgrow(infoBox, Priority.ALWAYS);
-        
-        HBox nameRow = new HBox(8);
-        nameRow.setAlignment(Pos.CENTER_LEFT);
-        
-        Label lblName = new Label(item.otherUserName);
-        lblName.getStyleClass().add("chat-user-name");
-        nameRow.getChildren().add(lblName);
-        
-        Label lblRole = new Label(item.otherUserRole.equals("farmer") ? "কৃষক" : "ক্রেতা");
-        lblRole.getStyleClass().add("chat-user-role");
-        nameRow.getChildren().add(lblRole);
-        
-        if (item.otherUserVerified) {
-            Label lblVerified = new Label("✓");
-            lblVerified.getStyleClass().add("verified-badge");
-            nameRow.getChildren().add(lblVerified);
-        }
-        
-        infoBox.getChildren().add(nameRow);
-        
-        Label lblLastMessage = new Label(item.lastMessage != null ? item.lastMessage : "Start conversation...");
-        lblLastMessage.getStyleClass().add("chat-last-message");
-        lblLastMessage.setMaxWidth(400);
-        lblLastMessage.setWrapText(false);
-        infoBox.getChildren().add(lblLastMessage);
-        
-        if (item.cropName != null) {
-            Label lblCrop = new Label("ফসল: " + item.cropName);
-            lblCrop.getStyleClass().add("chat-crop-name");
-            infoBox.getChildren().add(lblCrop);
-        }
-        
-        // Right side - time and unread
-        VBox rightBox = new VBox(8);
-        rightBox.setAlignment(Pos.TOP_RIGHT);
-        rightBox.setMinWidth(80);
-        
-        Label lblTime = new Label(item.lastMessageTime);
-        lblTime.getStyleClass().add("chat-time");
-        rightBox.getChildren().add(lblTime);
-        
-        if (item.unreadCount > 0) {
-            StackPane badgeStack = new StackPane();
-            badgeStack.getStyleClass().add("unread-badge");
-            badgeStack.setMaxSize(24, 24);
-            
-            Label lblUnread = new Label(String.valueOf(item.unreadCount));
-            lblUnread.getStyleClass().add("unread-count");
-            badgeStack.getChildren().add(lblUnread);
-            
-            rightBox.getChildren().add(badgeStack);
-        }
-        
-        container.getChildren().addAll(avatarStack, infoBox, rightBox);
-        
-        // Click handler
-        container.setOnMouseClicked(e -> openConversation(item));
-        
-        return container;
     }
 
     private void openConversation(ConversationItem item) {

@@ -5,7 +5,9 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.image.ImageView?>
 
-<HBox xmlns:fx="http://javafx.com/fxml" spacing="15" styleClass="chat-list-item" alignment="CENTER_LEFT" onMouseClicked="#onChatClick">
+<HBox xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx/25"
+    fx:controller="com.sajid._207017_chashi_bhai.controllers.ChatListItemController"
+    spacing="15" styleClass="chat-list-item" alignment="CENTER_LEFT" onMouseClicked="#onChatClick">
     <padding>
         <Insets top="12" bottom="12" left="20" right="20"/>
     </padding>
@@ -28,6 +30,11 @@
             <Label fx:id="lblUserName" text="ব্যবহারকারীর নাম" styleClass="chat-user-name"/>
             <Label fx:id="lblUserRole" text="কৃষক" styleClass="chat-user-role"/>
             <Label fx:id="lblVerified" text="✓" styleClass="verified-badge" visible="false"/>
+        </HBox>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label fx:id="lblUserId" text="ID: 0" styleClass="chat-meta" style="-fx-font-size: 11px; -fx-text-fill: #777;"/>
+            <Label fx:id="lblUserPhone" text="📱 01XXXXXXXXX" styleClass="chat-meta" style="-fx-font-size: 11px; -fx-text-fill: #777;"/>
         </HBox>
         
         <Label fx:id="lblLastMessage" text="শেষ বার্তা..." styleClass="chat-last-message" maxWidth="400" wrapText="false"/>

@@ -61,6 +61,13 @@ public class CropDetailController {
         currentUser = App.getCurrentUser();
         cropId = App.getCurrentCropId();
         System.out.println("Loading crop details for cropId: " + cropId);
+
+        // Only buyers can place orders
+        if (btnOrder != null) {
+            boolean isBuyer = currentUser != null && "buyer".equals(currentUser.getRole());
+            btnOrder.setVisible(isBuyer);
+            btnOrder.setManaged(isBuyer);
+        }
         
         // Check if viewing from order context
         int contextOrderId = App.getCurrentOrderId();
@@ -92,7 +99,7 @@ public class CropDetailController {
                     "u.district as farmer_district, u.is_verified as farmer_verified, " +
                     "u.profile_photo as farmer_photo, " +
                     "COALESCE(CAST((julianday('now') - julianday(u.created_at)) / 365 AS INTEGER), 0) as years_farming, " +
-                    "(SELECT COUNT(*) FROM orders o JOIN crops cr ON o.crop_id = cr.id WHERE cr.farmer_id = u.id AND o.status = 'delivered') as total_sales, " +
+                    "(SELECT COUNT(*) FROM orders o JOIN crops cr ON o.crop_id = cr.id WHERE cr.farmer_id = u.id AND o.status IN ('delivered','completed')) as total_sales, " +
                     "(SELECT COALESCE(AVG(r.rating), 0.0) FROM reviews r WHERE r.reviewee_id = u.id) as avg_rating, " +
                     "(SELECT COUNT(*) FROM reviews r WHERE r.reviewee_id = u.id) as total_reviews " +
                     "FROM crops c " +

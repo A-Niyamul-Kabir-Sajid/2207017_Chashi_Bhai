@@ -296,7 +296,7 @@ public class MyCropsController {
         DatabaseService.executeQueryAsync(
             "SELECT " +
             "(SELECT COUNT(*) FROM orders WHERE crop_id = ?) as total_orders, " +
-            "(SELECT COALESCE(SUM(quantity), 0) FROM orders WHERE crop_id = ? AND status IN ('accepted', 'delivered')) as total_sold " +
+            "(SELECT COALESCE(SUM(quantity_kg), 0) FROM orders WHERE crop_id = ? AND status IN ('accepted', 'in_transit', 'completed', 'delivered')) as total_sold " +
             "FROM crops WHERE id = ?",
             new Object[]{cropId, cropId, cropId},
             resultSet -> {

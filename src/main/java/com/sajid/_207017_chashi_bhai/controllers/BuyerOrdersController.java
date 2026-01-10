@@ -3,6 +3,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.services.FirebaseSyncService;
 import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
 import com.sajid._207017_chashi_bhai.utils.StatisticsCalculator;
 import javafx.application.Platform;
@@ -17,6 +18,8 @@ import javafx.scene.layout.VBox;
 import java.awt.Desktop;
 import java.io.File;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -39,6 +42,36 @@ public class BuyerOrdersController {
     private User currentUser;
     private String currentFilter = "all";
     private DataSyncManager syncManager;
+
+    private static class OrderRow {
+        final int orderId;
+        final String cropName;
+        final String farmerName;
+        final String farmerPhone;
+        final boolean isVerified;
+        final double quantity;
+        final double price;
+        final String status;
+        final String paymentStatus;
+        final String createdAt;
+        final String photoPath;
+
+        private OrderRow(int orderId, String cropName, String farmerName, String farmerPhone,
+                         boolean isVerified, double quantity, double price, String status,
+                         String paymentStatus, String createdAt, String photoPath) {
+            this.orderId = orderId;
+            this.cropName = cropName;
+            this.farmerName = farmerName;
+            this.farmerPhone = farmerPhone;
+            this.isVerified = isVerified;
+            this.quantity = quantity;
+            this.price = price;
+            this.status = status;
+            this.paymentStatus = paymentStatus;
+            this.createdAt = createdAt;
+            this.photoPath = photoPath;
+        }
+    }
 
     @FXML
     public void initialize() {
@@ -67,7 +100,14 @@ public class BuyerOrdersController {
         loadOrders(currentFilter);
         
         // Start real-time sync polling for orders (every 15 seconds)
-        syncManager.startOrdersSync(currentUser.getId(), () -> loadOrders(currentFilter));
+        syncManager.startOrdersSync(currentUser.getId(), this::refreshOrders);
+    }
+
+    private void refreshOrders() {
+        FirebaseSyncService.getInstance().syncBuyerOrdersFromFirebase(
+            currentUser.getId(),
+            () -> loadOrders(currentFilter)
+        );
     }
 
     @FXML
@@ -80,7 +120,7 @@ public class BuyerOrdersController {
     @FXML
     private void onFilterPending() {
         setActiveFilter(btnFilterPending);
-        currentFilter = "pending";
+        currentFilter = "new";
         loadOrders(currentFilter);
     }
 
@@ -101,7 +141,7 @@ public class BuyerOrdersController {
     @FXML
     private void onFilterDelivered() {
         setActiveFilter(btnFilterDelivered);
-        currentFilter = "delivered";
+        currentFilter = "completed";
         loadOrders(currentFilter);
     }
 
@@ -130,7 +170,11 @@ public class BuyerOrdersController {
                       "WHERE o.buyer_id = ?";
         
         if (!"all".equals(filter)) {
-            query += " AND o.status = ?";
+            if ("completed".equals(filter)) {
+                query += " AND o.status IN ('completed','delivered')";
+            } else {
+                query += " AND o.status = ?";
+            }
         }
         
         // Apply sorting based on user selection
@@ -148,45 +192,157 @@ public class BuyerOrdersController {
             query += " ORDER BY o.created_at DESC";
         }
 
-        Object[] params = "all".equals(filter) ? 
-            new Object[]{currentUser.getId()} : 
+        Object[] params = "all".equals(filter) || "completed".equals(filter) ?
+            new Object[]{currentUser.getId()} :
             new Object[]{currentUser.getId(), filter};
 
         DatabaseService.executeQueryAsync(
-            query,
-            params,
-            resultSet -> {
-                Platform.runLater(() -> {
+                query,
+                params,
+                resultSet -> {
+                    // IMPORTANT: Read ResultSet on DB thread (connection closes after callback).
+                    List<OrderRow> rows = new ArrayList<>();
                     try {
-                        boolean hasResults = false;
                         while (resultSet.next()) {
-                            hasResults = true;
-                            VBox orderCard = createOrderCardFromResultSet(resultSet);
-                            vboxOrdersList.getChildren().add(orderCard);
+                            rows.add(new OrderRow(
+                                    resultSet.getInt("id"),
+                                    resultSet.getString("crop_name"),
+                                    resultSet.getString("farmer_name"),
+                                    resultSet.getString("farmer_phone"),
+                                    resultSet.getBoolean("is_verified"),
+                                    resultSet.getDouble("quantity_kg"),
+                                    resultSet.getDouble("price"),
+                                    resultSet.getString("status"),
+                                    resultSet.getString("payment_status"),
+                                    resultSet.getString("created_at"),
+                                    resultSet.getString("crop_photo")
+                            ));
                         }
-
-                        vboxEmptyState.setVisible(!hasResults);
-                        vboxOrdersList.setVisible(hasResults);
                     } catch (Exception e) {
-                        e.printStackTrace();
-                        showError("ত্রুটি", "অর্ডার লোড করতে ব্যর্থ হয়েছে।");
-                    } finally {
-                        if (progressIndicator != null) {
-                            progressIndicator.setVisible(false);
-                        }
+                        Platform.runLater(() -> {
+                            if (progressIndicator != null) {
+                                progressIndicator.setVisible(false);
+                            }
+                            e.printStackTrace();
+                            showError("ত্রুটি", "অর্ডার লোড করতে ব্যর্থ হয়েছে।");
+                        });
+                        return;
                     }
-                });
-            },
-            error -> {
-                Platform.runLater(() -> {
+
+                    Platform.runLater(() -> {
+                        try {
+                            boolean hasResults = !rows.isEmpty();
+                            for (OrderRow row : rows) {
+                                VBox orderCard = createOrderCardFromRow(row);
+                                vboxOrdersList.getChildren().add(orderCard);
+                            }
+                            vboxEmptyState.setVisible(!hasResults);
+                            vboxOrdersList.setVisible(hasResults);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            showError("ত্রুটি", "অর্ডার লোড করতে ব্যর্থ হয়েছে।");
+                        } finally {
+                            if (progressIndicator != null) {
+                                progressIndicator.setVisible(false);
+                            }
+                        }
+                    });
+                },
+                error -> Platform.runLater(() -> {
                     if (progressIndicator != null) {
                         progressIndicator.setVisible(false);
                     }
                     showError("ডাটাবেস ত্রুটি", "অর্ডার লোড করতে সমস্যা হয়েছে।");
                     error.printStackTrace();
-                });
-            }
+                })
         );
+    }
+
+    private VBox createOrderCardFromRow(OrderRow row) throws Exception {
+        VBox card = new VBox(15);
+        String safeStatus = row.status != null ? row.status : "new";
+        card.getStyleClass().addAll("buyer-order-card", "order-" + safeStatus.replace("_", "-"));
+        card.setPadding(new Insets(15));
+
+        HBox mainBox = new HBox(15);
+
+        // Crop image
+        ImageView imageView = new ImageView();
+        imageView.setFitWidth(100);
+        imageView.setFitHeight(100);
+        imageView.setPreserveRatio(true);
+        if (row.photoPath != null && !row.photoPath.isEmpty()) {
+            File photoFile = new File(row.photoPath);
+            if (photoFile.exists()) {
+                imageView.setImage(new Image(photoFile.toURI().toString()));
+            }
+        }
+
+        // Order details
+        VBox detailsBox = new VBox(8);
+        detailsBox.setPrefWidth(400);
+
+        Label lblOrderId = new Label("অর্ডার #" + row.orderId);
+        lblOrderId.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #888;");
+
+        Label lblCrop = new Label("🌾 " + (row.cropName != null ? row.cropName : ""));
+        lblCrop.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+
+        HBox farmerBox = new HBox(8);
+        Label lblFarmer = new Label("কৃষক: " + (row.farmerName != null ? row.farmerName : ""));
+        lblFarmer.setStyle("-fx-font-size: 14px;");
+        if (row.isVerified) {
+            Label lblVerified = new Label("✓");
+            lblVerified.setStyle("-fx-text-fill: #4CAF50; -fx-font-weight: bold;");
+            farmerBox.getChildren().addAll(lblFarmer, lblVerified);
+        } else {
+            farmerBox.getChildren().add(lblFarmer);
+        }
+
+        Label lblQuantity = new Label(String.format("পরিমাণ: %.1f %s", row.quantity, "কেজি"));
+        lblQuantity.setStyle("-fx-font-size: 14px;");
+
+        double totalPrice = row.quantity * row.price;
+        Label lblPrice = new Label(String.format("মোট: ৳%.2f", totalPrice));
+        lblPrice.setStyle("-fx-font-size: 16px; -fx-text-fill: #4CAF50; -fx-font-weight: bold;");
+
+        String dateText = row.createdAt;
+        if (dateText != null && dateText.length() >= 10) {
+            dateText = dateText.substring(0, 10);
+        }
+        Label lblDate = new Label("অর্ডারের তারিখ: " + (dateText != null ? dateText : "—"));
+        lblDate.setStyle("-fx-font-size: 12px; -fx-text-fill: #888;");
+
+        HBox statusBox = new HBox(10);
+        Label lblStatus = new Label(getStatusText(safeStatus));
+        lblStatus.getStyleClass().add("status-badge");
+
+        Label lblPayment = new Label(getPaymentStatusText(row.paymentStatus));
+        lblPayment.getStyleClass().add(row.paymentStatus != null && row.paymentStatus.equals("paid") ? "payment-complete" : "payment-pending");
+
+        statusBox.getChildren().addAll(lblStatus, lblPayment);
+
+        detailsBox.getChildren().addAll(lblOrderId, lblCrop, farmerBox, lblQuantity, lblPrice, lblDate, statusBox);
+
+        // Action buttons
+        VBox actionsBox = new VBox(10);
+        actionsBox.setPrefWidth(180);
+        actionsBox.getChildren().addAll(getActionButtons(row.orderId, safeStatus, row.farmerPhone));
+
+        mainBox.getChildren().addAll(imageView, detailsBox, actionsBox);
+
+        // Progress bar for in-transit orders
+        if ("in_transit".equals(safeStatus)) {
+            ProgressBar progressBar = new ProgressBar(0.75);
+            progressBar.setMaxWidth(Double.MAX_VALUE);
+            Label lblProgress = new Label("🚚 ডেলিভারি চলছে...");
+            lblProgress.setStyle("-fx-font-size: 12px; -fx-text-fill: #FF9800;");
+            card.getChildren().addAll(mainBox, progressBar, lblProgress);
+        } else {
+            card.getChildren().add(mainBox);
+        }
+
+        return card;
     }
 
     private VBox createDummyOrderCard(int orderId, String cropName, String farmerName,
@@ -366,10 +522,14 @@ public class BuyerOrdersController {
 
     private VBox getActionButtons(int orderId, String status, String farmerPhone) {
         VBox actionsBox = new VBox(10);
+
+        Button btnDetails = new Button("📄 বিস্তারিত");
+        btnDetails.getStyleClass().add("button-secondary");
+        btnDetails.setMaxWidth(Double.MAX_VALUE);
+        btnDetails.setOnAction(e -> showOrderDetails(orderId));
         
         switch (status) {
             case "new":
-            case "pending":
                 Button btnPay = new Button("💳 পেমেন্ট করুন");
                 btnPay.getStyleClass().add("button-success");
                 btnPay.setMaxWidth(Double.MAX_VALUE);
@@ -385,14 +545,23 @@ public class BuyerOrdersController {
                 btnCancel.setMaxWidth(Double.MAX_VALUE);
                 btnCancel.setOnAction(e -> cancelOrder(orderId));
                 
-                actionsBox.getChildren().addAll(btnPay, btnContact, btnCancel);
+                actionsBox.getChildren().addAll(btnPay, btnContact, btnCancel, btnDetails);
+                break;
+
+            case "accepted":
+                Button btnContactAccepted = new Button("📞 যোগাযোগ");
+                btnContactAccepted.getStyleClass().add("button-info");
+                btnContactAccepted.setMaxWidth(Double.MAX_VALUE);
+                btnContactAccepted.setOnAction(e -> contactFarmer(farmerPhone));
+
+                actionsBox.getChildren().addAll(btnContactAccepted, btnDetails);
                 break;
                 
             case "in_transit":
-                Button btnConfirm = new Button("✓ ডেলিভারি নিশ্চিত");
+                Button btnConfirm = new Button("✅ পণ্য পেয়েছি");
                 btnConfirm.getStyleClass().add("button-success");
                 btnConfirm.setMaxWidth(Double.MAX_VALUE);
-                btnConfirm.setOnAction(e -> updateOrderStatus(orderId, "delivered"));
+                btnConfirm.setOnAction(e -> updateOrderStatus(orderId, "completed"));
                 
                 Button btnContactTransit = new Button("📞 যোগাযোগ");
                 btnContactTransit.getStyleClass().add("button-info");
@@ -404,10 +573,11 @@ public class BuyerOrdersController {
                 btnTrack.setMaxWidth(Double.MAX_VALUE);
                 btnTrack.setOnAction(e -> showInfo("ট্র্যাকিং", "ট্র্যাকিং সিস্টেম শীঘ্রই আসছে..."));
                 
-                actionsBox.getChildren().addAll(btnConfirm, btnContactTransit, btnTrack);
+                actionsBox.getChildren().addAll(btnConfirm, btnContactTransit, btnTrack, btnDetails);
                 break;
                 
             case "delivered":
+            case "completed":
                 Button btnRate = new Button("⭐ রেটিং দিন");
                 btnRate.getStyleClass().add("button-success");
                 btnRate.setMaxWidth(Double.MAX_VALUE);
@@ -423,16 +593,16 @@ public class BuyerOrdersController {
                 btnReorder.setMaxWidth(Double.MAX_VALUE);
                 btnReorder.setOnAction(e -> reorder(orderId));
                 
-                actionsBox.getChildren().addAll(btnRate, btnContactDelivered, btnReorder);
+                actionsBox.getChildren().addAll(btnRate, btnContactDelivered, btnReorder, btnDetails);
+                break;
+
+            case "rejected":
+            case "cancelled":
+                actionsBox.getChildren().add(btnDetails);
                 break;
                 
             default:
-                Button btnView = new Button("👁 দেখুন");
-                btnView.getStyleClass().add("button-secondary");
-                btnView.setMaxWidth(Double.MAX_VALUE);
-                btnView.setOnAction(e -> showOrderDetails(orderId));
-                
-                actionsBox.getChildren().add(btnView);
+                actionsBox.getChildren().add(btnDetails);
         }
         
         return actionsBox;
@@ -440,13 +610,12 @@ public class BuyerOrdersController {
 
     private String getStatusText(String status) {
         switch (status) {
-            case "new":
-            case "pending": return "⏳ পেন্ডিং";
+            case "new": return "🆕 অনুরোধ করা হয়েছে";
             case "accepted": return "✓ গৃহীত";
-            case "in_transit": return "🚚 পাঠানো হচ্ছে";
-            case "delivered": return "✓ ডেলিভার হয়েছে";
+            case "in_transit": return "🚚 পথে আছে";
+            case "delivered": return "✅ গ্রহণ করা হয়েছে";
             case "cancelled": return "✗ বাতিল";
-            case "completed": return "✓ সম্পূর্ণ";
+            case "completed": return "✅ গ্রহণ করা হয়েছে";
             default: return status;
         }
     }
@@ -463,8 +632,8 @@ public class BuyerOrdersController {
     private void updateOrderStatus(int orderId, String newStatus) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("নিশ্চিত করুন");
-        confirm.setHeaderText("ডেলিভারি নিশ্চিত করবেন?");
-        confirm.setContentText("আপনি কি নিশ্চিত যে এই অর্ডার ডেলিভার হয়েছে?");
+        confirm.setHeaderText("পণ্য গ্রহণ নিশ্চিত করবেন?");
+        confirm.setContentText("আপনি কি নিশ্চিত যে আপনি এই পণ্য পেয়েছেন?");
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -477,18 +646,32 @@ public class BuyerOrdersController {
                         if (rs.next()) {
                             int farmerId = rs.getInt("farmer_id");
                             
-                            // Update order status
+                            // Update order status + timestamps
+                            String updateSql;
+                            Object[] updateParams;
+                            if ("completed".equals(newStatus)) {
+                                updateSql = "UPDATE orders SET status = ?, completed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?";
+                                updateParams = new Object[]{newStatus, orderId};
+                            } else {
+                                updateSql = "UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?";
+                                updateParams = new Object[]{newStatus, orderId};
+                            }
+
                             DatabaseService.executeUpdateAsync(
-                                "UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?",
-                                new Object[]{newStatus, orderId},
+                                updateSql,
+                                updateParams,
                                 rowsAffected -> {
                                     Platform.runLater(() -> {
                                         if (rowsAffected > 0) {
                                             showSuccess("সফল", "অর্ডার স্ট্যাটাস আপডেট করা হয়েছে।");
-                                            loadOrders(currentFilter);
+                                            refreshOrders();
+
+                                            // Best-effort cloud sync
+                                            FirebaseSyncService.getInstance().syncOrderToFirebase(orderId);
+                                            FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, newStatus, null);
                                             
                                             // Update statistics if order completed
-                                            if ("delivered".equals(newStatus) || "completed".equals(newStatus)) {
+                                            if ("completed".equals(newStatus)) {
                                                 StatisticsCalculator.updateFarmerStatistics(farmerId);
                                                 StatisticsCalculator.updateBuyerStatistics(currentUser.getId());
                                             }
@@ -564,12 +747,14 @@ public class BuyerOrdersController {
     }
 
     private void showOrderDetails(int orderId) {
-        showInfo("অর্ডার বিস্তারিত", "অর্ডার #" + orderId);
+        App.setCurrentOrderId(orderId);
+        App.setPreviousScene("buyer-orders-view.fxml");
+        App.loadScene("order-detail-view.fxml", "অর্ডার বিস্তারিত");
     }
 
     @FXML
     private void onRefresh() {
-        loadOrders(currentFilter);
+        refreshOrders();
     }
 
     @FXML

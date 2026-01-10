@@ -37,23 +37,35 @@ public class CropFeedController {
     private User currentUser;
     private String role; // "farmer" or "buyer"
     
-    // 64 districts of Bangladesh sorted alphabetically
+    // 64 districts of Bangladesh with Bangla translations
     private static final String[] DISTRICTS = {
-        "Bagerhat", "Bandarban", "Barguna", "Barisal", "Bhola", "Bogra",
-        "Brahmanbaria", "Chandpur", "Chapainawabganj", "Chittagong", "Chuadanga",
-        "Comilla", "Cox's Bazar", "Dhaka", "Dinajpur", "Faridpur", "Feni",
-        "Gaibandha", "Gazipur", "Gopalganj", "Habiganj", "Jamalpur", "Jessore",
-        "Jhalokati", "Jhenaidah", "Joypurhat", "Khagrachhari", "Khulna", "Kishoreganj",
-        "Kurigram", "Kushtia", "Lakshmipur", "Lalmonirhat", "Madaripur", "Magura",
-        "Manikganj", "Meherpur", "Moulvibazar", "Munshiganj", "Mymensingh", "Naogaon",
-        "Narail", "Narayanganj", "Narsingdi", "Natore", "Netrokona", "Nilphamari",
-        "Noakhali", "Pabna", "Panchagarh", "Patuakhali", "Pirojpur", "Rajbari",
-        "Rajshahi", "Rangamati", "Rangpur", "Satkhira", "Shariatpur", "Sherpur",
-        "Sirajganj", "Sunamganj", "Sylhet", "Tangail", "Thakurgaon"
+        "সব জেলা / All Districts",
+        "বাগেরহাট / Bagerhat", "বান্দরবান / Bandarban", "বরগুনা / Barguna", "বরিশাল / Barisal", "ভোলা / Bhola", "বগুড়া / Bogra",
+        "ব্রাহ্মণবাড়িয়া / Brahmanbaria", "চাঁদপুর / Chandpur", "চাঁপাইনবাবগঞ্জ / Chapainawabganj", "চট্টগ্রাম / Chittagong", "চুয়াডাঙ্গা / Chuadanga",
+        "কুমিল্লা / Comilla", "কক্সবাজার / Cox's Bazar", "ঢাকা / Dhaka", "দিনাজপুর / Dinajpur", "ফরিদপুর / Faridpur", "ফেনী / Feni",
+        "গাইবান্ধা / Gaibandha", "গাজীপুর / Gazipur", "গোপালগঞ্জ / Gopalganj", "হবিগঞ্জ / Habiganj", "জামালপুর / Jamalpur", "যশোর / Jessore",
+        "ঝালকাঠি / Jhalokati", "ঝিনাইদহ / Jhenaidah", "জয়পুরহাট / Joypurhat", "খাগড়াছড়ি / Khagrachhari", "খুলনা / Khulna", "কিশোরগঞ্জ / Kishoreganj",
+        "কুড়িগ্রাম / Kurigram", "কুষ্টিয়া / Kushtia", "লক্ষ্মীপুর / Lakshmipur", "লালমনিরহাট / Lalmonirhat", "মাদারীপুর / Madaripur", "মাগুরা / Magura",
+        "মানিকগঞ্জ / Manikganj", "মেহেরপুর / Meherpur", "মৌলভীবাজার / Moulvibazar", "মুন্সিগঞ্জ / Munshiganj", "ময়মনসিংহ / Mymensingh", "নওগাঁ / Naogaon",
+        "নড়াইল / Narail", "নারায়ণগঞ্জ / Narayanganj", "নরসিংদী / Narsingdi", "নাটোর / Natore", "নেত্রকোনা / Netrokona", "নীলফামারী / Nilphamari",
+        "নোয়াখালী / Noakhali", "পাবনা / Pabna", "পঞ্চগড় / Panchagarh", "পটুয়াখালী / Patuakhali", "পিরোজপুর / Pirojpur", "রাজবাড়ী / Rajbari",
+        "রাজশাহী / Rajshahi", "রাঙামাটি / Rangamati", "রংপুর / Rangpur", "সাতক্ষীরা / Satkhira", "শরীয়তপুর / Shariatpur", "শেরপুর / Sherpur",
+        "সিরাজগঞ্জ / Sirajganj", "সুনামগঞ্জ / Sunamganj", "সিলেট / Sylhet", "টাঙ্গাইল / Tangail", "ঠাকুরগাঁও / Thakurgaon"
     };
     
     private static final String[] CATEGORIES = {
-        "Rice", "Wheat", "Vegetables", "Fruits", "Spices", "Pulses", "Others"
+        "সব শ্রেণী / All Categories",
+        "শস্য/ধান (Rice/Grain)",
+        "গম/আটা (Wheat)",
+        "সবজি (Vegetables)",
+        "ফলমূল (Fruits)",
+        "মসলা (Spices)",
+        "ডাল (Pulses/Lentils)",
+        "তেল বীজ (Oil Seeds)",
+        "আখ/গুড় (Sugarcane/Molasses)",
+        "চা/পান (Tea/Betel)",
+        "ফুল (Flowers)",
+        "অন্যান্য (Others)"
     };
 
     // Keep a simple in-memory representation to support quick filtering
@@ -62,6 +74,7 @@ public class CropFeedController {
         String productCode;
         int farmerId;
         String name;
+        String category;
         String farmerName;
         boolean farmerVerified;
         String farmerPhone; // Add this field
@@ -88,9 +101,11 @@ public class CropFeedController {
         // Initialize filter dropdowns if they exist
         if (cbFilterDistrict != null) {
             cbFilterDistrict.setItems(FXCollections.observableArrayList(DISTRICTS));
+            cbFilterDistrict.getSelectionModel().select(0); // Default: All Districts
         }
         if (cbFilterCropType != null) {
             cbFilterCropType.setItems(FXCollections.observableArrayList(CATEGORIES));
+            cbFilterCropType.getSelectionModel().select(0); // Default: All Categories
         }
         
         // Initialize sort dropdown with default selection
@@ -103,9 +118,15 @@ public class CropFeedController {
             });
         }
 
-        // Pre-select district for farmer
+        // Pre-select district for farmer - find matching item in "বাংলা / English" format
         if ("farmer".equals(role) && currentUser.getDistrict() != null && cbFilterDistrict != null) {
-            cbFilterDistrict.getSelectionModel().select(currentUser.getDistrict());
+            String userDistrict = currentUser.getDistrict();
+            for (String districtOption : DISTRICTS) {
+                if (districtOption.contains(userDistrict)) {
+                    cbFilterDistrict.getSelectionModel().select(districtOption);
+                    break;
+                }
+            }
         }
 
         // Live search
@@ -113,8 +134,8 @@ public class CropFeedController {
             txtQuickSearch.textProperty().addListener((obs, oldV, newV) -> filterLocally(newV));
         }
 
-        // Initial load - use filters=true to apply sort selection
-        loadCrops(true);
+        // Initial load - don't apply filters yet, just load all crops with default sort
+        loadCrops(false);
     }
 
     @FXML
@@ -313,10 +334,9 @@ public class CropFeedController {
 
     @FXML
     private void onResetFilter() {
-        if (cbFilterCropType != null) cbFilterCropType.getSelectionModel().clearSelection();
-        if (cbFilterDistrict != null) cbFilterDistrict.getSelectionModel().clearSelection();
+        if (cbFilterCropType != null) cbFilterCropType.getSelectionModel().select(0); // Reset to All Categories
+        if (cbFilterDistrict != null) cbFilterDistrict.getSelectionModel().select(0); // Reset to All Districts
         if (cbSortBy != null) cbSortBy.getSelectionModel().select(0); // Reset to Newest First
-        if (chkVerifiedOnly != null) chkVerifiedOnly.setSelected(false);
         if (txtQuickSearch != null) txtQuickSearch.clear();
         loadCrops(false);
     }
@@ -340,48 +360,69 @@ public class CropFeedController {
         if (useFilters) {
             String category = cbFilterCropType != null ? cbFilterCropType.getSelectionModel().getSelectedItem() : null;
             String district = cbFilterDistrict != null ? cbFilterDistrict.getSelectionModel().getSelectedItem() : null;
-            boolean verifiedOnly = chkVerifiedOnly != null && chkVerifiedOnly.isSelected();
 
             if (category != null && !category.isEmpty() && !category.contains("সব") && !category.contains("All")) {
+                // Category is stored as-is in database (e.g., "শস্য/ধান (Rice/Grain)")
                 sql.append(" AND c.category = ?");
                 params.add(category);
             }
             if (district != null && !district.isEmpty() && !district.contains("সব") && !district.contains("All")) {
-                sql.append(" AND c.district = ?");
-                params.add(district);
-            }
-            if (verifiedOnly) {
-                sql.append(" AND u.is_verified = 1");
+                // DB stores districts like "কুমিল্লা (Comilla)".
+                // UI dropdown uses "বাংলা / English". Match flexibly against both parts.
+                if (district.contains("/")) {
+                    String[] parts = district.split("/");
+                    String banglaDistrict = parts[0].trim();
+                    String englishDistrict = parts.length > 1 ? parts[1].trim() : "";
+                    sql.append(" AND (c.district LIKE ? OR c.district LIKE ?)");
+                    params.add("%" + banglaDistrict + "%");
+                    params.add("%" + englishDistrict + "%");
+                } else {
+                    sql.append(" AND c.district LIKE ?");
+                    params.add("%" + district.trim() + "%");
+                }
             }
         }
 
-        // Ordering by role
+        // Build the ORDER BY clause
+        StringBuilder orderBy = new StringBuilder(" ORDER BY ");
+        List<Object> orderParams = new ArrayList<>();
+        boolean hasRoleSort = false;
+
+        // Role-based ordering
         if ("farmer".equals(role)) {
-            sql.append(" ORDER BY CASE WHEN c.farmer_id = ? THEN 0 ELSE 1 END");
-            params.add(currentUser.getId());
+            orderBy.append("CASE WHEN c.farmer_id = ? THEN 0 ELSE 1 END");
+            orderParams.add(currentUser.getId());
+            hasRoleSort = true;
         } else { // buyer
             String district = currentUser.getDistrict();
             if (district != null && !district.isEmpty()) {
-                sql.append(" ORDER BY CASE WHEN c.district = ? THEN 0 ELSE 1 END");
-                params.add(district);
+                orderBy.append("CASE WHEN c.district = ? THEN 0 ELSE 1 END");
+                orderParams.add(district);
+                hasRoleSort = true;
             }
         }
         
         // Apply sorting based on user selection
         String sortOption = cbSortBy != null ? cbSortBy.getSelectionModel().getSelectedItem() : null;
         if (sortOption != null) {
+            if (hasRoleSort) orderBy.append(", "); // Add comma if role-based order exists
             if (sortOption.contains("High to Low") || sortOption.contains("বেশি থেকে কম")) {
-                sql.append(", c.price_per_kg DESC");
+                orderBy.append("c.price_per_kg DESC");
             } else if (sortOption.contains("Low to High") || sortOption.contains("কম থেকে বেশি")) {
-                sql.append(", c.price_per_kg ASC");
+                orderBy.append("c.price_per_kg ASC");
             } else {
-                // Default: Newest First
-                sql.append(", c.created_at DESC");
+                // Default: Newest First (by harvest date, fallback to created_at)
+                orderBy.append("COALESCE(c.harvest_date, c.created_at) DESC");
             }
         } else {
-            // No sort selected, default to newest
-            sql.append(", c.created_at DESC");
+            // No sort selected, default to newest by harvest date
+            if (hasRoleSort) orderBy.append(", ");
+            orderBy.append("COALESCE(c.harvest_date, c.created_at) DESC");
         }
+
+        // Append the ORDER BY clause to the main query
+        sql.append(orderBy);
+        params.addAll(orderParams);
 
         System.out.println("[CropFeed] Loading crops with query: " + sql.toString());
         System.out.println("[CropFeed] Params: " + params);
@@ -449,6 +490,7 @@ public class CropFeedController {
         item.productCode = safeString(rs, "product_code");
         item.farmerId = rs.getInt("farmer_id");
         item.name = rs.getString("name");
+        item.category = safeString(rs, "category");
         item.farmerName = rs.getString("farmer_name");
         item.farmerPhone = safeString(rs, "farmer_phone");
         item.farmerVerified = rs.getBoolean("is_verified");
@@ -484,7 +526,7 @@ public class CropFeedController {
             controller.setCropData(
                 item.id,
                 item.name,
-                "Category: " + (item.district != null ? item.district : ""),
+                "শ্রেণী: " + (item.category != null ? item.category : "") + " , জেলা: " + (item.district != null ? item.district : ""),
                 item.farmerName + (item.farmerVerified ? " ✓" : ""),
                 item.quantity,
                 item.unit,
@@ -543,6 +585,8 @@ public class CropFeedController {
 
         Label price = new Label(String.format("৳%.2f/%s", item.price, item.unit));
         price.setStyle("-fx-font-size: 16px; -fx-text-fill: #4CAF50; -fx-font-weight: bold;");
+        Label category = new Label("শ্রেণী: " + (item.category != null ? item.category : ""));
+        category.setStyle("-fx-font-size: 12px; -fx-text-fill: #888;");
         Label qty = new Label(item.quantity > 0 ? String.format("পরিমাণ: %.1f", item.quantity) : "পরিমাণ: N/A");
         qty.setStyle("-fx-font-size: 12px; -fx-text-fill: #888;");
         Label district = new Label("📍 " + item.district);
@@ -550,7 +594,7 @@ public class CropFeedController {
         Label date = new Label("তারিখ: " + (item.availableDate != null ? item.availableDate : "N/A"));
         date.setStyle("-fx-font-size: 12px; -fx-text-fill: #888;");
 
-        details.getChildren().addAll(titleRow, farmerRow, price, qty, district, date);
+        details.getChildren().addAll(titleRow, farmerRow, price, category, qty, district, date);
 
         // Actions by role
         VBox actionsBox = new VBox(8);

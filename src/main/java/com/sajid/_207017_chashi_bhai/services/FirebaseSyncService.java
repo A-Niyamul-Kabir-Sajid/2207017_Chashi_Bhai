@@ -5,6 +5,9 @@ import com.google.cloud.firestore.QuerySnapshot;
 import javafx.application.Platform;
 
 import java.sql.*;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -19,6 +22,8 @@ import java.util.*;
 public class FirebaseSyncService {
     
     private static final String DB_URL = "jdbc:sqlite:data/chashi_bhai.db";
+        private static final DateTimeFormatter SQLITE_TS_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
     private final FirebaseService firebaseService;
     private final DatabaseService databaseService;
     
@@ -288,6 +293,40 @@ public class FirebaseSyncService {
     }
     
     // ==================== ORDER SYNC ====================
+
+    private static String toSqliteTimestamp(com.google.cloud.Timestamp ts) {
+        if (ts == null) return null;
+        Instant instant = Instant.ofEpochSecond(ts.getSeconds(), ts.getNanos());
+        return SQLITE_TS_FORMAT.format(instant);
+    }
+
+    private static int toInt(Object value, int defaultValue) {
+        if (value == null) return defaultValue;
+        if (value instanceof Integer i) return i;
+        if (value instanceof Long l) return l.intValue();
+        if (value instanceof Double d) return d.intValue();
+        if (value instanceof Float f) return f.intValue();
+        if (value instanceof Number n) return n.intValue();
+        try {
+            return Integer.parseInt(String.valueOf(value));
+        } catch (Exception ignored) {
+            return defaultValue;
+        }
+    }
+
+    private static Double toDouble(Object value) {
+        if (value == null) return null;
+        if (value instanceof Double d) return d;
+        if (value instanceof Float f) return (double) f;
+        if (value instanceof Long l) return l.doubleValue();
+        if (value instanceof Integer i) return i.doubleValue();
+        if (value instanceof Number n) return n.doubleValue();
+        try {
+            return Double.parseDouble(String.valueOf(value));
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
     
     /**
      * Sync order to Firebase after SQLite insert
@@ -300,46 +339,190 @@ public class FirebaseSyncService {
         
         try (Connection conn = DriverManager.getConnection(DB_URL);
              PreparedStatement stmt = conn.prepareStatement(
-                 "SELECT * FROM orders WHERE id = ?")) {
-            
+                     "SELECT * FROM orders WHERE id = ?")) {
+
             stmt.setInt(1, orderId);
             ResultSet rs = stmt.executeQuery();
-            
-            if (rs.next()) {
-                Map<String, Object> orderData = new HashMap<>();
-                orderData.put("id", rs.getInt("id"));
-                orderData.put("order_number", rs.getString("order_number"));
-                orderData.put("crop_id", rs.getInt("crop_id"));
-                orderData.put("farmer_id", rs.getInt("farmer_id"));
-                orderData.put("buyer_id", rs.getInt("buyer_id"));
-                orderData.put("quantity_kg", rs.getDouble("quantity_kg"));
-                orderData.put("price_per_kg", rs.getDouble("price_per_kg"));
-                orderData.put("total_amount", rs.getDouble("total_amount"));
-                orderData.put("delivery_address", rs.getString("delivery_address"));
-                orderData.put("delivery_district", rs.getString("delivery_district"));
-                orderData.put("delivery_upazila", rs.getString("delivery_upazila"));
-                orderData.put("buyer_phone", rs.getString("buyer_phone"));
-                orderData.put("buyer_name", rs.getString("buyer_name"));
-                orderData.put("status", rs.getString("status"));
-                orderData.put("payment_status", rs.getString("payment_status"));
-                orderData.put("payment_method", rs.getString("payment_method"));
-                orderData.put("notes", rs.getString("notes"));
-                
-                firebaseService.createOrder(
-                    String.valueOf(orderId),
-                    orderData,
-                    () -> System.out.println("✅ Order synced to Firebase: " + orderId),
-                    e -> System.err.println("❌ Failed to sync order: " + e.getMessage())
-                );
+
+            if (!rs.next()) {
+                return;
             }
-            
+
+            Map<String, Object> orderData = new HashMap<>();
+            orderData.put("id", rs.getInt("id"));
+            orderData.put("order_number", rs.getString("order_number"));
+            orderData.put("crop_id", rs.getInt("crop_id"));
+            orderData.put("farmer_id", rs.getInt("farmer_id"));
+            orderData.put("buyer_id", rs.getInt("buyer_id"));
+            orderData.put("quantity_kg", rs.getDouble("quantity_kg"));
+            orderData.put("price_per_kg", rs.getDouble("price_per_kg"));
+            orderData.put("total_amount", rs.getDouble("total_amount"));
+            orderData.put("delivery_address", rs.getString("delivery_address"));
+            orderData.put("delivery_district", rs.getString("delivery_district"));
+            orderData.put("delivery_upazila", rs.getString("delivery_upazila"));
+            orderData.put("buyer_phone", rs.getString("buyer_phone"));
+            orderData.put("buyer_name", rs.getString("buyer_name"));
+            orderData.put("status", rs.getString("status"));
+            orderData.put("payment_status", rs.getString("payment_status"));
+            orderData.put("payment_method", rs.getString("payment_method"));
+            orderData.put("notes", rs.getString("notes"));
+
+            String orderIdStr = String.valueOf(orderId);
+            firebaseService.getOrder(
+                    orderIdStr,
+                    doc -> {
+                        if (doc.exists()) {
+                            firebaseService.upsertOrder(
+                                    orderIdStr,
+                                    orderData,
+                                    () -> System.out.println("✅ Order fields synced to Firebase: " + orderId),
+                                    e -> System.err.println("❌ Failed to upsert order: " + e.getMessage())
+                            );
+                        } else {
+                            firebaseService.createOrder(
+                                    orderIdStr,
+                                    orderData,
+                                    () -> System.out.println("✅ Order created in Firebase: " + orderId),
+                                    e -> System.err.println("❌ Failed to create order: " + e.getMessage())
+                            );
+                        }
+                    },
+                    e -> System.err.println("❌ Failed to check order existence: " + e.getMessage())
+            );
+
         } catch (SQLException e) {
             System.err.println("❌ Error reading order from SQLite: " + e.getMessage());
         }
     }
+
+    /**
+     * Push an order status update to Firebase (timestamps handled server-side)
+     */
+    public void syncOrderStatusToFirebase(int orderId, String newStatus, Runnable onComplete) {
+        if (!isSyncAvailable()) {
+            if (onComplete != null) Platform.runLater(onComplete);
+            return;
+        }
+
+        firebaseService.updateOrderStatus(
+                String.valueOf(orderId),
+                newStatus,
+                () -> {
+                    if (onComplete != null) Platform.runLater(onComplete);
+                },
+                e -> {
+                    System.err.println("❌ Failed to sync order status: " + e.getMessage());
+                    if (onComplete != null) Platform.runLater(onComplete);
+                }
+        );
+    }
+
+    private void upsertOrdersFromFirebase(QuerySnapshot querySnapshot) {
+        try (Connection conn = DriverManager.getConnection(DB_URL)) {
+            String updateSql =
+                    "UPDATE orders SET order_number = ?, crop_id = ?, farmer_id = ?, buyer_id = ?, " +
+                            "quantity_kg = ?, price_per_kg = ?, total_amount = ?, delivery_address = ?, " +
+                            "delivery_district = ?, delivery_upazila = ?, buyer_phone = ?, buyer_name = ?, " +
+                            "status = ?, payment_status = ?, payment_method = ?, notes = ?, " +
+                            "created_at = COALESCE(?, created_at), updated_at = COALESCE(?, updated_at), " +
+                            "accepted_at = ?, in_transit_at = ?, delivered_at = ?, completed_at = ? " +
+                            "WHERE id = ?";
+
+            String insertSql =
+                    "INSERT INTO orders (id, order_number, crop_id, farmer_id, buyer_id, quantity_kg, " +
+                            "price_per_kg, total_amount, delivery_address, delivery_district, delivery_upazila, " +
+                            "buyer_phone, buyer_name, status, payment_status, payment_method, notes, " +
+                            "created_at, updated_at, accepted_at, in_transit_at, delivered_at, completed_at) " +
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            try (PreparedStatement updateStmt = conn.prepareStatement(updateSql);
+                 PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+
+                for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    Map<String, Object> data = doc.getData();
+                    if (data == null) continue;
+
+                    int id = toInt(data.get("id"), -1);
+                    if (id <= 0) {
+                        id = toInt(doc.getId(), -1);
+                    }
+                    if (id <= 0) continue;
+
+                    Double quantity = toDouble(data.get("quantity_kg"));
+                    Double pricePerKg = toDouble(data.get("price_per_kg"));
+                    Double totalAmount = toDouble(data.get("total_amount"));
+
+                    String createdAt = toSqliteTimestamp(doc.getTimestamp("created_at"));
+                    String updatedAt = toSqliteTimestamp(doc.getTimestamp("updated_at"));
+                    String acceptedAt = toSqliteTimestamp(doc.getTimestamp("accepted_at"));
+                    String inTransitAt = toSqliteTimestamp(doc.getTimestamp("in_transit_at"));
+                    String deliveredAt = toSqliteTimestamp(doc.getTimestamp("delivered_at"));
+                    String completedAt = toSqliteTimestamp(doc.getTimestamp("completed_at"));
+
+                    // UPDATE first
+                    updateStmt.setString(1, (String) data.get("order_number"));
+                    updateStmt.setInt(2, toInt(data.get("crop_id"), 0));
+                    updateStmt.setInt(3, toInt(data.get("farmer_id"), 0));
+                    updateStmt.setInt(4, toInt(data.get("buyer_id"), 0));
+                    updateStmt.setObject(5, quantity);
+                    updateStmt.setObject(6, pricePerKg);
+                    updateStmt.setObject(7, totalAmount);
+                    updateStmt.setString(8, (String) data.get("delivery_address"));
+                    updateStmt.setString(9, (String) data.get("delivery_district"));
+                    updateStmt.setString(10, (String) data.get("delivery_upazila"));
+                    updateStmt.setString(11, (String) data.get("buyer_phone"));
+                    updateStmt.setString(12, (String) data.get("buyer_name"));
+                    updateStmt.setString(13, (String) data.get("status"));
+                    updateStmt.setString(14, (String) data.get("payment_status"));
+                    updateStmt.setString(15, (String) data.get("payment_method"));
+                    updateStmt.setString(16, (String) data.get("notes"));
+                    updateStmt.setString(17, createdAt);
+                    updateStmt.setString(18, updatedAt);
+                    updateStmt.setString(19, acceptedAt);
+                    updateStmt.setString(20, inTransitAt);
+                    updateStmt.setString(21, deliveredAt);
+                    updateStmt.setString(22, completedAt);
+                    updateStmt.setInt(23, id);
+
+                    int updated = updateStmt.executeUpdate();
+                    if (updated > 0) {
+                        continue;
+                    }
+
+                    // INSERT if missing locally
+                    insertStmt.setInt(1, id);
+                    insertStmt.setString(2, (String) data.get("order_number"));
+                    insertStmt.setInt(3, toInt(data.get("crop_id"), 0));
+                    insertStmt.setInt(4, toInt(data.get("farmer_id"), 0));
+                    insertStmt.setInt(5, toInt(data.get("buyer_id"), 0));
+                    insertStmt.setObject(6, quantity);
+                    insertStmt.setObject(7, pricePerKg);
+                    insertStmt.setObject(8, totalAmount);
+                    insertStmt.setString(9, (String) data.get("delivery_address"));
+                    insertStmt.setString(10, (String) data.get("delivery_district"));
+                    insertStmt.setString(11, (String) data.get("delivery_upazila"));
+                    insertStmt.setString(12, (String) data.get("buyer_phone"));
+                    insertStmt.setString(13, (String) data.get("buyer_name"));
+                    insertStmt.setString(14, (String) data.get("status"));
+                    insertStmt.setString(15, (String) data.get("payment_status"));
+                    insertStmt.setString(16, (String) data.get("payment_method"));
+                    insertStmt.setString(17, (String) data.get("notes"));
+                    insertStmt.setString(18, createdAt);
+                    insertStmt.setString(19, updatedAt);
+                    insertStmt.setString(20, acceptedAt);
+                    insertStmt.setString(21, inTransitAt);
+                    insertStmt.setString(22, deliveredAt);
+                    insertStmt.setString(23, completedAt);
+                    insertStmt.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ Error upserting orders from Firebase: " + e.getMessage());
+        }
+    }
     
     /**
-     * Sync farmer's completed orders from Firebase (for real-time updates)
+     * Sync farmer's orders from Firebase (for real-time updates)
      */
     public void syncFarmerOrdersFromFirebase(int farmerId, Runnable onComplete) {
         if (!isSyncAvailable()) {
@@ -348,42 +531,45 @@ public class FirebaseSyncService {
         }
         
         firebaseService.getOrdersByFarmer(
-            String.valueOf(farmerId),
-            querySnapshot -> {
-                int syncedCount = 0;
-                for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                    Map<String, Object> data = doc.getData();
-                    String status = (String) data.get("status");
-                    
-                    // Only sync completed/delivered orders
-                    if ("completed".equals(status) || "delivered".equals(status)) {
-                        try (Connection conn = DriverManager.getConnection(DB_URL)) {
-                            PreparedStatement stmt = conn.prepareStatement(
-                                "UPDATE orders SET status = ?, payment_status = ? WHERE id = ?"
-                            );
-                            stmt.setString(1, status);
-                            stmt.setString(2, (String) data.get("payment_status"));
-                            stmt.setInt(3, ((Long) data.get("id")).intValue());
-                            stmt.executeUpdate();
-                            syncedCount++;
-                        } catch (SQLException e) {
-                            System.err.println("❌ Error updating order from Firebase: " + e.getMessage());
-                        }
+                farmerId,
+                querySnapshot -> {
+                    upsertOrdersFromFirebase(querySnapshot);
+                    if (onComplete != null) {
+                        Platform.runLater(onComplete);
+                    }
+                },
+                e -> {
+                    System.err.println("❌ Error fetching orders from Firebase: " + e.getMessage());
+                    if (onComplete != null) {
+                        Platform.runLater(onComplete);
                     }
                 }
-                
-                System.out.println("✅ Synced " + syncedCount + " orders from Firebase");
-                
-                if (onComplete != null) {
-                    Platform.runLater(onComplete);
+        );
+    }
+
+    /**
+     * Sync buyer's orders from Firebase (for real-time updates)
+     */
+    public void syncBuyerOrdersFromFirebase(int buyerId, Runnable onComplete) {
+        if (!isSyncAvailable()) {
+            if (onComplete != null) onComplete.run();
+            return;
+        }
+
+        firebaseService.getOrdersByBuyer(
+                buyerId,
+                querySnapshot -> {
+                    upsertOrdersFromFirebase(querySnapshot);
+                    if (onComplete != null) {
+                        Platform.runLater(onComplete);
+                    }
+                },
+                e -> {
+                    System.err.println("❌ Error fetching orders from Firebase: " + e.getMessage());
+                    if (onComplete != null) {
+                        Platform.runLater(onComplete);
+                    }
                 }
-            },
-            e -> {
-                System.err.println("❌ Error fetching orders from Firebase: " + e.getMessage());
-                if (onComplete != null) {
-                    Platform.runLater(onComplete);
-                }
-            }
         );
     }
     

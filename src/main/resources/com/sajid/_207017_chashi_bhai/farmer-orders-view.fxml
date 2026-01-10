@@ -34,7 +34,7 @@
                 <Button fx:id="btnFilterNew" text="নতুন (New)" styleClass="filter-tab" onAction="#onFilterNew"/>
                 <Button fx:id="btnFilterAccepted" text="গৃহীত (Accepted)" styleClass="filter-tab" onAction="#onFilterAccepted"/>
                 <Button fx:id="btnFilterInTransit" text="পাঠানো হচ্ছে (In Transit)" styleClass="filter-tab" onAction="#onFilterInTransit"/>
-                <Button fx:id="btnFilterDelivered" text="ডেলিভার হয়েছে (Delivered)" styleClass="filter-tab" onAction="#onFilterDelivered"/>
+                <Button fx:id="btnFilterDelivered" text="পেয়েছে (Received)" styleClass="filter-tab" onAction="#onFilterDelivered"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Label text="সাজান:" styleClass="filter-label"/>
                 <ComboBox fx:id="cbSortBy" prefWidth="200" styleClass="filter-combo">

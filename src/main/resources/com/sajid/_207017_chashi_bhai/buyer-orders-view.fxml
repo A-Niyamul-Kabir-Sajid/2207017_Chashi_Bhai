@@ -31,10 +31,10 @@
             <!-- Filter Tabs -->
             <HBox spacing="15" alignment="CENTER_LEFT">
                 <Button fx:id="btnFilterAll" text="সব (All)" styleClass="filter-tab, filter-active" onAction="#onFilterAll"/>
-                <Button fx:id="btnFilterPending" text="পেমেন্ট বাকি (Pending Payment)" styleClass="filter-tab" onAction="#onFilterPending"/>
+                <Button fx:id="btnFilterPending" text="অনুরোধ (Requested)" styleClass="filter-tab" onAction="#onFilterPending"/>
                 <Button fx:id="btnFilterConfirmed" text="নিশ্চিত (Confirmed)" styleClass="filter-tab" onAction="#onFilterConfirmed"/>
                 <Button fx:id="btnFilterInTransit" text="পাঠানো হচ্ছে (In Transit)" styleClass="filter-tab" onAction="#onFilterInTransit"/>
-                <Button fx:id="btnFilterDelivered" text="ডেলিভার (Delivered)" styleClass="filter-tab" onAction="#onFilterDelivered"/>
+                <Button fx:id="btnFilterDelivered" text="পেয়েছি (Received)" styleClass="filter-tab" onAction="#onFilterDelivered"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Label text="সাজান:" styleClass="filter-label"/>
                 <ComboBox fx:id="cbSortBy" prefWidth="200" styleClass="filter-combo">

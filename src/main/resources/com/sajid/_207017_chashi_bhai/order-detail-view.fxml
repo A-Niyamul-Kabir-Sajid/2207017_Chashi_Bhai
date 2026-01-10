@@ -44,14 +44,40 @@
                     <Separator/>
                     
                     <GridPane hgap="30" vgap="15" alignment="CENTER">
-                        <Label text="তারিখ:" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="detail-label"/>
-                        <Label fx:id="lblOrderDate" text="2026-01-08" GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="detail-value"/>
+                        <Label text="অর্ডার ID:" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="detail-label"/>
+                        <Label fx:id="lblOrderId" text="0" GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="detail-value"/>
+
+                        <Label text="তারিখ:" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="detail-label"/>
+                        <Label fx:id="lblOrderDate" text="2026-01-08" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="detail-value"/>
                         
-                        <Label text="পেমেন্ট:" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="detail-label"/>
-                        <Label fx:id="lblPaymentStatus" text="বকেয়া" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="detail-value"/>
+                        <Label text="পেমেন্ট:" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="detail-label"/>
+                        <Label fx:id="lblPaymentStatus" text="বকেয়া" GridPane.rowIndex="2" GridPane.columnIndex="1" styleClass="detail-value"/>
                         
-                        <Label text="মোট মূল্য:" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="detail-label"/>
-                        <Label fx:id="lblTotalAmount" text="৳ 5,000.00" GridPane.rowIndex="2" GridPane.columnIndex="1" styleClass="detail-value" style="-fx-font-weight: bold; -fx-text-fill: #4CAF50;"/>
+                        <Label text="মোট মূল্য:" GridPane.rowIndex="3" GridPane.columnIndex="0" styleClass="detail-label"/>
+                        <Label fx:id="lblTotalAmount" text="৳ 5,000.00" GridPane.rowIndex="3" GridPane.columnIndex="1" styleClass="detail-value" style="-fx-font-weight: bold; -fx-text-fill: #4CAF50;"/>
+                    </GridPane>
+                </VBox>
+
+                <!-- Status Timeline Card -->
+                <VBox spacing="15" styleClass="card">
+                    <padding>
+                        <Insets top="20" bottom="20" left="25" right="25"/>
+                    </padding>
+
+                    <Label text="🧾 অর্ডার স্ট্যাটাস / Status Timeline" styleClass="section-title"/>
+
+                    <GridPane hgap="25" vgap="12">
+                        <Label text="Request to accept" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="detail-label"/>
+                        <Label fx:id="lblStatusRequestedAt" text="—" GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="detail-value"/>
+
+                        <Label text="Accepted by farmer" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="detail-label"/>
+                        <Label fx:id="lblStatusAcceptedAt" text="—" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="detail-value"/>
+
+                        <Label text="Passed to deliver" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="detail-label"/>
+                        <Label fx:id="lblStatusDeliveredAt" text="—" GridPane.rowIndex="2" GridPane.columnIndex="1" styleClass="detail-value"/>
+
+                        <Label text="Received" GridPane.rowIndex="3" GridPane.columnIndex="0" styleClass="detail-label"/>
+                        <Label fx:id="lblStatusCompletedAt" text="—" GridPane.rowIndex="3" GridPane.columnIndex="1" styleClass="detail-value"/>
                     </GridPane>
                 </VBox>
 
@@ -71,6 +97,7 @@
                                 <Label fx:id="lblCropName" text="তাজা টমেটো" styleClass="crop-name" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
                                 <Label fx:id="lblProductCode" text="CRP-20260108-0001" styleClass="product-code" style="-fx-font-size: 12px; -fx-text-fill: #888;"/>
                             </HBox>
+                            <Label fx:id="lblCropId" text="Crop ID: 0" styleClass="info-text"/>
                             <Label fx:id="lblCropCategory" text="সবজি (Vegetables)" styleClass="info-text"/>
                             <HBox spacing="15">
                                 <VBox spacing="3">
@@ -112,6 +139,7 @@
                         <VBox spacing="8">
                             <Button fx:id="btnCallFarmer" text="📞 কল করুন" styleClass="button-primary" onAction="#onCallFarmer" prefWidth="140"/>
                             <Button fx:id="btnViewFarmerProfile" text="👤 প্রোফাইল দেখুন" styleClass="button-secondary" onAction="#onViewFarmerProfile" prefWidth="140"/>
+                            <Button fx:id="btnChatFarmer" text="💬 চ্যাট" styleClass="button-secondary" onAction="#onChatFarmer" prefWidth="140" visible="false" managed="false"/>
                         </VBox>
                     </HBox>
                 </VBox>
@@ -137,6 +165,13 @@
                         <Label text="ডেলিভারি ঠিকানা:" GridPane.rowIndex="3" GridPane.columnIndex="0" styleClass="detail-label"/>
                         <Label fx:id="lblDeliveryAddress" text="ঢাকা, মিরপুর-১০" GridPane.rowIndex="3" GridPane.columnIndex="1" styleClass="detail-value" wrapText="true"/>
                     </GridPane>
+
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="btnCallBuyer" text="📞 কল" styleClass="button-secondary" onAction="#onCallBuyer" visible="false" managed="false"/>
+                        <Button fx:id="btnViewBuyerProfile" text="👤 প্রোফাইল" styleClass="button-secondary" onAction="#onViewBuyerProfile" visible="false" managed="false"/>
+                        <Button fx:id="btnChatBuyer" text="💬 চ্যাট" styleClass="button-secondary" onAction="#onChatBuyer" visible="false" managed="false"/>
+                    </HBox>
                 </VBox>
 
                 <!-- Transport & Notes Card -->
@@ -160,12 +195,13 @@
                 <HBox fx:id="hboxFarmerActions" spacing="15" alignment="CENTER" visible="false" managed="false">
                     <Button fx:id="btnAcceptOrder" text="✓ গ্রহণ করুন" styleClass="button-success" onAction="#onAcceptOrder" prefWidth="150"/>
                     <Button fx:id="btnRejectOrder" text="✕ বাতিল করুন" styleClass="button-danger" onAction="#onRejectOrder" prefWidth="150"/>
-                    <Button fx:id="btnMarkDelivered" text="📦 ডেলিভারি সম্পন্ন" styleClass="button-primary" onAction="#onMarkDelivered" prefWidth="180"/>
+                    <Button fx:id="btnMarkDelivered" text="🚚 ডেলিভারির জন্য দিন" styleClass="button-primary" onAction="#onMarkDelivered" prefWidth="180"/>
                 </HBox>
 
                 <!-- Action Buttons (for buyer) -->
                 <HBox fx:id="hboxBuyerActions" spacing="15" alignment="CENTER" visible="false" managed="false">
                     <Button fx:id="btnCancelOrder" text="✕ অর্ডার বাতিল" styleClass="button-danger" onAction="#onCancelOrder" prefWidth="150"/>
+                    <Button fx:id="btnMarkReceived" text="✅ পণ্য পেয়েছি" styleClass="button-success" onAction="#onMarkReceived" prefWidth="150"/>
                     <Button fx:id="btnRateOrder" text="⭐ রেটিং দিন" styleClass="button-primary" onAction="#onRateOrder" prefWidth="150"/>
                 </HBox>
 

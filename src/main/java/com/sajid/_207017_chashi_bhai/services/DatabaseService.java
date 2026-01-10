@@ -315,18 +315,39 @@ public class DatabaseService {
                     "delivery_upazila TEXT, " +
                     "buyer_phone TEXT NOT NULL, " +
                     "buyer_name TEXT NOT NULL, " +
-                    "status TEXT DEFAULT 'new' CHECK(status IN ('new', 'accepted', 'rejected', 'in_transit', 'delivered', 'cancelled', 'completed')), " +
+                    "status TEXT DEFAULT 'new' CHECK(status IN ('new', 'processing', 'accepted', 'shipped', 'in_transit', 'delivered', 'rejected', 'cancelled', 'completed')), " +
                     "payment_status TEXT DEFAULT 'pending' CHECK(payment_status IN ('pending', 'partial', 'paid', 'refunded')), " +
                     "payment_method TEXT CHECK(payment_method IN ('cash', 'bkash', 'nagad', 'rocket', 'bank')), " +
                     "notes TEXT, " +
                     "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                    "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                     "accepted_at TIMESTAMP, " +
+                    "in_transit_at TIMESTAMP, " +
                     "delivered_at TIMESTAMP, " +
                     "completed_at TIMESTAMP, " +
                     "FOREIGN KEY (crop_id) REFERENCES crops(id) ON DELETE CASCADE, " +
                     "FOREIGN KEY (farmer_id) REFERENCES users(id) ON DELETE CASCADE, " +
                     "FOREIGN KEY (buyer_id) REFERENCES users(id) ON DELETE CASCADE)"
                 );
+
+                // Orders migrations
+                try {
+                    stmt.execute("ALTER TABLE orders ADD COLUMN in_transit_at TIMESTAMP");
+                    System.out.println("Added column: in_transit_at");
+                } catch (SQLException e) {
+                    if (!e.getMessage().contains("duplicate column name")) {
+                        throw e;
+                    }
+                }
+
+                try {
+                    stmt.execute("ALTER TABLE orders ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+                    System.out.println("Added column: updated_at");
+                } catch (SQLException e) {
+                    if (!e.getMessage().contains("duplicate column name")) {
+                        throw e;
+                    }
+                }
 
                 // Reviews table (replaces old ratings table)
                 stmt.execute(

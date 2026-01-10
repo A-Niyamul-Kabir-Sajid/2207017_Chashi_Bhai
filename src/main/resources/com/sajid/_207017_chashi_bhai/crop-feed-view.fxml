@@ -58,7 +58,8 @@
                     </items>
                 </ComboBox>
 
-                <CheckBox fx:id="chkVerifiedOnly" styleClass="filter-checkbox" text="✓ শুধু যাচাইকৃত"/>
+                <!-- Verified-only filter disabled for now -->
+                <CheckBox fx:id="chkVerifiedOnly" styleClass="filter-checkbox" text="✓ শুধু যাচাইকৃত" visible="false" managed="false"/>
                 
                 <Label styleClass="filter-label" text="সাজান:"/>
                 <ComboBox fx:id="cbSortBy" prefWidth="200" styleClass="filter-combo">

@@ -3,6 +3,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.services.FirebaseSyncService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -17,11 +18,14 @@ import java.time.format.DateTimeFormatter;
 public class PlaceOrderDialogController {
 
     @FXML private Label lblCropName;
+    @FXML private Label lblCropId;
+    @FXML private Label lblFarmerInfo;
     @FXML private Label lblPrice;
     @FXML private Label lblAvailable;
     @FXML private TextField txtQuantity;
     @FXML private TextArea txtAddress;
     @FXML private TextField txtDistrict;
+    @FXML private ComboBox<String> cmbDistrict;
     @FXML private TextField txtUpazila;
     @FXML private ComboBox<String> cmbPaymentMethod;
     @FXML private TextArea txtNotes;
@@ -58,13 +62,52 @@ public class PlaceOrderDialogController {
         this.availableQuantity = availableQuantity;
 
         lblCropName.setText(cropName);
+        if (lblCropId != null) {
+            lblCropId.setText(String.valueOf(cropId));
+        }
+        if (lblFarmerInfo != null) {
+            lblFarmerInfo.setText("ID: " + farmerId);
+            loadFarmerSummary(farmerId);
+        }
         lblPrice.setText(String.format("৳%.2f/কেজি", pricePerKg));
         lblAvailable.setText(String.format("%.1f কেজি", availableQuantity));
         
         // Pre-fill buyer's district if available
         if (currentUser != null && currentUser.getDistrict() != null) {
-            txtDistrict.setText(currentUser.getDistrict());
+            if (txtDistrict != null) {
+                txtDistrict.setText(currentUser.getDistrict());
+            }
+            if (cmbDistrict != null) {
+                cmbDistrict.getSelectionModel().select(currentUser.getDistrict());
+            }
         }
+    }
+
+    private void loadFarmerSummary(int farmerId) {
+        String sql = "SELECT name, phone FROM users WHERE id = ?";
+        DatabaseService.executeQueryAsync(sql, new Object[]{farmerId},
+                rs -> {
+                    try {
+                        if (rs.next()) {
+                            String name = rs.getString("name");
+                            String phone = rs.getString("phone");
+                            Platform.runLater(() -> {
+                                if (lblFarmerInfo != null) {
+                                    StringBuilder sb = new StringBuilder();
+                                    sb.append("ID: ").append(farmerId);
+                                    if (phone != null && !phone.isBlank()) sb.append(" | 📱 ").append(phone);
+                                    if (name != null && !name.isBlank()) sb.append(" | ").append(name);
+                                    lblFarmerInfo.setText(sb.toString());
+                                }
+                            });
+                        }
+                    } catch (Exception ignored) {
+                    }
+                },
+                err -> {
+                    // ignore: farmer summary is optional UI
+                }
+        );
     }
 
     public void setDialogStage(Stage dialogStage) {
@@ -96,7 +139,12 @@ public class PlaceOrderDialogController {
         // Validate input
         String quantityText = txtQuantity.getText().trim();
         String address = txtAddress.getText().trim();
-        String district = txtDistrict.getText().trim();
+        String district = "";
+        if (cmbDistrict != null && cmbDistrict.getValue() != null) {
+            district = cmbDistrict.getValue().trim();
+        } else if (txtDistrict != null) {
+            district = txtDistrict.getText().trim();
+        }
         String upazila = txtUpazila.getText().trim();
         String paymentMethod = cmbPaymentMethod.getValue();
         String notes = txtNotes.getText().trim();
@@ -173,6 +221,24 @@ public class PlaceOrderDialogController {
                     // Create notification for farmer
                     createNotification(farmerId, "নতুন অর্ডার", 
                         currentUser.getName() + " " + quantity + " কেজি " + cropName + " অর্ডার করেছেন।");
+
+                    // Cloud sync (best-effort): push this order to Firebase
+                    DatabaseService.executeQueryAsync(
+                        "SELECT id FROM orders WHERE order_number = ?",
+                        new Object[]{orderNumber},
+                        rs -> {
+                            try {
+                                if (rs.next()) {
+                                    int orderId = rs.getInt("id");
+                                    FirebaseSyncService.getInstance().syncOrderToFirebase(orderId);
+                                }
+                            } catch (Exception ignored) {
+                            }
+                        },
+                        err -> {
+                            // ignore: cloud sync is optional
+                        }
+                    );
                     
                     if (dialogStage != null) {
                         dialogStage.close();

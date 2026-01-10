@@ -95,7 +95,7 @@
                     </items>
                 </ComboBox>
                 
-                <Button fx:id="btnApplyFilter" styleClass="button-primary" text="🔍 প্রয়োগ করুন" />
+                <Button fx:id="btnApplyFilter" onAction="#onApplyFilter" styleClass="button-primary" text="🔍 প্রয়োগ করুন" />
                 
                 <Label styleClass="filter-label" text="সাজান:" />
                 <ComboBox fx:id="cbSortBy" prefWidth="200" styleClass="form-input">
@@ -109,7 +109,7 @@
                 </ComboBox>
                 
                 <Region HBox.hgrow="ALWAYS" />
-                <Button fx:id="btnExport" styleClass="button-secondary" text="📥 ডাউনলোড" />
+                <Button fx:id="btnExport" onAction="#onExport" styleClass="button-secondary" text="📥 ডাউনলোড" />
             </HBox>
 
             <!-- History Table -->

@@ -45,6 +45,8 @@
             <HBox alignment="CENTER_LEFT" spacing="15">
                 <Button fx:id="btnFilterAll" onAction="#onFilterAll" styleClass="filter-tab, filter-active" text="সব (All)" />
                 <Button fx:id="btnFilterUnread" onAction="#onFilterUnread" styleClass="filter-tab" text="না পড়া (Unread)" />
+                <Button fx:id="btnFilterFarmers" onAction="#onFilterFarmers" styleClass="filter-tab" text="কৃষক (Farmers)" />
+                <Button fx:id="btnFilterBuyers" onAction="#onFilterBuyers" styleClass="filter-tab" text="ক্রেতা (Buyers)" />
             </HBox>
 
             <!-- Chat List -->

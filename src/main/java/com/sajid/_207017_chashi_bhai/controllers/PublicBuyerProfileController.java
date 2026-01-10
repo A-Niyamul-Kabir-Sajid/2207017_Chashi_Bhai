@@ -163,7 +163,7 @@ public class PublicBuyerProfileController {
                     "FROM orders o " +
                     "JOIN crops c ON o.crop_id = c.id " +
                     "JOIN users u ON c.farmer_id = u.id " +
-                    "WHERE o.buyer_id = ? AND o.status = 'delivered' " +
+                    "WHERE o.buyer_id = ? AND o.status IN ('delivered','completed') " +
                     "ORDER BY o.updated_at DESC LIMIT 5";
 
         DatabaseService.executeQueryAsync(sql, new Object[]{buyerId},
@@ -253,7 +253,7 @@ public class PublicBuyerProfileController {
                     "FROM orders o " +
                     "JOIN crops c ON o.crop_id = c.id " +
                     "JOIN users u ON c.farmer_id = u.id " +
-                    "WHERE o.buyer_id = ? AND o.status = 'delivered' " +
+                    "WHERE o.buyer_id = ? AND o.status IN ('delivered','completed') " +
                     "GROUP BY c.farmer_id " +
                     "ORDER BY order_count DESC LIMIT 5";
 

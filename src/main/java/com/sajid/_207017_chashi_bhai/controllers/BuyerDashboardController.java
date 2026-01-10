@@ -21,8 +21,6 @@ import java.sql.ResultSet;
 public class BuyerDashboardController {
 
     @FXML private Label lblWelcome;
-    @FXML private TextField txtSearch;
-    @FXML private Button btnSearch;
     @FXML private Button btnBrowseAll;
     @FXML private Button btnMyOrders;
     @FXML private Button btnHistory;
@@ -174,16 +172,6 @@ public class BuyerDashboardController {
 
         card.getChildren().addAll(imageView, lblName, farmerBox, lblPrice, lblLocation);
         return card;
-    }
-
-    @FXML
-    private void onSearch() {
-        System.out.println("[DEBUG] Search button clicked!");
-        String searchQuery = txtSearch.getText().trim();
-        if (!searchQuery.isEmpty()) {
-            App.setSearchQuery(searchQuery);
-            App.loadScene("crop-feed-view.fxml", "ফসল খুঁজুন");
-        }
     }
 
     @FXML

@@ -3,6 +3,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.services.FirebaseSyncService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -22,14 +23,22 @@ public class OrderDetailController {
 
     @FXML private Label lblOrderNumber;
     @FXML private Label lblOrderStatus;
+    @FXML private Label lblOrderId;
     @FXML private Label lblOrderDate;
     @FXML private Label lblPaymentStatus;
     @FXML private Label lblTotalAmount;
+
+    // Status timeline
+    @FXML private Label lblStatusRequestedAt;
+    @FXML private Label lblStatusAcceptedAt;
+    @FXML private Label lblStatusDeliveredAt;
+    @FXML private Label lblStatusCompletedAt;
     
     // Crop details
     @FXML private ImageView imgCrop;
     @FXML private Label lblCropName;
     @FXML private Label lblProductCode;
+    @FXML private Label lblCropId;
     @FXML private Label lblCropCategory;
     @FXML private Label lblOrderedQuantity;
     @FXML private Label lblPricePerKg;
@@ -41,12 +50,20 @@ public class OrderDetailController {
     @FXML private Label lblFarmerId;
     @FXML private Label lblFarmerPhone;
     @FXML private Label lblFarmerDistrict;
+
+    @FXML private Button btnCallFarmer;
+    @FXML private Button btnViewFarmerProfile;
     
     // Buyer details
     @FXML private Label lblBuyerName;
     @FXML private Label lblBuyerId;
     @FXML private Label lblBuyerPhone;
     @FXML private Label lblDeliveryAddress;
+
+    @FXML private Button btnCallBuyer;
+    @FXML private Button btnViewBuyerProfile;
+    @FXML private Button btnChatBuyer;
+    @FXML private Button btnChatFarmer;
     
     // Transport & Notes
     @FXML private Label lblTransport;
@@ -58,6 +75,7 @@ public class OrderDetailController {
     @FXML private Button btnAcceptOrder;
     @FXML private Button btnRejectOrder;
     @FXML private Button btnMarkDelivered;
+    @FXML private Button btnMarkReceived;
     @FXML private Button btnCancelOrder;
     @FXML private Button btnRateOrder;
 
@@ -68,6 +86,88 @@ public class OrderDetailController {
     private int farmerId;
     private String farmerPhone;
     private String orderStatus;
+
+    private int buyerId;
+    private String buyerName;
+    private String buyerPhone;
+
+    private static class OrderDetailsRow {
+        final int orderId;
+        final String orderNumber;
+        final int cropId;
+        final int farmerId;
+        final int buyerId;
+        final String orderStatus;
+        final String createdAt;
+        final String acceptedAt;
+        final String inTransitAt;
+        final String completedAt;
+        final String paymentStatus;
+        final double totalAmount;
+        final double quantityKg;
+        final double pricePerKg;
+
+        final String cropName;
+        final String productCode;
+        final String category;
+        final String cropPhoto;
+
+        final String farmerName;
+        final String farmerPhone;
+        final String farmerDistrict;
+        final boolean farmerVerified;
+        final String farmerPhoto;
+
+        final String buyerName;
+        final String buyerPhone;
+
+        final String deliveryAddress;
+        final String deliveryDistrict;
+        final String deliveryUpazila;
+
+        final String notes;
+        final String transport;
+
+        private OrderDetailsRow(int orderId, String orderNumber, int cropId, int farmerId, int buyerId,
+                                String orderStatus, String createdAt, String acceptedAt, String inTransitAt, String completedAt,
+                                String paymentStatus, double totalAmount, double quantityKg, double pricePerKg,
+                                String cropName, String productCode, String category, String cropPhoto,
+                                String farmerName, String farmerPhone, String farmerDistrict, boolean farmerVerified, String farmerPhoto,
+                                String buyerName, String buyerPhone,
+                                String deliveryAddress, String deliveryDistrict, String deliveryUpazila,
+                                String notes, String transport) {
+            this.orderId = orderId;
+            this.orderNumber = orderNumber;
+            this.cropId = cropId;
+            this.farmerId = farmerId;
+            this.buyerId = buyerId;
+            this.orderStatus = orderStatus;
+            this.createdAt = createdAt;
+            this.acceptedAt = acceptedAt;
+            this.inTransitAt = inTransitAt;
+            this.completedAt = completedAt;
+            this.paymentStatus = paymentStatus;
+            this.totalAmount = totalAmount;
+            this.quantityKg = quantityKg;
+            this.pricePerKg = pricePerKg;
+            this.cropName = cropName;
+            this.productCode = productCode;
+            this.category = category;
+            this.cropPhoto = cropPhoto;
+            this.farmerName = farmerName;
+            this.farmerPhone = farmerPhone;
+            this.farmerDistrict = farmerDistrict;
+            this.farmerVerified = farmerVerified;
+            this.farmerPhoto = farmerPhoto;
+            this.buyerName = buyerName;
+            this.buyerPhone = buyerPhone;
+            this.deliveryAddress = deliveryAddress;
+            this.deliveryDistrict = deliveryDistrict;
+            this.deliveryUpazila = deliveryUpazila;
+            this.notes = notes;
+            this.transport = transport;
+        }
+    }
 
     @FXML
     public void initialize() {
@@ -103,12 +203,23 @@ public class OrderDetailController {
                     "JOIN users b ON o.buyer_id = b.id " +
                     "WHERE o.order_number = ?";
         
-        DatabaseService.executeQueryAsync(sql, new Object[]{orderNum},
-            rs -> Platform.runLater(() -> populateOrderDetails(rs)),
-            err -> Platform.runLater(() -> {
-                showError("ত্রুটি", "অর্ডার লোড করতে ব্যর্থ হয়েছে।");
-                err.printStackTrace();
-            })
+        DatabaseService.executeQueryAsync(
+                sql,
+                new Object[]{orderNum},
+                rs -> {
+                    OrderDetailsRow row = readSingleOrderRow(rs);
+                    Platform.runLater(() -> {
+                        if (row == null) {
+                            showError("ত্রুটি", "অর্ডার লোড করতে ব্যর্থ হয়েছে।");
+                            return;
+                        }
+                        populateOrderDetails(row);
+                    });
+                },
+                err -> Platform.runLater(() -> {
+                    showError("ত্রুটি", "অর্ডার লোড করতে ব্যর্থ হয়েছে।");
+                    err.printStackTrace();
+                })
         );
     }
 
@@ -124,85 +235,201 @@ public class OrderDetailController {
                     "JOIN users b ON o.buyer_id = b.id " +
                     "WHERE o.id = ?";
         
-        DatabaseService.executeQueryAsync(sql, new Object[]{orderId},
-            rs -> Platform.runLater(() -> populateOrderDetails(rs)),
-            err -> Platform.runLater(() -> {
-                showError("ত্রুটি", "অর্ডার লোড করতে ব্যর্থ হয়েছে।");
-                err.printStackTrace();
-            })
+        DatabaseService.executeQueryAsync(
+                sql,
+                new Object[]{orderId},
+                rs -> {
+                    OrderDetailsRow row = readSingleOrderRow(rs);
+                    Platform.runLater(() -> {
+                        if (row == null) {
+                            showError("ত্রুটি", "অর্ডার লোড করতে ব্যর্থ হয়েছে।");
+                            return;
+                        }
+                        populateOrderDetails(row);
+                    });
+                },
+                err -> Platform.runLater(() -> {
+                    showError("ত্রুটি", "অর্ডার লোড করতে ব্যর্থ হয়েছে।");
+                    err.printStackTrace();
+                })
         );
     }
 
-    private void populateOrderDetails(java.sql.ResultSet rs) {
+    private OrderDetailsRow readSingleOrderRow(java.sql.ResultSet rs) {
         try {
-            if (rs.next()) {
-                orderId = rs.getInt("id");
-                orderNumber = rs.getString("order_number");
-                cropId = rs.getInt("crop_id");
-                farmerId = rs.getInt("farmer_id");
-                farmerPhone = rs.getString("farmer_phone");
-                orderStatus = rs.getString("status");
-                
-                // Order info
-                lblOrderNumber.setText(orderNumber != null ? orderNumber : "N/A");
-                lblOrderStatus.setText(getStatusDisplay(orderStatus));
-                lblOrderDate.setText(safeString(rs, "created_at").substring(0, 10));
-                lblPaymentStatus.setText(getPaymentStatusDisplay(safeString(rs, "payment_status")));
-                lblTotalAmount.setText(String.format("৳ %.2f", rs.getDouble("total_amount")));
-                
-                // Crop info
-                lblCropName.setText(safeString(rs, "crop_name"));
-                lblProductCode.setText(safeString(rs, "product_code"));
-                lblCropCategory.setText(safeString(rs, "category"));
-                lblOrderedQuantity.setText(String.format("%.1f কেজি", rs.getDouble("quantity_kg")));
-                lblPricePerKg.setText(String.format("৳ %.2f", rs.getDouble("price_per_kg")));
-                
-                // Load crop photo
-                String cropPhotoPath = rs.getString("crop_photo");
-                if (cropPhotoPath != null && !cropPhotoPath.isEmpty()) {
-                    File photoFile = new File(cropPhotoPath);
-                    if (photoFile.exists()) {
-                        imgCrop.setImage(new Image(photoFile.toURI().toString()));
-                    }
-                }
-                
-                // Farmer info
-                lblFarmerName.setText(safeString(rs, "farmer_name"));
-                lblFarmerId.setText("ID: " + farmerId);
-                lblFarmerPhone.setText("📱 " + farmerPhone);
-                lblFarmerDistrict.setText("📍 " + safeString(rs, "farmer_district"));
-                boolean farmerVerified = rs.getBoolean("farmer_verified");
-                if (lblFarmerVerified != null) {
-                    lblFarmerVerified.setVisible(farmerVerified);
-                }
-                
-                // Load farmer photo
-                String farmerPhotoPath = rs.getString("farmer_photo");
-                if (farmerPhotoPath != null && !farmerPhotoPath.isEmpty()) {
-                    File photoFile = new File(farmerPhotoPath);
-                    if (photoFile.exists()) {
-                        imgFarmer.setImage(new Image(photoFile.toURI().toString()));
-                    }
-                }
-                
-                // Buyer info
-                lblBuyerName.setText(safeString(rs, "buyer_name"));
-                lblBuyerId.setText(String.valueOf(rs.getInt("buyer_id")));
-                lblBuyerPhone.setText(safeString(rs, "buyer_phone"));
-                lblDeliveryAddress.setText(safeString(rs, "delivery_address") + ", " + 
-                                          safeString(rs, "delivery_district") + ", " + 
-                                          safeString(rs, "delivery_upazila"));
-                
-                // Transport & Notes
-                lblTransport.setText(safeString(rs, "transport") != null ? safeString(rs, "transport") : "N/A");
-                lblNotes.setText(safeString(rs, "notes") != null ? safeString(rs, "notes") : "কোনো নোট নেই");
-                
-                // Show appropriate action buttons based on role and order status
-                setupActionButtons();
-            }
+            if (!rs.next()) return null;
+
+            String createdAt = safeString(rs, "created_at");
+            String buyerNameResolved = pickFirstNonBlank(
+                    safeString(rs, "buyer_name_db"),
+                    safeString(rs, "buyer_name")
+            );
+            String buyerPhoneResolved = pickFirstNonBlank(
+                    safeString(rs, "buyer_phone_db"),
+                    safeString(rs, "buyer_phone")
+            );
+
+            return new OrderDetailsRow(
+                    rs.getInt("id"),
+                    safeString(rs, "order_number"),
+                    rs.getInt("crop_id"),
+                    rs.getInt("farmer_id"),
+                    rs.getInt("buyer_id"),
+                    safeString(rs, "status"),
+                    createdAt,
+                    safeString(rs, "accepted_at"),
+                    safeString(rs, "in_transit_at"),
+                    safeString(rs, "completed_at"),
+                    safeString(rs, "payment_status"),
+                    rs.getDouble("total_amount"),
+                    rs.getDouble("quantity_kg"),
+                    rs.getDouble("price_per_kg"),
+                    safeString(rs, "crop_name"),
+                    safeString(rs, "product_code"),
+                    safeString(rs, "category"),
+                    safeString(rs, "crop_photo"),
+                    safeString(rs, "farmer_name"),
+                    safeString(rs, "farmer_phone"),
+                    safeString(rs, "farmer_district"),
+                    rs.getBoolean("farmer_verified"),
+                    safeString(rs, "farmer_photo"),
+                    buyerNameResolved,
+                    buyerPhoneResolved,
+                    safeString(rs, "delivery_address"),
+                    safeString(rs, "delivery_district"),
+                    safeString(rs, "delivery_upazila"),
+                    safeString(rs, "notes"),
+                    safeString(rs, "transport")
+            );
         } catch (Exception e) {
             e.printStackTrace();
-            showError("ত্রুটি", "অর্ডার তথ্য পার্স করতে ব্যর্থ হয়েছে।");
+            return null;
+        }
+    }
+
+    private void populateOrderDetails(OrderDetailsRow row) {
+        orderId = row.orderId;
+        orderNumber = row.orderNumber;
+        cropId = row.cropId;
+        farmerId = row.farmerId;
+        buyerId = row.buyerId;
+        farmerPhone = row.farmerPhone;
+        orderStatus = row.orderStatus;
+        buyerName = row.buyerName;
+        buyerPhone = row.buyerPhone;
+
+        // Order info
+        lblOrderNumber.setText(orderNumber != null && !orderNumber.isBlank() ? orderNumber : "N/A");
+        lblOrderStatus.setText(getStatusDisplay(orderStatus));
+        if (lblOrderId != null) {
+            lblOrderId.setText(String.valueOf(orderId));
+        }
+
+        String createdAt = row.createdAt;
+        lblOrderDate.setText(createdAt != null && createdAt.length() >= 10 ? createdAt.substring(0, 10) : createdAt);
+        lblPaymentStatus.setText(getPaymentStatusDisplay(row.paymentStatus));
+        lblTotalAmount.setText(String.format("৳ %.2f", row.totalAmount));
+
+        // Status timeline
+        if (lblStatusRequestedAt != null) {
+            lblStatusRequestedAt.setText(formatTimestampForTimeline(createdAt));
+        }
+        if (lblStatusAcceptedAt != null) {
+            lblStatusAcceptedAt.setText(formatTimestampForTimeline(row.acceptedAt));
+        }
+        if (lblStatusDeliveredAt != null) {
+            lblStatusDeliveredAt.setText(formatTimestampForTimeline(row.inTransitAt));
+        }
+        if (lblStatusCompletedAt != null) {
+            lblStatusCompletedAt.setText(formatTimestampForTimeline(row.completedAt));
+        }
+
+        // Crop info
+        lblCropName.setText(row.cropName);
+        lblProductCode.setText(row.productCode);
+        if (lblCropId != null) {
+            lblCropId.setText("Crop ID: " + cropId);
+        }
+        lblCropCategory.setText(row.category);
+        lblOrderedQuantity.setText(String.format("%.1f কেজি", row.quantityKg));
+        lblPricePerKg.setText(String.format("৳ %.2f", row.pricePerKg));
+
+        // Load crop photo
+        if (row.cropPhoto != null && !row.cropPhoto.isEmpty()) {
+            File photoFile = new File(row.cropPhoto);
+            if (photoFile.exists()) {
+                imgCrop.setImage(new Image(photoFile.toURI().toString()));
+            }
+        }
+
+        // Farmer info
+        lblFarmerName.setText(row.farmerName);
+        lblFarmerId.setText("ID: " + farmerId);
+        lblFarmerPhone.setText("📱 " + (farmerPhone != null ? farmerPhone : ""));
+        lblFarmerDistrict.setText("📍 " + row.farmerDistrict);
+        if (lblFarmerVerified != null) {
+            lblFarmerVerified.setVisible(row.farmerVerified);
+        }
+
+        // Load farmer photo
+        if (row.farmerPhoto != null && !row.farmerPhoto.isEmpty()) {
+            File photoFile = new File(row.farmerPhoto);
+            if (photoFile.exists()) {
+                imgFarmer.setImage(new Image(photoFile.toURI().toString()));
+            }
+        }
+
+        // Buyer info
+        lblBuyerName.setText(buyerName);
+        lblBuyerId.setText(String.valueOf(buyerId));
+        lblBuyerPhone.setText(buyerPhone != null ? buyerPhone : "");
+
+        String delivery = String.join(", ",
+                row.deliveryAddress != null ? row.deliveryAddress : "",
+                row.deliveryDistrict != null ? row.deliveryDistrict : "",
+                row.deliveryUpazila != null ? row.deliveryUpazila : ""
+        ).replaceAll("(, )+$", "");
+        lblDeliveryAddress.setText(delivery);
+
+        // Transport & Notes
+        lblTransport.setText(row.transport != null && !row.transport.isBlank() ? row.transport : "N/A");
+        lblNotes.setText(row.notes != null && !row.notes.isBlank() ? row.notes : "কোনো নোট নেই");
+
+        setupActionButtons();
+        setupCounterpartyActions();
+    }
+
+    private void setupCounterpartyActions() {
+        int currentUserId = currentUser != null ? currentUser.getId() : -1;
+        boolean isSelfFarmer = currentUserId == farmerId;
+        boolean isSelfBuyer = currentUserId == buyerId;
+
+        // Farmer section: allow everyone to view profile; hide call/chat if it's the same user.
+        if (btnCallFarmer != null) {
+            btnCallFarmer.setVisible(!isSelfFarmer);
+            btnCallFarmer.setManaged(!isSelfFarmer);
+        }
+        if (btnChatFarmer != null) {
+            btnChatFarmer.setVisible(!isSelfFarmer);
+            btnChatFarmer.setManaged(!isSelfFarmer);
+        }
+        if (btnViewFarmerProfile != null) {
+            btnViewFarmerProfile.setVisible(true);
+            btnViewFarmerProfile.setManaged(true);
+        }
+
+        // Buyer section: allow everyone to view profile; hide call/chat if it's the same user.
+        if (btnCallBuyer != null) {
+            btnCallBuyer.setVisible(!isSelfBuyer);
+            btnCallBuyer.setManaged(!isSelfBuyer);
+        }
+        if (btnChatBuyer != null) {
+            btnChatBuyer.setVisible(!isSelfBuyer);
+            btnChatBuyer.setManaged(!isSelfBuyer);
+        }
+        if (btnViewBuyerProfile != null) {
+            btnViewBuyerProfile.setVisible(true);
+            btnViewBuyerProfile.setManaged(true);
         }
     }
 
@@ -216,7 +443,6 @@ public class OrderDetailController {
             // Show/hide buttons based on status
             switch (orderStatus) {
                 case "new":
-                case "pending":
                     btnAcceptOrder.setVisible(true);
                     btnRejectOrder.setVisible(true);
                     btnMarkDelivered.setVisible(false);
@@ -236,17 +462,24 @@ public class OrderDetailController {
             
             switch (orderStatus) {
                 case "new":
-                case "pending":
                     btnCancelOrder.setVisible(true);
+                    if (btnMarkReceived != null) btnMarkReceived.setVisible(false);
                     btnRateOrder.setVisible(false);
                     break;
-                case "delivered":
-                case "completed":
+                case "in_transit":
                     btnCancelOrder.setVisible(false);
+                    if (btnMarkReceived != null) btnMarkReceived.setVisible(true);
+                    btnRateOrder.setVisible(false);
+                    break;
+                case "completed":
+                case "delivered":
+                    btnCancelOrder.setVisible(false);
+                    if (btnMarkReceived != null) btnMarkReceived.setVisible(false);
                     btnRateOrder.setVisible(true);
                     break;
                 default:
                     btnCancelOrder.setVisible(false);
+                    if (btnMarkReceived != null) btnMarkReceived.setVisible(false);
                     btnRateOrder.setVisible(false);
             }
         }
@@ -255,13 +488,12 @@ public class OrderDetailController {
     private String getStatusDisplay(String status) {
         if (status == null) return "❓ অজানা";
         switch (status) {
-            case "new": return "🆕 নতুন";
-            case "pending": return "⏳ অপেক্ষমাণ";
+            case "new": return "🆕 অনুরোধ করা হয়েছে";
             case "accepted": return "✅ গৃহীত";
             case "rejected": return "❌ প্রত্যাখ্যাত";
-            case "in_transit": return "🚚 পরিবহনে";
+            case "in_transit": return "🚚 পথে আছে";
             case "delivered": return "📦 ডেলিভারি সম্পন্ন";
-            case "completed": return "✅ সম্পন্ন";
+            case "completed": return "✅ গ্রহণ করা হয়েছে";
             case "cancelled": return "❌ বাতিল";
             default: return "❓ " + status;
         }
@@ -280,6 +512,20 @@ public class OrderDetailController {
 
     private String safeString(java.sql.ResultSet rs, String col) {
         try { return rs.getString(col); } catch (Exception e) { return ""; }
+    }
+
+    private String pickFirstNonBlank(String... values) {
+        for (String v : values) {
+            if (v != null && !v.isBlank()) return v;
+        }
+        return "";
+    }
+
+    private String formatTimestampForTimeline(String ts) {
+        if (ts == null || ts.isBlank()) return "—";
+        // Common SQLite format: yyyy-MM-dd HH:mm:ss
+        if (ts.length() >= 16) return ts.substring(0, 16);
+        return ts;
     }
 
     @FXML
@@ -327,9 +573,62 @@ public class OrderDetailController {
     }
 
     @FXML
+    private void onCallBuyer() {
+        if (buyerPhone != null && !buyerPhone.isEmpty()) {
+            try {
+                if (Desktop.isDesktopSupported()) {
+                    Desktop.getDesktop().browse(new URI("tel:" + buyerPhone));
+                }
+            } catch (Exception e) {
+                showInfo("ফোন নম্বর", "কল করুন: " + buyerPhone);
+            }
+        } else {
+            showInfo("ফোন নম্বর", "ক্রেতার ফোন নম্বর পাওয়া যায়নি");
+        }
+    }
+
+    @FXML
     private void onViewFarmerProfile() {
         App.setCurrentViewedUserId(farmerId);
         App.loadScene("public-farmer-profile-view.fxml", "কৃষকের প্রোফাইল");
+    }
+
+    @FXML
+    private void onViewBuyerProfile() {
+        App.setCurrentViewedUserId(buyerId);
+        App.loadScene("public-buyer-profile-view.fxml", "ক্রেতার প্রোফাইল");
+    }
+
+    @FXML
+    private void onChatBuyer() {
+        try {
+            String name = buyerName != null && !buyerName.isBlank() ? buyerName : ("User " + buyerId);
+            App.showView("chat-conversation-view.fxml", controller -> {
+                if (controller instanceof ChatConversationController) {
+                    ChatConversationController chatController = (ChatConversationController) controller;
+                    chatController.loadConversation(0, buyerId, name, cropId);
+                }
+            });
+        } catch (Exception e) {
+            showError("ত্রুটি", "চ্যাট খুলতে ব্যর্থ হয়েছে।");
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void onChatFarmer() {
+        try {
+            String name = lblFarmerName != null ? lblFarmerName.getText() : ("User " + farmerId);
+            App.showView("chat-conversation-view.fxml", controller -> {
+                if (controller instanceof ChatConversationController) {
+                    ChatConversationController chatController = (ChatConversationController) controller;
+                    chatController.loadConversation(0, farmerId, name, cropId);
+                }
+            });
+        } catch (Exception e) {
+            showError("ত্রুটি", "চ্যাট খুলতে ব্যর্থ হয়েছে।");
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -351,7 +650,12 @@ public class OrderDetailController {
 
     @FXML
     private void onMarkDelivered() {
-        updateOrderStatus("delivered", "📦 ডেলিভারি সম্পন্ন!");
+        updateOrderStatus("in_transit", "🚚 ডেলিভারির জন্য পাঠানো হয়েছে!");
+    }
+
+    @FXML
+    private void onMarkReceived() {
+        updateOrderStatus("completed", "✅ পণ্য গ্রহণ নিশ্চিত করা হয়েছে!");
     }
 
     @FXML
@@ -373,11 +677,36 @@ public class OrderDetailController {
     }
 
     private void updateOrderStatus(String newStatus, String successMessage) {
-        String sql = "UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?";
-        DatabaseService.executeUpdateAsync(sql, new Object[]{newStatus, orderId},
+        String sql;
+        Object[] params;
+        switch (newStatus) {
+            case "accepted" -> {
+                sql = "UPDATE orders SET status = ?, accepted_at = datetime('now'), updated_at = datetime('now') WHERE id = ?";
+                params = new Object[]{newStatus, orderId};
+            }
+            case "in_transit" -> {
+                sql = "UPDATE orders SET status = ?, in_transit_at = datetime('now'), updated_at = datetime('now') WHERE id = ?";
+                params = new Object[]{newStatus, orderId};
+            }
+            case "completed" -> {
+                sql = "UPDATE orders SET status = ?, completed_at = datetime('now'), updated_at = datetime('now') WHERE id = ?";
+                params = new Object[]{newStatus, orderId};
+            }
+            default -> {
+                sql = "UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?";
+                params = new Object[]{newStatus, orderId};
+            }
+        }
+
+        DatabaseService.executeUpdateAsync(sql, params,
             rows -> Platform.runLater(() -> {
                 if (rows > 0) {
                     showInfo("সফল", successMessage);
+
+                    // Best-effort cloud sync
+                    FirebaseSyncService.getInstance().syncOrderToFirebase(orderId);
+                    FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, newStatus, null);
+
                     loadOrderDetails(); // Refresh
                 }
             }),

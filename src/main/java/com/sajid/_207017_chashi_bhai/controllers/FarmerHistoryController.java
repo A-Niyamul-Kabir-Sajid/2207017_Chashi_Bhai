@@ -3,6 +3,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.services.FirebaseSyncService;
 import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -368,8 +369,13 @@ public class FarmerHistoryController {
     }
 
     private void refreshHistory() {
-        loadSummaryStats();
-        loadHistory();
+        FirebaseSyncService.getInstance().syncFarmerOrdersFromFirebase(
+            currentUser.getId(),
+            () -> {
+                loadSummaryStats();
+                loadHistory();
+            }
+        );
     }
 
     @FXML

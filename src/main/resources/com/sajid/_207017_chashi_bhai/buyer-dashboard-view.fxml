@@ -44,17 +44,6 @@
                     <Label text="সেরা ফসল খুঁজুন" styleClass="welcome-subtitle"/>
                 </VBox>
 
-                <!-- Search Bar -->
-                <HBox spacing="12" styleClass="search-container" alignment="CENTER">
-                    <padding>
-                        <Insets top="15" bottom="15" left="20" right="20"/>
-                    </padding>
-                    <Label text="🔍" styleClass="search-icon"/>
-                    <TextField fx:id="txtSearch" promptText="ফসল খুঁজুন... (যেমন: ধান, আলু, টমেটো)" 
-                               styleClass="search-input" HBox.hgrow="ALWAYS" onAction="#onSearch"/>
-                    <Button fx:id="btnSearch" text="খুঁজুন" styleClass="button-primary" onAction="#onSearch" prefWidth="120"/>
-                </HBox>
-
                 <!-- Quick Action Buttons -->
                 <HBox spacing="20" alignment="CENTER">
                     <Button fx:id="btnBrowseAll" styleClass="action-button-large, card-green" onAction="#onBrowseAll" prefWidth="280" prefHeight="100">

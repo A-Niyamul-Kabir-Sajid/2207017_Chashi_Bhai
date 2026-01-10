@@ -3,14 +3,19 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.services.FirebaseSyncService;
+import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * BuyerHistoryController - Display completed purchases with analytics
@@ -29,11 +34,23 @@ public class BuyerHistoryController {
     @FXML private VBox vboxHistoryList;
     @FXML private ProgressIndicator progressIndicator;
 
+    // New (current FXML) table-based UI
+    @FXML private TableView<HistoryRow> tableHistory;
+    @FXML private TableColumn<HistoryRow, String> colDate;
+    @FXML private TableColumn<HistoryRow, String> colFarmer;
+    @FXML private TableColumn<HistoryRow, String> colCrop;
+    @FXML private TableColumn<HistoryRow, String> colQuantity;
+    @FXML private TableColumn<HistoryRow, String> colUnitPrice;
+    @FXML private TableColumn<HistoryRow, String> colTotalPrice;
+    @FXML private TableColumn<HistoryRow, String> colRating;
+
     private User currentUser;
+    private DataSyncManager syncManager;
 
     @FXML
     public void initialize() {
         currentUser = App.getCurrentUser();
+        syncManager = DataSyncManager.getInstance();
         
         if (currentUser == null || !"buyer".equals(currentUser.getRole())) {
             showError("অ্যাক্সেস অস্বীকার", "শুধুমাত্র ক্রেতারা এই পেজ দেখতে পারবেন।");
@@ -41,15 +58,19 @@ public class BuyerHistoryController {
             return;
         }
 
-        // Initialize filters
-        cbFilterMonth.getItems().addAll("সকল সময়", "এই মাস", "গত মাস", "গত ৩ মাস", "গত ৬ মাস", "এই বছর");
-        cbFilterMonth.setValue("সকল সময়");
-        cbFilterCrop.getItems().add("সকল ফসল");
-        cbFilterCrop.setValue("সকল ফসল");
+        // Ensure sensible defaults (FXML may already provide items)
+        if (cbFilterMonth != null && cbFilterMonth.getValue() == null && !cbFilterMonth.getItems().isEmpty()) {
+            cbFilterMonth.getSelectionModel().select(0);
+        }
+        if (cbFilterCrop != null && cbFilterCrop.getValue() == null && !cbFilterCrop.getItems().isEmpty()) {
+            cbFilterCrop.getSelectionModel().select(0);
+        }
         
         // Initialize sort dropdown with default selection
         if (cbSortBy != null) {
-            cbSortBy.getSelectionModel().select(0); // Default: Newest First
+            if (cbSortBy.getSelectionModel().getSelectedItem() == null && !cbSortBy.getItems().isEmpty()) {
+                cbSortBy.getSelectionModel().select(0);
+            }
             cbSortBy.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
                 if (newVal != null) {
                     loadHistory();
@@ -57,9 +78,41 @@ public class BuyerHistoryController {
             });
         }
 
+        // Wire buttons in case FXML doesn't
+        if (btnApplyFilter != null) {
+            btnApplyFilter.setOnAction(e -> loadHistory());
+        }
+        if (btnExport != null) {
+            btnExport.setOnAction(e -> onExport());
+        }
+
+        // Set up table columns (new UI)
+        if (tableHistory != null) {
+            if (colDate != null) colDate.setCellValueFactory(new PropertyValueFactory<>("date"));
+            if (colFarmer != null) colFarmer.setCellValueFactory(new PropertyValueFactory<>("farmer"));
+            if (colCrop != null) colCrop.setCellValueFactory(new PropertyValueFactory<>("crop"));
+            if (colQuantity != null) colQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+            if (colUnitPrice != null) colUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
+            if (colTotalPrice != null) colTotalPrice.setCellValueFactory(new PropertyValueFactory<>("totalPrice"));
+            if (colRating != null) colRating.setCellValueFactory(new PropertyValueFactory<>("rating"));
+        }
+
         loadSummaryStats();
         loadHistory();
         loadCropFilter();
+
+        // Start real-time sync polling for history (every 30 seconds)
+        syncManager.startPolling("buyer_history_" + currentUser.getId(), this::refreshHistory, 30);
+    }
+
+    private void refreshHistory() {
+        FirebaseSyncService.getInstance().syncBuyerOrdersFromFirebase(
+            currentUser.getId(),
+            () -> {
+                loadSummaryStats();
+                loadHistory();
+            }
+        );
     }
 
     private void loadSummaryStats() {
@@ -76,9 +129,15 @@ public class BuyerHistoryController {
                         String mostBought = resultSet.getString("most_bought_crop");
                         
                         Platform.runLater(() -> {
-                            lblTotalExpense.setText(String.format("৳%.2f", expense));
-                            lblTotalAcceptedOrders.setText(String.valueOf(totalOrders));
-                            lblMostBought.setText(mostBought != null ? mostBought : "N/A");
+                            if (lblTotalExpense != null) {
+                                lblTotalExpense.setText(String.format("৳%.2f", expense));
+                            }
+                            if (lblTotalAcceptedOrders != null) {
+                                lblTotalAcceptedOrders.setText(String.valueOf(totalOrders));
+                            }
+                            if (lblMostBought != null) {
+                                lblMostBought.setText(mostBought != null ? mostBought : "N/A");
+                            }
                         });
                     }
                 } catch (Exception e) {
@@ -100,7 +159,9 @@ public class BuyerHistoryController {
                         int favoriteFarmers = resultSet.getInt("favorite_farmers");
                         
                         Platform.runLater(() -> {
-                            lblFavoriteFarmers.setText(String.valueOf(favoriteFarmers));
+                            if (lblFavoriteFarmers != null) {
+                                lblFavoriteFarmers.setText(String.valueOf(favoriteFarmers));
+                            }
                         });
                     }
                 } catch (Exception e) {
@@ -115,14 +176,25 @@ public class BuyerHistoryController {
         DatabaseService.executeQueryAsync(
             "SELECT DISTINCT c.name FROM orders o " +
             "JOIN crops c ON o.crop_id = c.id " +
-            "WHERE o.buyer_id = ? AND o.status = 'delivered' " +
+            "WHERE o.buyer_id = ? AND o.status IN ('delivered', 'completed') " +
             "ORDER BY c.name",
             new Object[]{currentUser.getId()},
             resultSet -> {
                 Platform.runLater(() -> {
                     try {
+                        if (cbFilterCrop != null) {
+                            String selected = cbFilterCrop.getValue();
+                            cbFilterCrop.getItems().clear();
+                            cbFilterCrop.getItems().add("সব ফসল (All Crops)");
+                            cbFilterCrop.getSelectionModel().select(0);
+                            if (selected != null && !selected.contains("All") && !selected.contains("সব")) {
+                                // selection will be restored if it exists in the new list
+                            }
+                        }
                         while (resultSet.next()) {
-                            cbFilterCrop.getItems().add(resultSet.getString("name"));
+                            if (cbFilterCrop != null) {
+                                cbFilterCrop.getItems().add(resultSet.getString("name"));
+                            }
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -137,41 +209,79 @@ public class BuyerHistoryController {
         if (progressIndicator != null) {
             progressIndicator.setVisible(true);
         }
-        vboxHistoryList.getChildren().clear();
 
-        String query = "SELECT o.*, c.name as crop_name, c.price_per_kg as price, 'কেজি' as unit, " +
+        if (vboxHistoryList != null) {
+            vboxHistoryList.getChildren().clear();
+        }
+        if (tableHistory != null) {
+            tableHistory.getItems().clear();
+        }
+
+        String effectiveDateExpr = "COALESCE(o.completed_at, o.delivered_at, o.updated_at, o.created_at)";
+
+        String query = "SELECT o.id, o.crop_id, o.quantity_kg, o.updated_at, " +
+                  effectiveDateExpr + " as effective_date, " +
+                      "c.name as crop_name, c.price_per_kg as price, " +
                       "u.name as farmer_name, u.is_verified, " +
-                      "(SELECT rating FROM ratings WHERE order_id = o.id LIMIT 1) as my_rating, " +
                       "(SELECT rating FROM reviews WHERE order_id = o.id AND reviewer_id = ? LIMIT 1) as my_review_rating " +
                       "FROM orders o " +
                       "JOIN crops c ON o.crop_id = c.id " +
                       "JOIN users u ON c.farmer_id = u.id " +
                       "WHERE o.buyer_id = ? AND o.status IN ('delivered', 'completed') ";
+
+        List<Object> params = new ArrayList<>();
+        params.add(currentUser.getId()); // reviewer_id
+        params.add(currentUser.getId()); // buyer_id
+
+        // Month filter (based on effective date)
+        String month = cbFilterMonth != null ? cbFilterMonth.getValue() : null;
+        if (month != null) {
+            if (month.contains("This Month") || month.contains("এই মাস")) {
+                query += " AND date(" + effectiveDateExpr + ") >= date('now','start of month')";
+            } else if (month.contains("Last Month") || month.contains("গত মাস")) {
+                query += " AND date(" + effectiveDateExpr + ") >= date('now','start of month','-1 month')";
+                query += " AND date(" + effectiveDateExpr + ") < date('now','start of month')";
+            } else if (month.contains("Last 3") || month.contains("গত ৩")) {
+                query += " AND date(" + effectiveDateExpr + ") >= date('now','-3 months')";
+            } else if (month.contains("This Year") || month.contains("এই বছর")) {
+                query += " AND date(" + effectiveDateExpr + ") >= date('now','start of year')";
+            }
+        }
+
+        // Crop filter
+        String crop = cbFilterCrop != null ? cbFilterCrop.getValue() : null;
+        if (crop != null && !crop.isBlank() && !crop.contains("All") && !crop.contains("সব")) {
+            query += " AND c.name = ?";
+            params.add(crop);
+        }
         
         // Apply sorting based on user selection
         String sortOption = cbSortBy != null ? cbSortBy.getSelectionModel().getSelectedItem() : null;
         if (sortOption != null) {
             if (sortOption.contains("High to Low") || sortOption.contains("বেশি থেকে কম")) {
-                query += "ORDER BY (o.quantity_kg * c.price_per_kg) DESC";
+                query += " ORDER BY (o.quantity_kg * c.price_per_kg) DESC";
             } else if (sortOption.contains("Low to High") || sortOption.contains("কম থেকে বেশি")) {
-                query += "ORDER BY (o.quantity_kg * c.price_per_kg) ASC";
+                query += " ORDER BY (o.quantity_kg * c.price_per_kg) ASC";
             } else {
-                // Default: Newest First
-                query += "ORDER BY o.updated_at DESC";
+                query += " ORDER BY " + effectiveDateExpr + " DESC";
             }
         } else {
-            query += "ORDER BY o.updated_at DESC";
+            query += " ORDER BY " + effectiveDateExpr + " DESC";
         }
 
         DatabaseService.executeQueryAsync(
             query,
-            new Object[]{currentUser.getId(), currentUser.getId()},
+            params.toArray(),
             resultSet -> {
                 Platform.runLater(() -> {
                     try {
                         while (resultSet.next()) {
-                            HBox historyCard = createHistoryCard(resultSet);
-                            vboxHistoryList.getChildren().add(historyCard);
+                            if (tableHistory != null) {
+                                tableHistory.getItems().add(createHistoryRow(resultSet));
+                            } else if (vboxHistoryList != null) {
+                                HBox historyCard = createHistoryCard(resultSet);
+                                vboxHistoryList.getChildren().add(historyCard);
+                            }
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -193,6 +303,67 @@ public class BuyerHistoryController {
                 });
             }
         );
+    }
+
+    private HistoryRow createHistoryRow(ResultSet rs) throws Exception {
+        String effectiveDate = rs.getString("effective_date");
+        String date = (effectiveDate != null && effectiveDate.length() >= 10) ? effectiveDate.substring(0, 10) : "";
+
+        String farmerName = rs.getString("farmer_name");
+        boolean isVerified = rs.getBoolean("is_verified");
+        String farmer = farmerName != null ? farmerName : "";
+        if (isVerified && !farmer.isBlank()) {
+            farmer = farmer + " ✓";
+        }
+
+        String cropName = rs.getString("crop_name");
+        double quantity = rs.getDouble("quantity_kg");
+        double unitPrice = rs.getDouble("price");
+        double total = quantity * unitPrice;
+
+        Object ratingObj = rs.getObject("my_review_rating");
+        String rating = "-";
+        if (ratingObj != null) {
+            rating = String.valueOf(((Number) ratingObj).intValue());
+        }
+
+        return new HistoryRow(
+            date,
+            cropName != null ? cropName : "",
+            farmer,
+            String.format("%.1f কেজি", quantity),
+            String.format("৳%.2f", unitPrice),
+            String.format("৳%.2f", total),
+            rating
+        );
+    }
+
+    public static class HistoryRow {
+        private final String date;
+        private final String crop;
+        private final String farmer;
+        private final String quantity;
+        private final String unitPrice;
+        private final String totalPrice;
+        private final String rating;
+
+        public HistoryRow(String date, String crop, String farmer, String quantity, String unitPrice, String totalPrice, String rating) {
+            this.date = date;
+            this.crop = crop;
+            this.farmer = farmer;
+            this.quantity = quantity;
+            this.unitPrice = unitPrice;
+            this.totalPrice = totalPrice;
+            this.rating = rating;
+        }
+
+        public String getDate() { return date; }
+        public String getCrop() { return crop; }
+        public String getFarmer() { return farmer; }
+        public String getQuantity() { return quantity; }
+        public String getUnitPrice() { return unitPrice; }
+        public String getTotalPrice() { return totalPrice; }
+        public String getRating() { return rating; }
     }
 
     private HBox createHistoryCard(ResultSet rs) throws Exception {
@@ -435,7 +606,7 @@ public class BuyerHistoryController {
 
     private void reorder(int orderId) {
         DatabaseService.executeQueryAsync(
-            "SELECT crop_id, quantity FROM orders WHERE id = ?",
+            "SELECT crop_id, quantity_kg FROM orders WHERE id = ?",
             new Object[]{orderId},
             resultSet -> {
                 Platform.runLater(() -> {
@@ -467,6 +638,9 @@ public class BuyerHistoryController {
 
     @FXML
     private void onBack() {
+        if (syncManager != null && currentUser != null) {
+            syncManager.stopPolling("buyer_history_" + currentUser.getId());
+        }
         App.loadScene("buyer-dashboard-view.fxml", "Dashboard");
     }
 

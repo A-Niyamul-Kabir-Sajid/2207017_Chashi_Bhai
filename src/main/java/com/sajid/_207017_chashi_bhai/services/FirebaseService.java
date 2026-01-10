@@ -359,15 +359,66 @@ public class FirebaseService {
     // ==================== ORDER OPERATIONS ====================
 
     /**
+     * Get a single order document
+     */
+    public void getOrder(String orderId, Consumer<DocumentSnapshot> onSuccess,
+                         Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                DocumentSnapshot doc = firestore.collection(COLLECTION_ORDERS)
+                        .document(orderId)
+                        .get()
+                        .get();
+
+                if (onSuccess != null) {
+                    onSuccess.accept(doc);
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error getting order: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
+                }
+            }
+        });
+    }
+
+    /**
+     * Upsert (merge) order fields without touching created_at
+     */
+    public void upsertOrder(String orderId, Map<String, Object> orderData,
+                            Runnable onSuccess, Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                orderData.put("updated_at", FieldValue.serverTimestamp());
+
+                firestore.collection(COLLECTION_ORDERS)
+                        .document(orderId)
+                        .set(orderData, SetOptions.merge())
+                        .get();
+
+                if (onSuccess != null) {
+                    onSuccess.run();
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error upserting order: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
+                }
+            }
+        });
+    }
+
+    /**
      * Create a new order
      */
     public void createOrder(String orderId, Map<String, Object> orderData, 
                            Runnable onSuccess, Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
-                orderData.put("created_at", FieldValue.serverTimestamp());
-                orderData.put("status", "new");
-                orderData.put("payment_status", "pending");
+                orderData.putIfAbsent("created_at", FieldValue.serverTimestamp());
+                orderData.putIfAbsent("status", "new");
+                orderData.putIfAbsent("payment_status", "pending");
+                orderData.put("updated_at", FieldValue.serverTimestamp());
                 
                 firestore.collection(COLLECTION_ORDERS)
                         .document(orderId)
@@ -389,7 +440,7 @@ public class FirebaseService {
     /**
      * Get orders by farmer ID
      */
-    public void getOrdersByFarmer(String farmerId, Consumer<QuerySnapshot> onSuccess, 
+    public void getOrdersByFarmer(int farmerId, Consumer<QuerySnapshot> onSuccess,
                                   Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
@@ -414,7 +465,7 @@ public class FirebaseService {
     /**
      * Get orders by buyer ID
      */
-    public void getOrdersByBuyer(String buyerId, Consumer<QuerySnapshot> onSuccess, 
+    public void getOrdersByBuyer(int buyerId, Consumer<QuerySnapshot> onSuccess,
                                  Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
@@ -445,11 +496,15 @@ public class FirebaseService {
             try {
                 Map<String, Object> updates = new HashMap<>();
                 updates.put("status", status);
+                updates.put("updated_at", FieldValue.serverTimestamp());
                 
                 // Add timestamp for specific statuses
                 switch (status) {
                     case "accepted":
                         updates.put("accepted_at", FieldValue.serverTimestamp());
+                        break;
+                    case "in_transit":
+                        updates.put("in_transit_at", FieldValue.serverTimestamp());
                         break;
                     case "delivered":
                         updates.put("delivered_at", FieldValue.serverTimestamp());
