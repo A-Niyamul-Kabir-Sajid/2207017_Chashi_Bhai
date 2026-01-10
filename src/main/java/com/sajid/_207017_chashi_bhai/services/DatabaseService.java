@@ -13,12 +13,25 @@ import java.util.function.Consumer;
 public class DatabaseService {
 
     private static final String DB_URL = "jdbc:sqlite:data/chashi_bhai.db";
+    private static DatabaseService instance;
+    
     public static final ExecutorService dbExecutor = Executors.newSingleThreadExecutor(r -> {
         Thread thread = new Thread(r);
         thread.setDaemon(true);
         thread.setName("DatabaseWorker");
         return thread;
     });
+
+    private DatabaseService() {
+        // Private constructor for singleton
+    }
+
+    public static DatabaseService getInstance() {
+        if (instance == null) {
+            instance = new DatabaseService();
+        }
+        return instance;
+    }
 
     /**
      * Get a database connection
@@ -51,7 +64,8 @@ public class DatabaseService {
 
                 ResultSet rs = stmt.executeQuery();
                 
-                // Callback with result
+                // Callback with result - callback must NOT use Platform.runLater to read ResultSet
+                // Read all data from ResultSet BEFORE using Platform.runLater
                 if (onSuccess != null) {
                     onSuccess.accept(rs);
                 }
@@ -170,29 +184,35 @@ public class DatabaseService {
                     "role TEXT NOT NULL, " +
                     "district TEXT, " +
                     "upazila TEXT, " +
-                    "farm_type TEXT, " +
+                    "village TEXT, " +
+                    "nid TEXT, " +
                     "profile_photo TEXT, " +
                     "is_verified INTEGER DEFAULT 0, " +
-                    "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
+                    "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                    "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
                 );
 
-                // Crops table
+                // Crops table with proper columns
                 stmt.execute(
                     "CREATE TABLE IF NOT EXISTS crops (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "product_code TEXT UNIQUE NOT NULL, " +
                     "farmer_id INTEGER NOT NULL, " +
                     "name TEXT NOT NULL, " +
                     "category TEXT NOT NULL, " +
-                    "price REAL NOT NULL, " +
-                    "unit TEXT NOT NULL, " +
-                    "quantity REAL NOT NULL, " +
-                    "harvest_date TEXT, " +
-                    "district TEXT, " +
-                    "transport_info TEXT, " +
+                    "initial_quantity_kg REAL NOT NULL, " +
+                    "available_quantity_kg REAL NOT NULL, " +
+                    "price_per_kg REAL NOT NULL, " +
                     "description TEXT, " +
-                    "status TEXT DEFAULT 'active', " +
+                    "district TEXT NOT NULL, " +
+                    "upazila TEXT, " +
+                    "village TEXT, " +
+                    "harvest_date DATE, " +
+                    "transport_info TEXT, " +
+                    "status TEXT DEFAULT 'active' CHECK(status IN ('active', 'sold', 'expired', 'deleted')), " +
                     "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-                    "FOREIGN KEY (farmer_id) REFERENCES users(id))"
+                    "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                    "FOREIGN KEY (farmer_id) REFERENCES users(id) ON DELETE CASCADE)"
                 );
 
                 // Crop photos table
@@ -214,34 +234,48 @@ public class DatabaseService {
                     "FOREIGN KEY (farmer_id) REFERENCES users(id))"
                 );
 
-                // Orders table
+                // Orders table with proper columns
                 stmt.execute(
                     "CREATE TABLE IF NOT EXISTS orders (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "order_number TEXT UNIQUE NOT NULL, " +
                     "crop_id INTEGER NOT NULL, " +
+                    "farmer_id INTEGER NOT NULL, " +
                     "buyer_id INTEGER NOT NULL, " +
-                    "quantity REAL NOT NULL, " +
-                    "status TEXT DEFAULT 'pending', " +
-                    "payment_status TEXT DEFAULT 'pending', " +
+                    "quantity_kg REAL NOT NULL, " +
+                    "price_per_kg REAL NOT NULL, " +
+                    "total_amount REAL NOT NULL, " +
+                    "delivery_address TEXT, " +
+                    "delivery_district TEXT, " +
+                    "delivery_upazila TEXT, " +
+                    "buyer_phone TEXT NOT NULL, " +
+                    "buyer_name TEXT NOT NULL, " +
+                    "status TEXT DEFAULT 'new' CHECK(status IN ('new', 'accepted', 'rejected', 'in_transit', 'delivered', 'cancelled', 'completed')), " +
+                    "payment_status TEXT DEFAULT 'pending' CHECK(payment_status IN ('pending', 'partial', 'paid', 'refunded')), " +
+                    "payment_method TEXT CHECK(payment_method IN ('cash', 'bkash', 'nagad', 'rocket', 'bank')), " +
+                    "notes TEXT, " +
                     "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-                    "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-                    "FOREIGN KEY (crop_id) REFERENCES crops(id), " +
-                    "FOREIGN KEY (buyer_id) REFERENCES users(id))"
+                    "accepted_at TIMESTAMP, " +
+                    "delivered_at TIMESTAMP, " +
+                    "completed_at TIMESTAMP, " +
+                    "FOREIGN KEY (crop_id) REFERENCES crops(id) ON DELETE CASCADE, " +
+                    "FOREIGN KEY (farmer_id) REFERENCES users(id) ON DELETE CASCADE, " +
+                    "FOREIGN KEY (buyer_id) REFERENCES users(id) ON DELETE CASCADE)"
                 );
 
-                // Ratings table
+                // Reviews table (replaces old ratings table)
                 stmt.execute(
-                    "CREATE TABLE IF NOT EXISTS ratings (" +
+                    "CREATE TABLE IF NOT EXISTS reviews (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "order_id INTEGER NOT NULL, " +
-                    "buyer_id INTEGER NOT NULL, " +
-                    "farmer_id INTEGER NOT NULL, " +
+                    "reviewer_id INTEGER NOT NULL, " +
+                    "reviewee_id INTEGER NOT NULL, " +
                     "rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5), " +
-                    "comment TEXT, " +
+                    "review_text TEXT, " +
                     "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-                    "FOREIGN KEY (order_id) REFERENCES orders(id), " +
-                    "FOREIGN KEY (buyer_id) REFERENCES users(id), " +
-                    "FOREIGN KEY (farmer_id) REFERENCES users(id))"
+                    "FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE, " +
+                    "FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE CASCADE, " +
+                    "FOREIGN KEY (reviewee_id) REFERENCES users(id) ON DELETE CASCADE)"
                 );
 
                 // Market prices table
@@ -251,6 +285,57 @@ public class DatabaseService {
                     "crop_name TEXT NOT NULL, " +
                     "price REAL NOT NULL, " +
                     "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
+                );
+
+                // Conversations table
+                stmt.execute(
+                    "CREATE TABLE IF NOT EXISTS conversations (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "user1_id INTEGER NOT NULL, " +
+                    "user2_id INTEGER NOT NULL, " +
+                    "crop_id INTEGER, " +
+                    "last_message TEXT, " +
+                    "last_message_time TIMESTAMP, " +
+                    "unread_count_user1 INTEGER DEFAULT 0, " +
+                    "unread_count_user2 INTEGER DEFAULT 0, " +
+                    "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                    "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                    "FOREIGN KEY (user1_id) REFERENCES users(id) ON DELETE CASCADE, " +
+                    "FOREIGN KEY (user2_id) REFERENCES users(id) ON DELETE CASCADE, " +
+                    "FOREIGN KEY (crop_id) REFERENCES crops(id) ON DELETE SET NULL, " +
+                    "UNIQUE(user1_id, user2_id, crop_id))"
+                );
+
+                // Messages table
+                stmt.execute(
+                    "CREATE TABLE IF NOT EXISTS messages (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "conversation_id INTEGER NOT NULL, " +
+                    "sender_id INTEGER NOT NULL, " +
+                    "receiver_id INTEGER NOT NULL, " +
+                    "message_text TEXT, " +
+                    "message_type TEXT DEFAULT 'text' CHECK(message_type IN ('text', 'image', 'file', 'location')), " +
+                    "attachment_path TEXT, " +
+                    "is_read BOOLEAN DEFAULT 0, " +
+                    "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                    "read_at TIMESTAMP, " +
+                    "FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE, " +
+                    "FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE, " +
+                    "FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE)"
+                );
+
+                // Notifications table
+                stmt.execute(
+                    "CREATE TABLE IF NOT EXISTS notifications (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "user_id INTEGER NOT NULL, " +
+                    "title TEXT NOT NULL, " +
+                    "message TEXT NOT NULL, " +
+                    "type TEXT DEFAULT 'info' CHECK(type IN ('info', 'success', 'warning', 'error', 'order', 'message', 'review')), " +
+                    "is_read BOOLEAN DEFAULT 0, " +
+                    "related_id INTEGER, " +
+                    "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                    "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE)"
                 );
 
                 System.out.println("Database initialized successfully");

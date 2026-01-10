@@ -105,35 +105,67 @@ public class MyCropsController {
             new Object[]{currentUser.getId()} : 
             new Object[]{currentUser.getId(), filter};
 
+        System.out.println("[MyCrops] Loading crops for farmer_id=" + currentUser.getId() + ", filter=" + filter);
+        System.out.println("[MyCrops] Query: " + query);
+
         DatabaseService.executeQueryAsync(
             query,
             params,
             resultSet -> {
-                Platform.runLater(() -> {
-                    try {
-                        boolean hasResults = false;
-                        while (resultSet.next()) {
-                            hasResults = true;
-                            HBox cropCard = createCropCard(resultSet);
-                            vboxCropsList.getChildren().add(cropCard);
-                        }
+                try {
+                    // Read ALL data from ResultSet FIRST (before Platform.runLater)
+                    java.util.List<java.util.Map<String, Object>> cropDataList = new java.util.ArrayList<>();
+                    while (resultSet.next()) {
+                        java.util.Map<String, Object> cropData = new java.util.HashMap<>();
+                        cropData.put("id", resultSet.getInt("id"));
+                        cropData.put("name", resultSet.getString("name"));
+                        cropData.put("category", resultSet.getString("category"));
+                        cropData.put("price", resultSet.getDouble("price"));
+                        cropData.put("unit", resultSet.getString("unit"));
+                        cropData.put("quantity", resultSet.getDouble("quantity"));
+                        cropData.put("harvest_date", resultSet.getString("harvest_date"));
+                        cropData.put("status", resultSet.getString("status"));
+                        cropData.put("first_photo", resultSet.getString("first_photo"));
+                        cropDataList.add(cropData);
+                    }
+                    
+                    System.out.println("[MyCrops] Read " + cropDataList.size() + " crops from database");
+                    
+                    // NOW use Platform.runLater with the data we've already read
+                    Platform.runLater(() -> {
+                        try {
+                            for (java.util.Map<String, Object> cropData : cropDataList) {
+                                HBox cropCard = createCropCard(cropData);
+                                vboxCropsList.getChildren().add(cropCard);
+                            }
 
-                        if (!hasResults) {
-                            vboxEmptyState.setVisible(true);
-                            vboxCropsList.setVisible(false);
-                        } else {
-                            vboxEmptyState.setVisible(false);
-                            vboxCropsList.setVisible(true);
+                            if (cropDataList.isEmpty()) {
+                                vboxEmptyState.setVisible(true);
+                                vboxCropsList.setVisible(false);
+                            } else {
+                                vboxEmptyState.setVisible(false);
+                                vboxCropsList.setVisible(true);
+                            }
+                        } catch (Exception e) {
+                            System.err.println("[MyCrops] Error creating crop cards: " + e.getMessage());
+                            e.printStackTrace();
+                            showError("ত্রুটি", "ফসল লোড করতে ব্যর্থ হয়েছে।");
+                        } finally {
+                            if (progressIndicator != null) {
+                                progressIndicator.setVisible(false);
+                            }
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        showError("ত্রুটি", "ফসল লোড করতে ব্যর্থ হয়েছে।");
-                    } finally {
+                    });
+                } catch (Exception e) {
+                    System.err.println("[MyCrops] Error reading ResultSet: " + e.getMessage());
+                    e.printStackTrace();
+                    Platform.runLater(() -> {
                         if (progressIndicator != null) {
                             progressIndicator.setVisible(false);
                         }
-                    }
-                });
+                        showError("ত্রুটি", "ফসল লোড করতে ব্যর্থ হয়েছে।");
+                    });
+                }
             },
             error -> {
                 Platform.runLater(() -> {
@@ -147,16 +179,16 @@ public class MyCropsController {
         );
     }
 
-    private HBox createCropCard(ResultSet rs) throws Exception {
-        int cropId = rs.getInt("id");
-        String name = rs.getString("name");
-        String category = rs.getString("category");
-        double price = rs.getDouble("price");
-        String unit = rs.getString("unit");
-        double quantity = rs.getDouble("quantity");
-        String harvestDate = rs.getString("harvest_date");
-        String status = rs.getString("status");
-        String photoPath = rs.getString("first_photo");
+    private HBox createCropCard(java.util.Map<String, Object> data) throws Exception {
+        int cropId = (int) data.get("id");
+        String name = (String) data.get("name");
+        String category = (String) data.get("category");
+        double price = (double) data.get("price");
+        String unit = (String) data.get("unit");
+        double quantity = (double) data.get("quantity");
+        String harvestDate = (String) data.get("harvest_date");
+        String status = (String) data.get("status");
+        String photoPath = (String) data.get("first_photo");
 
         HBox card = new HBox(15);
         card.getStyleClass().add("crop-card");

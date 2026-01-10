@@ -136,7 +136,15 @@ public class FarmerDashboardController {
 
     @FXML
     private void onHistory() {
-        App.loadScene("farmer-history-view.fxml", "বিক্রয় ইতিহাস");
+        System.out.println("[DEBUG] History button clicked!");
+        try {
+            App.loadScene("farmer-history-view.fxml", "বিক্রয় ইতিহাস");
+            System.out.println("[DEBUG] History scene load initiated successfully");
+        } catch (Exception e) {
+            System.err.println("[ERROR] Failed to load farmer history view:");
+            e.printStackTrace();
+            showError("ত্রুটি", "ইতিহাস পেজ লোড করতে ব্যর্থ: " + e.getMessage());
+        }
     }
 
     @FXML

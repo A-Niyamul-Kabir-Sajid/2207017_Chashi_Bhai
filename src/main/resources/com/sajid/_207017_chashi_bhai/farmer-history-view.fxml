@@ -94,21 +94,14 @@
                 <Button fx:id="btnExport" text="📥 ডাউনলোড" styleClass="button-secondary"/>
             </HBox>
 
-            <!-- History Table -->
-            <TableView fx:id="tableHistory" styleClass="data-table" VBox.vgrow="ALWAYS">
-                <columns>
-                    <TableColumn text="তারিখ / Date" prefWidth="150" fx:id="colDate"/>
-                    <TableColumn text="ক্রেতা / Buyer" prefWidth="180" fx:id="colBuyer"/>
-                    <TableColumn text="ফসল / Crop" prefWidth="150" fx:id="colCrop"/>
-                    <TableColumn text="পরিমাণ / Quantity" prefWidth="130" fx:id="colQuantity"/>
-                    <TableColumn text="একক মূল্য / Unit Price" prefWidth="130" fx:id="colUnitPrice"/>
-                    <TableColumn text="মোট মূল্য / Total" prefWidth="130" fx:id="colTotalPrice"/>
-                    <TableColumn text="পেমেন্ট / Payment" prefWidth="140" fx:id="colPaymentStatus"/>
-                </columns>
-                <columnResizePolicy>
-                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
-                </columnResizePolicy>
-            </TableView>
+            <!-- History List -->
+            <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS" styleClass="scroll-pane">
+                <VBox fx:id="vboxHistoryList" spacing="15" styleClass="history-list">
+                    <padding>
+                        <Insets top="10" bottom="10" left="10" right="10"/>
+                    </padding>
+                </VBox>
+            </ScrollPane>
 
         </VBox>
     </center>

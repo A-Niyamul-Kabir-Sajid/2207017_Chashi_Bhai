@@ -1,37 +1,61 @@
 package com.sajid._207017_chashi_bhai.services;
 
-import java.sql.*;
-import java.io.File;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.firestore.*;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.cloud.FirestoreClient;
+
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
-import org.mindrot.jbcrypt.BCrypt;
-
-import com.sajid._207017_chashi_bhai.models.User;
-
 /**
- * Service for initializing and managing database connections (Firebase-style API with SQLite backend).
- * Provides access to Authentication and Database operations.
- * This is a singleton service that mimics Firebase SDK patterns while using SQLite for storage.
+ * FirebaseService - Cloud database service using Firestore
+ * Mirrors the SQLite schema for cloud synchronization
+ * 
+ * Collections structure:
+ * - users
+ * - crops
+ * - crop_photos
+ * - farm_photos
+ * - orders
+ * - reviews
+ * - conversations
+ * - messages
+ * - notifications
+ * - market_prices
  */
 public class FirebaseService {
     private static FirebaseService instance;
-    private Connection connection;
+    private Firestore firestore;
+    private FirebaseAuth auth;
     private boolean initialized = false;
-    private String webApiKey; // For password verification (future use)
     
-    private static final String DB_DIR = "data";
-    private static final String DB_URL = "jdbc:sqlite:data/chashi_bhai.db";
-    
-    // Single-threaded executor for thread-safe database operations
-    private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor(r -> {
+    // Executor for async operations
+    private static final ExecutorService executor = Executors.newFixedThreadPool(4, r -> {
         Thread thread = new Thread(r);
         thread.setDaemon(true);
-        thread.setName("FirebaseServiceWorker");
+        thread.setName("FirebaseWorker");
         return thread;
     });
+
+    // Collection names matching SQLite tables
+    public static final String COLLECTION_USERS = "users";
+    public static final String COLLECTION_CROPS = "crops";
+    public static final String COLLECTION_CROP_PHOTOS = "crop_photos";
+    public static final String COLLECTION_FARM_PHOTOS = "farm_photos";
+    public static final String COLLECTION_ORDERS = "orders";
+    public static final String COLLECTION_REVIEWS = "reviews";
+    public static final String COLLECTION_CONVERSATIONS = "conversations";
+    public static final String COLLECTION_MESSAGES = "messages";
+    public static final String COLLECTION_NOTIFICATIONS = "notifications";
+    public static final String COLLECTION_MARKET_PRICES = "market_prices";
 
     private FirebaseService() {
         // Private constructor for singleton
@@ -45,696 +69,618 @@ public class FirebaseService {
     }
 
     /**
-     * Initialize Firebase-style service with credentials/configuration.
-     * The credentials file can be placed in the resources folder or a specific path.
+     * Initialize Firebase with credentials file
      * 
-     * @param credentialsPath Path to the configuration JSON file (for future Firebase integration)
-     * @throws IOException If credentials file is not found or invalid
+     * @param credentialsPath Path to firebase-credentials.json
+     * @throws IOException if credentials file not found or invalid
      */
     public void initialize(String credentialsPath) throws IOException {
         if (initialized) {
-            System.out.println("FirebaseService already initialized.");
+            System.out.println("✅ Firebase already initialized.");
             return;
         }
 
         try {
-            // Ensure data directory exists
-            ensureDataDirectoryExists();
+            InputStream serviceAccount;
             
-            // Initialize SQLite connection
-            connection = DriverManager.getConnection(DB_URL);
+            // Try to load from file system first
+            try {
+                serviceAccount = new FileInputStream(credentialsPath);
+                System.out.println("📂 Loading Firebase credentials from: " + credentialsPath);
+            } catch (IOException e) {
+                // Try to load from resources
+                serviceAccount = getClass().getClassLoader().getResourceAsStream(credentialsPath);
+                if (serviceAccount == null) {
+                    throw new IOException("❌ Firebase credentials file not found: " + credentialsPath);
+                }
+                System.out.println("📂 Loading Firebase credentials from resources");
+            }
+
+            FirebaseOptions options = FirebaseOptions.builder()
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .build();
+
+            FirebaseApp.initializeApp(options);
             
-            // Initialize database tables
-            initializeTables();
-            
+            this.firestore = FirestoreClient.getFirestore();
+            this.auth = FirebaseAuth.getInstance();
             this.initialized = true;
             
-            // Set Web API Key for password verification (from Firebase Console)
-            // Get this from: Firebase Console > Project Settings > General > Web API Key
-            this.webApiKey = ""; // Update with your actual key when using Firebase
+            System.out.println("✅ Firebase initialized successfully with Firestore!");
             
-            System.out.println("FirebaseService initialized successfully with SQLite backend.");
-        } catch (SQLException e) {
-            System.err.println("Failed to initialize FirebaseService: " + e.getMessage());
-            throw new IOException("Database initialization failed", e);
+            // Initialize indexes (one-time setup)
+            initializeIndexes();
+            
         } catch (Exception e) {
-            System.err.println("Failed to initialize FirebaseService: " + e.getMessage());
+            System.err.println("❌ Failed to initialize Firebase: " + e.getMessage());
+            e.printStackTrace();
             throw e;
         }
     }
 
     /**
-     * Initialize FirebaseService with default credentials path.
-     * Looks for 'firebase-credentials.json' in the resources folder.
+     * Initialize with default credentials path
      */
     public void initialize() throws IOException {
         initialize("firebase-credentials.json");
     }
 
     /**
-     * Ensure the data directory exists for SQLite database
+     * Create composite indexes for efficient queries
+     * Note: These will be created automatically on first query
      */
-    private void ensureDataDirectoryExists() {
-        File dataDir = new File(DB_DIR);
-        if (!dataDir.exists()) {
-            boolean created = dataDir.mkdirs();
-            if (created) {
-                System.out.println("Created data directory: " + dataDir.getAbsolutePath());
-            } else {
-                System.err.println("Failed to create data directory: " + dataDir.getAbsolutePath());
+    private void initializeIndexes() {
+        System.out.println("📊 Firestore indexes will be created automatically on first query");
+        // Firestore creates indexes automatically based on query patterns
+        // No manual setup needed for single-field queries
+    }
+
+    // ==================== USER OPERATIONS ====================
+
+    /**
+     * Create a new user in Firestore
+     * 
+     * @param userId User ID (matches SQLite)
+     * @param userData User data map (name, phone, pin, role, district, etc.)
+     * @param onSuccess Success callback
+     * @param onError Error callback
+     */
+    public void createUser(String userId, Map<String, Object> userData, 
+                          Runnable onSuccess, Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                // Add timestamps
+                userData.put("created_at", FieldValue.serverTimestamp());
+                userData.put("updated_at", FieldValue.serverTimestamp());
+                userData.put("is_verified", false);
+                
+                firestore.collection(COLLECTION_USERS)
+                        .document(userId)
+                        .set(userData)
+                        .get(); // Wait for completion
+                
+                if (onSuccess != null) {
+                    onSuccess.run();
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error creating user: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
+                }
             }
-        }
+        });
     }
 
     /**
-     * Initialize database tables
+     * Get user by ID
      */
-    private void initializeTables() throws SQLException {
-        try (Statement stmt = connection.createStatement()) {
-            // Users table
-            stmt.execute(
-                "CREATE TABLE IF NOT EXISTS users (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "name TEXT NOT NULL, " +
-                "phone TEXT UNIQUE NOT NULL, " +
-                "pin TEXT NOT NULL, " +
-                "role TEXT NOT NULL, " +
-                "district TEXT, " +
-                "upazila TEXT, " +
-                "farm_type TEXT, " +
-                "profile_photo TEXT, " +
-                "is_verified INTEGER DEFAULT 0, " +
-                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
-            );
-
-            // Crops table
-            stmt.execute(
-                "CREATE TABLE IF NOT EXISTS crops (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "farmer_id INTEGER NOT NULL, " +
-                "name TEXT NOT NULL, " +
-                "category TEXT NOT NULL, " +
-                "price REAL NOT NULL, " +
-                "unit TEXT NOT NULL, " +
-                "quantity REAL NOT NULL, " +
-                "harvest_date TEXT, " +
-                "district TEXT, " +
-                "transport_info TEXT, " +
-                "description TEXT, " +
-                "status TEXT DEFAULT 'active', " +
-                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-                "FOREIGN KEY (farmer_id) REFERENCES users(id))"
-            );
-
-            // Crop photos table
-            stmt.execute(
-                "CREATE TABLE IF NOT EXISTS crop_photos (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "crop_id INTEGER NOT NULL, " +
-                "photo_path TEXT NOT NULL, " +
-                "photo_order INTEGER DEFAULT 1, " +
-                "FOREIGN KEY (crop_id) REFERENCES crops(id) ON DELETE CASCADE)"
-            );
-
-            // Farm photos table
-            stmt.execute(
-                "CREATE TABLE IF NOT EXISTS farm_photos (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "farmer_id INTEGER NOT NULL, " +
-                "photo_path TEXT NOT NULL, " +
-                "FOREIGN KEY (farmer_id) REFERENCES users(id))"
-            );
-
-            // Orders table
-            stmt.execute(
-                "CREATE TABLE IF NOT EXISTS orders (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "crop_id INTEGER NOT NULL, " +
-                "buyer_id INTEGER NOT NULL, " +
-                "quantity REAL NOT NULL, " +
-                "total_price REAL, " +
-                "status TEXT DEFAULT 'pending', " +
-                "payment_status TEXT DEFAULT 'pending', " +
-                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-                "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-                "FOREIGN KEY (crop_id) REFERENCES crops(id), " +
-                "FOREIGN KEY (buyer_id) REFERENCES users(id))"
-            );
-
-            // Ratings table
-            stmt.execute(
-                "CREATE TABLE IF NOT EXISTS ratings (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "order_id INTEGER NOT NULL, " +
-                "buyer_id INTEGER NOT NULL, " +
-                "farmer_id INTEGER NOT NULL, " +
-                "rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5), " +
-                "comment TEXT, " +
-                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-                "FOREIGN KEY (order_id) REFERENCES orders(id), " +
-                "FOREIGN KEY (buyer_id) REFERENCES users(id), " +
-                "FOREIGN KEY (farmer_id) REFERENCES users(id))"
-            );
-
-            // Messages table (for chat)
-            stmt.execute(
-                "CREATE TABLE IF NOT EXISTS messages (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "sender_id INTEGER NOT NULL, " +
-                "receiver_id INTEGER NOT NULL, " +
-                "message TEXT NOT NULL, " +
-                "is_read INTEGER DEFAULT 0, " +
-                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-                "FOREIGN KEY (sender_id) REFERENCES users(id), " +
-                "FOREIGN KEY (receiver_id) REFERENCES users(id))"
-            );
-
-            // Market prices table
-            stmt.execute(
-                "CREATE TABLE IF NOT EXISTS market_prices (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "crop_name TEXT NOT NULL, " +
-                "price REAL NOT NULL, " +
-                "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
-            );
-
-            // Transactions table
-            stmt.execute(
-                "CREATE TABLE IF NOT EXISTS transactions (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "order_id INTEGER NOT NULL, " +
-                "amount REAL NOT NULL, " +
-                "payment_method TEXT, " +
-                "transaction_id TEXT, " +
-                "status TEXT DEFAULT 'pending', " +
-                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-                "FOREIGN KEY (order_id) REFERENCES orders(id))"
-            );
-
-            System.out.println("✅ All database tables initialized successfully.");
-        }
+    public void getUser(String userId, Consumer<DocumentSnapshot> onSuccess, 
+                       Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                DocumentSnapshot doc = firestore.collection(COLLECTION_USERS)
+                        .document(userId)
+                        .get()
+                        .get();
+                
+                if (onSuccess != null) {
+                    onSuccess.accept(doc);
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error getting user: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
+                }
+            }
+        });
     }
 
     /**
-     * Get a new database connection
-     * @return Connection instance
+     * Get user by phone number
      */
-    private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(DB_URL);
+    public void getUserByPhone(String phone, Consumer<QuerySnapshot> onSuccess, 
+                               Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                QuerySnapshot querySnapshot = firestore.collection(COLLECTION_USERS)
+                        .whereEqualTo("phone", phone)
+                        .limit(1)
+                        .get()
+                        .get();
+                
+                if (onSuccess != null) {
+                    onSuccess.accept(querySnapshot);
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error getting user by phone: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
+                }
+            }
+        });
     }
 
     /**
-     * Get the main database connection.
-     * Similar to Firestore's getFirestore() method.
-     * @return Connection instance
+     * Update user profile
      */
-    public Connection getDatabase() {
-        if (!initialized) {
-            throw new IllegalStateException("FirebaseService not initialized. Call initialize() first.");
-        }
-        return connection;
+    public void updateUser(String userId, Map<String, Object> updates, 
+                          Runnable onSuccess, Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                updates.put("updated_at", FieldValue.serverTimestamp());
+                
+                firestore.collection(COLLECTION_USERS)
+                        .document(userId)
+                        .update(updates)
+                        .get();
+                
+                if (onSuccess != null) {
+                    onSuccess.run();
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error updating user: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
+                }
+            }
+        });
+    }
+
+    // ==================== CROP OPERATIONS ====================
+
+    /**
+     * Create a new crop listing
+     */
+    public void createCrop(String cropId, Map<String, Object> cropData, 
+                          Runnable onSuccess, Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                cropData.put("created_at", FieldValue.serverTimestamp());
+                cropData.put("updated_at", FieldValue.serverTimestamp());
+                cropData.put("status", "active");
+                
+                firestore.collection(COLLECTION_CROPS)
+                        .document(cropId)
+                        .set(cropData)
+                        .get();
+                
+                if (onSuccess != null) {
+                    onSuccess.run();
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error creating crop: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
+                }
+            }
+        });
     }
 
     /**
-     * Check if FirebaseService has been initialized.
-     * @return true if initialized, false otherwise
+     * Get crops by farmer ID
+     */
+    public void getCropsByFarmer(String farmerId, Consumer<QuerySnapshot> onSuccess, 
+                                 Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                QuerySnapshot querySnapshot = firestore.collection(COLLECTION_CROPS)
+                        .whereEqualTo("farmer_id", farmerId)
+                        .whereEqualTo("status", "active")
+                        .orderBy("created_at", Query.Direction.DESCENDING)
+                        .get()
+                        .get();
+                
+                if (onSuccess != null) {
+                    onSuccess.accept(querySnapshot);
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error getting crops: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
+                }
+            }
+        });
+    }
+
+    /**
+     * Search crops by name or category
+     */
+    public void searchCrops(String searchQuery, Consumer<QuerySnapshot> onSuccess, 
+                           Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                // Firestore doesn't support full-text search natively
+                // This is a basic implementation - consider using Algolia for production
+                QuerySnapshot querySnapshot = firestore.collection(COLLECTION_CROPS)
+                        .whereEqualTo("status", "active")
+                        .orderBy("created_at", Query.Direction.DESCENDING)
+                        .limit(100)
+                        .get()
+                        .get();
+                
+                if (onSuccess != null) {
+                    onSuccess.accept(querySnapshot);
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error searching crops: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
+                }
+            }
+        });
+    }
+
+    /**
+     * Update crop details
+     */
+    public void updateCrop(String cropId, Map<String, Object> updates, 
+                          Runnable onSuccess, Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                updates.put("updated_at", FieldValue.serverTimestamp());
+                
+                firestore.collection(COLLECTION_CROPS)
+                        .document(cropId)
+                        .update(updates)
+                        .get();
+                
+                if (onSuccess != null) {
+                    onSuccess.run();
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error updating crop: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
+                }
+            }
+        });
+    }
+
+    // ==================== ORDER OPERATIONS ====================
+
+    /**
+     * Create a new order
+     */
+    public void createOrder(String orderId, Map<String, Object> orderData, 
+                           Runnable onSuccess, Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                orderData.put("created_at", FieldValue.serverTimestamp());
+                orderData.put("status", "new");
+                orderData.put("payment_status", "pending");
+                
+                firestore.collection(COLLECTION_ORDERS)
+                        .document(orderId)
+                        .set(orderData)
+                        .get();
+                
+                if (onSuccess != null) {
+                    onSuccess.run();
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error creating order: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
+                }
+            }
+        });
+    }
+
+    /**
+     * Get orders by farmer ID
+     */
+    public void getOrdersByFarmer(String farmerId, Consumer<QuerySnapshot> onSuccess, 
+                                  Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                QuerySnapshot querySnapshot = firestore.collection(COLLECTION_ORDERS)
+                        .whereEqualTo("farmer_id", farmerId)
+                        .orderBy("created_at", Query.Direction.DESCENDING)
+                        .get()
+                        .get();
+                
+                if (onSuccess != null) {
+                    onSuccess.accept(querySnapshot);
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error getting farmer orders: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
+                }
+            }
+        });
+    }
+
+    /**
+     * Get orders by buyer ID
+     */
+    public void getOrdersByBuyer(String buyerId, Consumer<QuerySnapshot> onSuccess, 
+                                 Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                QuerySnapshot querySnapshot = firestore.collection(COLLECTION_ORDERS)
+                        .whereEqualTo("buyer_id", buyerId)
+                        .orderBy("created_at", Query.Direction.DESCENDING)
+                        .get()
+                        .get();
+                
+                if (onSuccess != null) {
+                    onSuccess.accept(querySnapshot);
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error getting buyer orders: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
+                }
+            }
+        });
+    }
+
+    /**
+     * Update order status
+     */
+    public void updateOrderStatus(String orderId, String status, 
+                                  Runnable onSuccess, Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                Map<String, Object> updates = new HashMap<>();
+                updates.put("status", status);
+                
+                // Add timestamp for specific statuses
+                switch (status) {
+                    case "accepted":
+                        updates.put("accepted_at", FieldValue.serverTimestamp());
+                        break;
+                    case "delivered":
+                        updates.put("delivered_at", FieldValue.serverTimestamp());
+                        break;
+                    case "completed":
+                        updates.put("completed_at", FieldValue.serverTimestamp());
+                        break;
+                }
+                
+                firestore.collection(COLLECTION_ORDERS)
+                        .document(orderId)
+                        .update(updates)
+                        .get();
+                
+                if (onSuccess != null) {
+                    onSuccess.run();
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error updating order status: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
+                }
+            }
+        });
+    }
+
+    // ==================== MESSAGING OPERATIONS ====================
+
+    /**
+     * Create or get conversation between two users
+     */
+    public void getOrCreateConversation(String user1Id, String user2Id, String cropId,
+                                       Consumer<DocumentSnapshot> onSuccess,
+                                       Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                // Search for existing conversation
+                QuerySnapshot existing = firestore.collection(COLLECTION_CONVERSATIONS)
+                        .whereEqualTo("user1_id", user1Id)
+                        .whereEqualTo("user2_id", user2Id)
+                        .whereEqualTo("crop_id", cropId)
+                        .limit(1)
+                        .get()
+                        .get();
+                
+                if (!existing.isEmpty()) {
+                    if (onSuccess != null) {
+                        onSuccess.accept(existing.getDocuments().get(0));
+                    }
+                    return;
+                }
+                
+                // Create new conversation
+                Map<String, Object> conversationData = new HashMap<>();
+                conversationData.put("user1_id", user1Id);
+                conversationData.put("user2_id", user2Id);
+                conversationData.put("crop_id", cropId);
+                conversationData.put("unread_count_user1", 0);
+                conversationData.put("unread_count_user2", 0);
+                conversationData.put("created_at", FieldValue.serverTimestamp());
+                conversationData.put("updated_at", FieldValue.serverTimestamp());
+                
+                DocumentReference docRef = firestore.collection(COLLECTION_CONVERSATIONS)
+                        .document();
+                docRef.set(conversationData).get();
+                
+                if (onSuccess != null) {
+                    onSuccess.accept(docRef.get().get());
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error creating conversation: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
+                }
+            }
+        });
+    }
+
+    /**
+     * Send a message
+     */
+    public void sendMessage(String conversationId, Map<String, Object> messageData,
+                           Runnable onSuccess, Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                messageData.put("created_at", FieldValue.serverTimestamp());
+                messageData.put("is_read", false);
+                
+                firestore.collection(COLLECTION_MESSAGES)
+                        .add(messageData)
+                        .get();
+                
+                // Update conversation last message
+                Map<String, Object> conversationUpdate = new HashMap<>();
+                conversationUpdate.put("last_message", messageData.get("message_text"));
+                conversationUpdate.put("last_message_time", FieldValue.serverTimestamp());
+                conversationUpdate.put("updated_at", FieldValue.serverTimestamp());
+                
+                firestore.collection(COLLECTION_CONVERSATIONS)
+                        .document(conversationId)
+                        .update(conversationUpdate)
+                        .get();
+                
+                if (onSuccess != null) {
+                    onSuccess.run();
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error sending message: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
+                }
+            }
+        });
+    }
+
+    // ==================== PHOTO OPERATIONS ====================
+
+    /**
+     * Add crop photo reference
+     */
+    public void addCropPhoto(String cropId, String photoPath, int photoOrder,
+                            Runnable onSuccess, Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                Map<String, Object> photoData = new HashMap<>();
+                photoData.put("crop_id", cropId);
+                photoData.put("photo_path", photoPath);
+                photoData.put("photo_order", photoOrder);
+                photoData.put("created_at", FieldValue.serverTimestamp());
+                
+                firestore.collection(COLLECTION_CROP_PHOTOS)
+                        .add(photoData)
+                        .get();
+                
+                if (onSuccess != null) {
+                    onSuccess.run();
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error adding crop photo: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
+                }
+            }
+        });
+    }
+
+    // ==================== UTILITY METHODS ====================
+
+    /**
+     * Check if Firebase is initialized
      */
     public boolean isInitialized() {
         return initialized;
     }
-    
+
     /**
-     * Get Web API Key for password verification.
-     * @return Web API Key
+     * Get Firestore instance
      */
-    public String getWebApiKey() {
-        return webApiKey;
+    public Firestore getFirestore() {
+        if (!initialized) {
+            throw new IllegalStateException("❌ Firebase not initialized. Call initialize() first.");
+        }
+        return firestore;
     }
 
-    // ==================== AUTHENTICATION METHODS ====================
+    /**
+     * Get Firebase Auth instance
+     */
+    public FirebaseAuth getAuth() {
+        if (!initialized) {
+            throw new IllegalStateException("❌ Firebase not initialized. Call initialize() first.");
+        }
+        return auth;
+    }
 
     /**
-     * Login user with phone number, PIN, and role.
-     * 
-     * @param phone User's phone number
-     * @param pin User's PIN
-     * @param role User's role (FARMER or BUYER)
-     * @param onSuccess Callback with User object on successful login
-     * @param onError Callback with error message on failure
+     * Batch write operation for bulk updates
      */
-    public void login(String phone, String pin, String role, 
-                      Consumer<User> onSuccess, Consumer<String> onError) {
-        if (!initialized) {
-            if (onError != null) onError.accept("FirebaseService not initialized.");
-            return;
-        }
-
-        dbExecutor.submit(() -> {
-            String sql = "SELECT * FROM users WHERE phone = ? AND role = ?";
-            try (Connection conn = getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+    public void executeBatch(List<Map<String, Object>> operations,
+                            Runnable onSuccess, Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                WriteBatch batch = firestore.batch();
                 
-                stmt.setString(1, phone);
-                stmt.setString(2, role.toLowerCase());
-                
-                ResultSet rs = stmt.executeQuery();
-                
-                if (rs.next()) {
-                    String storedPin = rs.getString("pin");
+                for (Map<String, Object> op : operations) {
+                    String collection = (String) op.get("collection");
+                    String docId = (String) op.get("docId");
+                    String action = (String) op.get("action");
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> data = (Map<String, Object>) op.get("data");
                     
-                    // Use BCrypt.checkpw for hashed password verification
-                    if (BCrypt.checkpw(pin, storedPin)) {
-                        // Create User object from database result
-                        User user = new User();
-                        user.setId(rs.getInt("id"));
-                        user.setName(rs.getString("name"));
-                        user.setPhone(rs.getString("phone"));
-                        user.setRole(rs.getString("role"));
-                        user.setDistrict(rs.getString("district"));
-                        user.setUpazila(rs.getString("upazila"));
-                        user.setVerified(rs.getBoolean("is_verified"));
-                        user.setProfilePhoto(rs.getString("profile_photo"));
-                        user.setCreatedAt(rs.getString("created_at"));
-                        
-                        System.out.println("✅ Login successful - User: " + user.getName() + ", Role: " + user.getRole());
-                        
-                        if (onSuccess != null) onSuccess.accept(user);
-                    } else {
-                        System.out.println("Login failed - Wrong PIN for phone: " + phone);
-                        if (onError != null) onError.accept("Invalid PIN. Please try again.");
-                    }
-                } else {
-                    System.out.println("Login failed - No account found for phone: " + phone + ", Role: " + role);
-                    if (onError != null) onError.accept("Account not found for this role.");
-                }
-                
-            } catch (SQLException e) {
-                System.err.println("Login error: " + e.getMessage());
-                e.printStackTrace();
-                if (onError != null) onError.accept("Database error: " + e.getMessage());
-            }
-        });
-    }
-
-    /**
-     * Login user with phone and PIN only (any role).
-     * 
-     * @param phone User's phone number
-     * @param pin User's PIN
-     * @param onSuccess Callback with User object on successful login
-     * @param onError Callback with error message on failure
-     */
-    public void login(String phone, String pin, 
-                      Consumer<User> onSuccess, Consumer<String> onError) {
-        if (!initialized) {
-            if (onError != null) onError.accept("FirebaseService not initialized.");
-            return;
-        }
-
-        dbExecutor.submit(() -> {
-            String sql = "SELECT * FROM users WHERE phone = ?";
-            try (Connection conn = getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-                
-                stmt.setString(1, phone);
-                
-                ResultSet rs = stmt.executeQuery();
-                
-                if (rs.next()) {
-                    String storedPin = rs.getString("pin");
+                    DocumentReference docRef = firestore.collection(collection).document(docId);
                     
-                    // Use BCrypt.checkpw for hashed password verification
-                    if (BCrypt.checkpw(pin, storedPin)) {
-                        // Create User object from database result
-                        User user = new User();
-                        user.setId(rs.getInt("id"));
-                        user.setName(rs.getString("name"));
-                        user.setPhone(rs.getString("phone"));
-                        user.setRole(rs.getString("role"));
-                        user.setDistrict(rs.getString("district"));
-                        user.setUpazila(rs.getString("upazila"));
-                        user.setVerified(rs.getBoolean("is_verified"));
-                        user.setProfilePhoto(rs.getString("profile_photo"));
-                        user.setCreatedAt(rs.getString("created_at"));
-                        
-                        System.out.println("✅ Login successful - User: " + user.getName() + ", Role: " + user.getRole());
-                        
-                        if (onSuccess != null) onSuccess.accept(user);
-                    } else {
-                        System.out.println("Login failed - Wrong PIN for phone: " + phone);
-                        if (onError != null) onError.accept("Invalid PIN. Please try again.");
-                    }
-                } else {
-                    System.out.println("Login failed - No account found for phone: " + phone);
-                    if (onError != null) onError.accept("Account not found.");
-                }
-                
-            } catch (SQLException e) {
-                System.err.println("Login error: " + e.getMessage());
-                e.printStackTrace();
-                if (onError != null) onError.accept("Database error: " + e.getMessage());
-            }
-        });
-    }
-
-    /**
-     * Register a new user.
-     * 
-     * @param name User's name
-     * @param phone User's phone number
-     * @param pin User's PIN (will be hashed)
-     * @param role User's role (FARMER or BUYER)
-     * @param district User's district
-     * @param upazila User's upazila
-     * @param onSuccess Callback with User object on successful registration
-     * @param onError Callback with error message on failure
-     */
-    public void register(String name, String phone, String pin, String role,
-                         String district, String upazila,
-                         Consumer<User> onSuccess, Consumer<String> onError) {
-        if (!initialized) {
-            if (onError != null) onError.accept("FirebaseService not initialized.");
-            return;
-        }
-
-        dbExecutor.submit(() -> {
-            // Check if phone already exists
-            String checkSql = "SELECT id FROM users WHERE phone = ?";
-            String insertSql = "INSERT INTO users (name, phone, pin, role, district, upazila, is_verified) VALUES (?, ?, ?, ?, ?, ?, 1)";
-            
-            try (Connection conn = getConnection()) {
-                // Check existing user
-                try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-                    checkStmt.setString(1, phone);
-                    ResultSet rs = checkStmt.executeQuery();
-                    if (rs.next()) {
-                        if (onError != null) onError.accept("Phone number already registered.");
-                        return;
+                    if ("set".equals(action)) {
+                        batch.set(docRef, data);
+                    } else if ("update".equals(action)) {
+                        batch.update(docRef, data);
+                    } else if ("delete".equals(action)) {
+                        batch.delete(docRef);
                     }
                 }
                 
-                // Insert new user
-                try (PreparedStatement insertStmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
-                    // Hash PIN with BCrypt before storing
-                    String hashedPin = BCrypt.hashpw(pin, BCrypt.gensalt());
-                    insertStmt.setString(1, name);
-                    insertStmt.setString(2, phone);
-                    insertStmt.setString(3, hashedPin);
-                    insertStmt.setString(4, role.toLowerCase());
-                    insertStmt.setString(5, district);
-                    insertStmt.setString(6, upazila);
-                    
-                    int rowsAffected = insertStmt.executeUpdate();
-                    
-                    if (rowsAffected > 0) {
-                        ResultSet generatedKeys = insertStmt.getGeneratedKeys();
-                        if (generatedKeys.next()) {
-                            User user = new User();
-                            user.setId(generatedKeys.getInt(1));
-                            user.setName(name);
-                            user.setPhone(phone);
-                            user.setRole(role.toLowerCase());
-                            user.setDistrict(district);
-                            user.setUpazila(upazila);
-                            user.setVerified(true);
-                            
-                            System.out.println("✅ Registration successful - User: " + name);
-                            
-                            if (onSuccess != null) onSuccess.accept(user);
-                        }
-                    } else {
-                        if (onError != null) onError.accept("Registration failed.");
-                    }
+                batch.commit().get();
+                
+                if (onSuccess != null) {
+                    onSuccess.run();
                 }
-                
-            } catch (SQLException e) {
-                System.err.println("Registration error: " + e.getMessage());
-                e.printStackTrace();
-                if (onError != null) onError.accept("Database error: " + e.getMessage());
-            }
-        });
-    }
-
-    /**
-     * Get user by phone number.
-     * 
-     * @param phone User's phone number
-     * @param onSuccess Callback with User object if found
-     * @param onError Callback with error message on failure
-     */
-    public void getUserByPhone(String phone, Consumer<User> onSuccess, Consumer<String> onError) {
-        if (!initialized) {
-            if (onError != null) onError.accept("FirebaseService not initialized.");
-            return;
-        }
-
-        dbExecutor.submit(() -> {
-            String sql = "SELECT * FROM users WHERE phone = ?";
-            try (Connection conn = getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-                
-                stmt.setString(1, phone);
-                ResultSet rs = stmt.executeQuery();
-                
-                if (rs.next()) {
-                    User user = new User();
-                    user.setId(rs.getInt("id"));
-                    user.setName(rs.getString("name"));
-                    user.setPhone(rs.getString("phone"));
-                    user.setRole(rs.getString("role"));
-                    user.setDistrict(rs.getString("district"));
-                    user.setUpazila(rs.getString("upazila"));
-                    user.setVerified(rs.getBoolean("is_verified"));
-                    user.setProfilePhoto(rs.getString("profile_photo"));
-                    user.setCreatedAt(rs.getString("created_at"));
-                    
-                    if (onSuccess != null) onSuccess.accept(user);
-                } else {
-                    if (onError != null) onError.accept("User not found.");
-                }
-                
-            } catch (SQLException e) {
-                System.err.println("Get user error: " + e.getMessage());
-                if (onError != null) onError.accept("Database error: " + e.getMessage());
-            }
-        });
-    }
-
-    /**
-     * Get user by ID.
-     * 
-     * @param userId User's ID
-     * @param onSuccess Callback with User object if found
-     * @param onError Callback with error message on failure
-     */
-    public void getUserById(int userId, Consumer<User> onSuccess, Consumer<String> onError) {
-        if (!initialized) {
-            if (onError != null) onError.accept("FirebaseService not initialized.");
-            return;
-        }
-
-        dbExecutor.submit(() -> {
-            String sql = "SELECT * FROM users WHERE id = ?";
-            try (Connection conn = getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-                
-                stmt.setInt(1, userId);
-                ResultSet rs = stmt.executeQuery();
-                
-                if (rs.next()) {
-                    User user = new User();
-                    user.setId(rs.getInt("id"));
-                    user.setName(rs.getString("name"));
-                    user.setPhone(rs.getString("phone"));
-                    user.setRole(rs.getString("role"));
-                    user.setDistrict(rs.getString("district"));
-                    user.setUpazila(rs.getString("upazila"));
-                    user.setVerified(rs.getBoolean("is_verified"));
-                    user.setProfilePhoto(rs.getString("profile_photo"));
-                    user.setCreatedAt(rs.getString("created_at"));
-                    
-                    if (onSuccess != null) onSuccess.accept(user);
-                } else {
-                    if (onError != null) onError.accept("User not found.");
-                }
-                
-            } catch (SQLException e) {
-                System.err.println("Get user error: " + e.getMessage());
-                if (onError != null) onError.accept("Database error: " + e.getMessage());
-            }
-        });
-    }
-
-    /**
-     * Update user's PIN.
-     * 
-     * @param phone User's phone number
-     * @param newPin New PIN
-     * @param onSuccess Callback on successful update
-     * @param onError Callback with error message on failure
-     */
-    public void updatePin(String phone, String newPin, Runnable onSuccess, Consumer<String> onError) {
-        if (!initialized) {
-            if (onError != null) onError.accept("FirebaseService not initialized.");
-            return;
-        }
-
-        dbExecutor.submit(() -> {
-            String sql = "UPDATE users SET pin = ? WHERE phone = ?";
-            try (Connection conn = getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-                
-                // Hash new PIN with BCrypt before storing
-                String hashedPin = BCrypt.hashpw(newPin, BCrypt.gensalt());
-                stmt.setString(1, hashedPin);
-                stmt.setString(2, phone);
-                
-                int rowsAffected = stmt.executeUpdate();
-                
-                if (rowsAffected > 0) {
-                    System.out.println("✅ PIN updated successfully for: " + phone);
-                    if (onSuccess != null) onSuccess.run();
-                } else {
-                    if (onError != null) onError.accept("User not found.");
-                }
-                
-            } catch (SQLException e) {
-                System.err.println("Update PIN error: " + e.getMessage());
-                if (onError != null) onError.accept("Database error: " + e.getMessage());
-            }
-        });
-    }
-
-    /**
-     * Update user profile.
-     * 
-     * @param userId User's ID
-     * @param name New name
-     * @param district New district
-     * @param upazila New upazila
-     * @param profilePhoto Profile photo path
-     * @param onSuccess Callback on successful update
-     * @param onError Callback with error message on failure
-     */
-    public void updateProfile(int userId, String name, String district, String upazila, 
-                              String profilePhoto, Runnable onSuccess, Consumer<String> onError) {
-        if (!initialized) {
-            if (onError != null) onError.accept("FirebaseService not initialized.");
-            return;
-        }
-
-        dbExecutor.submit(() -> {
-            String sql = "UPDATE users SET name = ?, district = ?, upazila = ?, profile_photo = ? WHERE id = ?";
-            try (Connection conn = getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-                
-                stmt.setString(1, name);
-                stmt.setString(2, district);
-                stmt.setString(3, upazila);
-                stmt.setString(4, profilePhoto);
-                stmt.setInt(5, userId);
-                
-                int rowsAffected = stmt.executeUpdate();
-                
-                if (rowsAffected > 0) {
-                    System.out.println("✅ Profile updated successfully for user ID: " + userId);
-                    if (onSuccess != null) onSuccess.run();
-                } else {
-                    if (onError != null) onError.accept("User not found.");
-                }
-                
-            } catch (SQLException e) {
-                System.err.println("Update profile error: " + e.getMessage());
-                if (onError != null) onError.accept("Database error: " + e.getMessage());
-            }
-        });
-    }
-
-    // ==================== DATABASE QUERY METHODS ====================
-
-    /**
-     * Execute a query asynchronously (SELECT operations)
-     * 
-     * @param sql SQL query string
-     * @param params Query parameters
-     * @param onSuccess Callback with ResultSet
-     * @param onError Error handler
-     */
-    public void executeQueryAsync(String sql, Object[] params, 
-                                  Consumer<ResultSet> onSuccess, 
-                                  Consumer<Exception> onError) {
-        dbExecutor.submit(() -> {
-            try (Connection conn = getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-                
-                if (params != null) {
-                    for (int i = 0; i < params.length; i++) {
-                        stmt.setObject(i + 1, params[i]);
-                    }
-                }
-
-                ResultSet rs = stmt.executeQuery();
-                if (onSuccess != null) onSuccess.accept(rs);
-                
             } catch (Exception e) {
-                System.err.println("Database query error: " + e.getMessage());
-                e.printStackTrace();
-                if (onError != null) onError.accept(e);
-            }
-        });
-    }
-
-    /**
-     * Execute an update asynchronously (INSERT, UPDATE, DELETE operations)
-     * 
-     * @param sql SQL update string
-     * @param params Update parameters
-     * @param onSuccess Callback with number of affected rows
-     * @param onError Error handler
-     */
-    public void executeUpdateAsync(String sql, Object[] params, 
-                                   Consumer<Integer> onSuccess, 
-                                   Consumer<Exception> onError) {
-        dbExecutor.submit(() -> {
-            try (Connection conn = getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-                
-                if (params != null) {
-                    for (int i = 0; i < params.length; i++) {
-                        stmt.setObject(i + 1, params[i]);
-                    }
+                System.err.println("❌ Error executing batch: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
                 }
-
-                int rowsAffected = stmt.executeUpdate();
-                if (onSuccess != null) onSuccess.accept(rowsAffected);
-                
-            } catch (Exception e) {
-                System.err.println("Database update error: " + e.getMessage());
-                e.printStackTrace();
-                if (onError != null) onError.accept(e);
             }
         });
     }
 
     /**
-     * Shutdown Firebase/database connection.
+     * Shutdown Firebase service
      */
     public void shutdown() {
         if (initialized) {
             try {
-                System.out.println("Closing database connection...");
-                
-                // Shutdown executor
-                dbExecutor.shutdown();
-                
-                if (connection != null && !connection.isClosed()) {
-                    connection.close();
+                System.out.println("🔄 Closing Firestore connection...");
+                if (firestore != null) {
+                    firestore.close();
                 }
-                
+                executor.shutdown();
                 initialized = false;
-                System.out.println("FirebaseService connection closed successfully.");
+                System.out.println("✅ Firebase connection closed successfully.");
             } catch (Exception e) {
-                System.err.println("Error closing FirebaseService: " + e.getMessage());
+                System.err.println("❌ Error closing Firebase: " + e.getMessage());
                 e.printStackTrace();
             }
         }

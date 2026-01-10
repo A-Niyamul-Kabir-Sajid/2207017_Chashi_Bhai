@@ -6,6 +6,7 @@ import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -13,6 +14,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
@@ -319,6 +321,7 @@ public class CropFeedController {
 
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT c.*, u.name as farmer_name, u.phone as farmer_phone, u.is_verified, ")
+           .append("c.price_per_kg as price, c.available_quantity_kg as quantity, 'কেজি' as unit, ")
            .append(" (SELECT photo_path FROM crop_photos WHERE crop_id = c.id ORDER BY photo_order LIMIT 1) as photo")
            .append(" FROM crops c JOIN users u ON c.farmer_id = u.id WHERE c.status = 'active'");
 
@@ -356,16 +359,33 @@ public class CropFeedController {
             }
         }
 
+        System.out.println("[CropFeed] Loading crops with query: " + sql.toString());
+        System.out.println("[CropFeed] Params: " + params);
+
         DatabaseService.executeQueryAsync(sql.toString(), params.toArray(), rs -> {
+            // CRITICAL: Read ResultSet data BEFORE Platform.runLater to avoid closed ResultSet
+            List<CropItem> items = new ArrayList<>();
+            try {
+                while (rs.next()) {
+                    CropItem item = mapItem(rs);
+                    items.add(item);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                Platform.runLater(() -> showError("ত্রুটি", "ফসলের তালিকা লোড করতে ব্যর্থ হয়েছে।"));
+                return;
+            }
+            
+            // Now update UI with the loaded data
             Platform.runLater(() -> {
                 try {
+                    loadedCrops.clear();
+                    loadedCrops.addAll(items);
+                    
                     int colCount = 3; // Number of columns in the grid
                     int row = 0, col = 0;
                     
-                    while (rs.next()) {
-                        CropItem item = mapItem(rs);
-                        loadedCrops.add(item);
-
+                    for (CropItem item : items) {
                         if (gridCropFeed != null) {
                             gridCropFeed.add(buildCropCard(item), col, row);
                             col++;
@@ -375,9 +395,11 @@ public class CropFeedController {
                             }
                         }
                     }
+                    
+                    System.out.println("[CropFeed] Loaded " + items.size() + " crops");
 
                     // Show empty state if no crops found
-                    if (loadedCrops.isEmpty() && vboxEmptyState != null) {
+                    if (items.isEmpty() && vboxEmptyState != null) {
                         vboxEmptyState.setVisible(true);
                         if (gridCropFeed != null) gridCropFeed.setVisible(false);
                     } else {
@@ -386,7 +408,7 @@ public class CropFeedController {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    showError("ত্রুটি", "ফসলের তালিকা লোড করতে ব্যর্থ হয়েছে।");
+                    showError("ত্রুটি", "ফসলের তালিকা প্রদর্শন করতে ব্যর্থ হয়েছে।");
                 }
             });
         }, err -> {
@@ -424,7 +446,40 @@ public class CropFeedController {
         // This method is kept for future use when the FXML is updated
     }
 
+    /**
+     * Build crop card using FXML template
+     */
     private Pane buildCropCard(CropItem item) {
+        try {
+            // Load FXML template
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/sajid/_207017_chashi_bhai/item-crop.fxml"));
+            VBox cardRoot = loader.load();
+            
+            // Get controller and set data
+            CropItemController controller = loader.getController();
+            controller.setCropData(
+                item.id,
+                item.name,
+                "Category: " + (item.district != null ? item.district : ""),
+                item.farmerName + (item.farmerVerified ? " ✓" : ""),
+                item.quantity,
+                item.unit,
+                item.price,
+                item.photoPath
+            );
+            
+            return cardRoot;
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Fallback to programmatic card if FXML fails
+            return buildCropCardProgrammatic(item);
+        }
+    }
+
+    /**
+     * Fallback method to build crop card programmatically
+     */
+    private Pane buildCropCardProgrammatic(CropItem item) {
         HBox card = new HBox(12);
         card.getStyleClass().add("crop-card");
         card.setPadding(new Insets(12));

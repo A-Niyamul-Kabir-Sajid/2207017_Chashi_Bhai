@@ -33,11 +33,14 @@ public class DatabaseInitializer {
             String schemaSQL = readSchemaFile();
             
             if (schemaSQL == null || schemaSQL.trim().isEmpty()) {
-                System.err.println("Schema file is empty or not found!");
+                System.out.println("Schema file is empty or not found! Using basic schema...");
                 // Fall back to basic initialization
                 initializeBasicSchema();
+                System.out.println("Database initialized successfully!");
                 return;
             }
+            
+            System.out.println("Using schema from SQL file...");
             
             // Execute the schema
             try (Connection conn = DriverManager.getConnection(DB_URL);
@@ -81,38 +84,12 @@ public class DatabaseInitializer {
 
     /**
      * Read the schema file from resources or file system
+     * Note: Currently disabled to use basic schema from DatabaseService
      */
     private static String readSchemaFile() {
-        StringBuilder content = new StringBuilder();
-        
-        try {
-            // Try to read from resources first
-            InputStream is = DatabaseInitializer.class.getResourceAsStream("/" + SCHEMA_FILE);
-            
-            // If not in resources, try from file system
-            if (is == null) {
-                if (Files.exists(Paths.get(SCHEMA_FILE))) {
-                    return Files.readString(Paths.get(SCHEMA_FILE));
-                } else {
-                    System.err.println("Schema file not found in resources or file system");
-                    return null;
-                }
-            }
-            
-            // Read from input stream
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    content.append(line).append("\n");
-                }
-            }
-            
-            return content.toString();
-            
-        } catch (Exception e) {
-            System.err.println("Error reading schema file: " + e.getMessage());
-            return null;
-        }
+        // Return null to let DatabaseService handle schema initialization
+        // This can be re-enabled if a valid database_schema.sql file is needed
+        return null;
     }
 
     /**
@@ -146,6 +123,7 @@ public class DatabaseInitializer {
             stmt.execute(
                 "CREATE TABLE IF NOT EXISTS crops (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "product_code TEXT UNIQUE NOT NULL, " +
                 "farmer_id INTEGER NOT NULL, " +
                 "name TEXT NOT NULL, " +
                 "category TEXT NOT NULL, " +
@@ -157,6 +135,7 @@ public class DatabaseInitializer {
                 "upazila TEXT, " +
                 "village TEXT, " +
                 "harvest_date DATE, " +
+                "transport_info TEXT, " +
                 "status TEXT DEFAULT 'active' CHECK(status IN ('active', 'sold', 'expired', 'deleted')), " +
                 "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                 "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
@@ -172,6 +151,17 @@ public class DatabaseInitializer {
                 "photo_order INTEGER DEFAULT 0, " +
                 "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                 "FOREIGN KEY (crop_id) REFERENCES crops(id) ON DELETE CASCADE)"
+            );
+
+            // Farm photos table
+            stmt.execute(
+                "CREATE TABLE IF NOT EXISTS farm_photos (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "farmer_id INTEGER NOT NULL, " +
+                "photo_path TEXT NOT NULL, " +
+                "photo_order INTEGER DEFAULT 0, " +
+                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "FOREIGN KEY (farmer_id) REFERENCES users(id) ON DELETE CASCADE)"
             );
 
             // Orders table
@@ -240,6 +230,35 @@ public class DatabaseInitializer {
                 "FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE)"
             );
 
+            // Reviews table
+            stmt.execute(
+                "CREATE TABLE IF NOT EXISTS reviews (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "order_id INTEGER NOT NULL, " +
+                "reviewer_id INTEGER NOT NULL, " +
+                "reviewee_id INTEGER NOT NULL, " +
+                "rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5), " +
+                "review_text TEXT, " +
+                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE, " +
+                "FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE CASCADE, " +
+                "FOREIGN KEY (reviewee_id) REFERENCES users(id) ON DELETE CASCADE)"
+            );
+
+            // Notifications table
+            stmt.execute(
+                "CREATE TABLE IF NOT EXISTS notifications (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "user_id INTEGER NOT NULL, " +
+                "title TEXT NOT NULL, " +
+                "message TEXT NOT NULL, " +
+                "type TEXT DEFAULT 'info' CHECK(type IN ('info', 'success', 'warning', 'error', 'order', 'message', 'review')), " +
+                "is_read BOOLEAN DEFAULT 0, " +
+                "related_id INTEGER, " +
+                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE)"
+            );
+
             System.out.println("Basic schema created successfully");
             
         } catch (Exception e) {
@@ -272,12 +291,12 @@ public class DatabaseInitializer {
                 "('01744444444', '1234', 'জামাল উদ্দিন', 'buyer', 'খুলনা', 1)"
             );
             
-            // Insert sample crops
+            // Insert sample crops with product codes
             stmt.execute(
-                "INSERT INTO crops (farmer_id, name, category, initial_quantity_kg, available_quantity_kg, price_per_kg, description, district, status) VALUES " +
-                "(1, 'ধান (Rice)', 'শস্য', 100.0, 100.0, 45.0, 'উচ্চ মানের ধান', 'ঢাকা', 'active'), " +
-                "(1, 'আলু (Potato)', 'সবজি', 50.0, 50.0, 30.0, 'তাজা আলু', 'ঢাকা', 'active'), " +
-                "(3, 'টমেটো (Tomato)', 'সবজি', 30.0, 30.0, 60.0, 'টাটকা টমেটো', 'রাজশাহী', 'active')"
+                "INSERT INTO crops (product_code, farmer_id, name, category, initial_quantity_kg, available_quantity_kg, price_per_kg, description, district, status) VALUES " +
+                "('CRP-20260110-0001', 1, 'ধান (Rice)', 'শস্য', 100.0, 100.0, 45.0, 'উচ্চ মানের ধান', 'ঢাকা', 'active'), " +
+                "('CRP-20260110-0002', 1, 'আলু (Potato)', 'সবজি', 50.0, 50.0, 30.0, 'তাজা আলু', 'ঢাকা', 'active'), " +
+                "('CRP-20260110-0003', 3, 'টমেটো (Tomato)', 'সবজি', 30.0, 30.0, 60.0, 'টাটকা টমেটো', 'রাজশাহী', 'active')"
             );
             
             System.out.println("Sample data inserted successfully");

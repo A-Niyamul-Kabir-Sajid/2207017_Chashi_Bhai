@@ -143,12 +143,12 @@ public class PostCropController {
         String productCode = String.format("CRP-%s-%04d", dateStr, System.currentTimeMillis() % 10000);
 
         // Insert crop into database using correct schema
-        String insertSql = "INSERT INTO crops (product_code, farmer_id, name, category, price_per_kg, initial_quantity_kg, available_quantity_kg, description, district, harvest_date, status, created_at) " +
-                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', datetime('now'))";
+        String insertSql = "INSERT INTO crops (product_code, farmer_id, name, category, price_per_kg, initial_quantity_kg, available_quantity_kg, description, district, harvest_date, transport_info, status, created_at) " +
+                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', datetime('now'))";
         
         DatabaseService.executeUpdateAsync(
             insertSql,
-            new Object[]{productCode, currentUser.getId(), cropName, category, price, quantity, quantity, description, district, harvestDate != null ? harvestDate.toString() : null},
+            new Object[]{productCode, currentUser.getId(), cropName, category, price, quantity, quantity, description, district, harvestDate != null ? harvestDate.toString() : null, transport},
             rowsAffected -> {
                 if (rowsAffected > 0) {
                     // Get the last inserted crop ID

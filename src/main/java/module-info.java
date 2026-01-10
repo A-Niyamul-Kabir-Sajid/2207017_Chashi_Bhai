@@ -8,7 +8,7 @@ module com.sajid._207017_chashi_bhai {
     requires jbcrypt;
     requires com.google.gson;
     
-    // Firebase requires unnamed modules
+    // Firebase Admin SDK (unnamed modules - accessed via classpath)
     requires static firebase.admin;
     requires static com.google.auth;
     requires static com.google.auth.oauth2;

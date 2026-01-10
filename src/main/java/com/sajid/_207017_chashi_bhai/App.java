@@ -2,6 +2,7 @@ package com.sajid._207017_chashi_bhai;
 
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.services.FirebaseService;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -28,8 +29,18 @@ public class App extends Application {
     public void start(Stage stage) {
         primaryStage = stage;
         
-        // Initialize database
+        // Initialize SQLite database (local storage)
         DatabaseService.initializeDatabase();
+        
+        // Initialize Firebase (cloud storage - optional)
+        try {
+            FirebaseService.getInstance().initialize();
+            System.out.println("✅ Firebase cloud sync enabled");
+        } catch (Exception e) {
+            System.out.println("⚠️ Firebase not configured - running in offline mode");
+            System.out.println("   To enable cloud sync, see FIREBASE_SETUP.md");
+            // Continue without Firebase - app works offline with SQLite
+        }
         
         // Set app icon
         try {
@@ -43,6 +54,7 @@ public class App extends Application {
         
         primaryStage.setOnCloseRequest(event -> {
             DatabaseService.shutdown();
+            FirebaseService.getInstance().shutdown();
         });
         
         primaryStage.show();

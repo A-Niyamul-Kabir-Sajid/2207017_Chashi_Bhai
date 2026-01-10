@@ -85,7 +85,7 @@ public class FarmerProfileController {
         DatabaseService.executeQueryAsync(
             "SELECT u.*, " +
             "COALESCE(CAST((julianday('now') - julianday(u.created_at)) / 365 AS INTEGER), 0) as years_farming, " +
-            "(SELECT COUNT(*) FROM orders o WHERE o.farmer_id = u.id AND o.status IN ('delivered', 'completed')) as total_sales, " +
+            "(SELECT COALESCE(SUM(o.quantity_kg * o.price_per_kg), 0) FROM orders o WHERE o.farmer_id = u.id AND o.status IN ('delivered', 'completed')) as total_sales, " +
             "(SELECT COALESCE(AVG(r.rating), 0.0) FROM reviews r WHERE r.reviewee_id = u.id) as avg_rating " +
             "FROM users u WHERE u.id = ?",
             new Object[]{currentUser.getId()},
@@ -100,7 +100,7 @@ public class FarmerProfileController {
                             String farmType = resultSet.getString("farm_type");
                             boolean isVerified = resultSet.getBoolean("is_verified");
                             int yearsFarming = resultSet.getInt("years_farming");
-                            int totalSales = resultSet.getInt("total_sales");
+                            double totalSales = resultSet.getDouble("total_sales");
                             double avgRating = resultSet.getDouble("avg_rating");
                             String photoPath = resultSet.getString("profile_photo");
 
@@ -110,7 +110,7 @@ public class FarmerProfileController {
                             lblPhone.setText(phone != null ? phone : "N/A");
                             lblDistrict.setText(district != null ? district : "N/A");
                             lblYearsFarming.setText(String.valueOf(yearsFarming));
-                            lblTotalSales.setText(String.valueOf(totalSales));
+                            lblTotalSales.setText(String.format("৳%.2f", totalSales));
                             lblRating.setText(String.format("%.1f ★", avgRating));
 
                             // Verified badge

@@ -86,9 +86,9 @@ public class EditCropController {
                         if (resultSet.next()) {
                             txtCropName.setText(resultSet.getString("name"));
                             cbCategory.setValue(resultSet.getString("category"));
-                            txtPrice.setText(String.valueOf(resultSet.getDouble("price")));
-                            cbUnit.setValue(resultSet.getString("unit"));
-                            txtQuantity.setText(String.valueOf(resultSet.getDouble("quantity")));
+                            txtPrice.setText(String.valueOf(resultSet.getDouble("price_per_kg")));
+                            cbUnit.setValue("কেজি (kg)");
+                            txtQuantity.setText(String.valueOf(resultSet.getDouble("available_quantity_kg")));
                             
                             String harvestDateStr = resultSet.getString("harvest_date");
                             if (harvestDateStr != null) {

@@ -68,6 +68,11 @@
             <artifactId>google-auth-library-oauth2-http</artifactId>
             <version>1.19.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-firestore</artifactId>
+            <version>3.13.1</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -79,6 +84,10 @@
                 <configuration>
                     <source>25</source>
                     <target>25</target>
+                    <compilerArgs>
+                        <arg>--add-reads</arg>
+                        <arg>com.sajid._207017_chashi_bhai=ALL-UNNAMED</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
@@ -90,7 +99,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>com.sajid._207017_chashi_bhai/com.sajid._207017_chashi_bhai.Launcher
+                            <mainClass>com.sajid._207017_chashi_bhai.Launcher
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
