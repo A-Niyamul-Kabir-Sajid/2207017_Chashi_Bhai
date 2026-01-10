@@ -58,11 +58,18 @@
                     </items>
                 </ComboBox>
 
-                <Label styleClass="filter-label" text="মূল্য:"/>
-                <Slider fx:id="sliderPriceMin" max="1000" min="0" prefWidth="120" styleClass="price-slider" value="0"/>
-                <Label fx:id="lblPriceRange" styleClass="filter-label" text="৳ 0 - ৳ 1000"/>
-
                 <CheckBox fx:id="chkVerifiedOnly" styleClass="filter-checkbox" text="✓ শুধু যাচাইকৃত"/>
+                
+                <Label styleClass="filter-label" text="সাজান:"/>
+                <ComboBox fx:id="cbSortBy" prefWidth="200" styleClass="filter-combo">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="নতুন প্রথম (Newest First)"/>
+                            <String fx:value="মূল্য: বেশি থেকে কম (Price: High to Low)"/>
+                            <String fx:value="মূল্য: কম থেকে বেশি (Price: Low to High)"/>
+                        </FXCollections>
+                    </items>
+                </ComboBox>
 
                 <Button fx:id="btnApplyFilter" onAction="#onApplyFilter" styleClass="button-primary" text="প্রয়োগ করুন"/>
                 <Button fx:id="btnResetFilter" onAction="#onResetFilter" styleClass="button-secondary" text="রিসেট"/>

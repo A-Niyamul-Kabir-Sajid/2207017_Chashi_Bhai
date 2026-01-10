@@ -54,6 +54,7 @@ public class CropItemController {
         if (cropId > 0) {
             App.setCurrentCropId(cropId);
             App.setCurrentOrderId(-1); // Clear order context - show full quantity
+            App.setPreviousScene("crop-feed-view.fxml");
             App.loadScene("crop-detail-view.fxml", "ফসলের বিস্তারিত");
         }
     }

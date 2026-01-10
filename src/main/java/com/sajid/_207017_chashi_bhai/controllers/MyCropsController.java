@@ -26,6 +26,7 @@ public class MyCropsController {
     @FXML private Button btnFilterActive;
     @FXML private Button btnFilterSold;
     @FXML private Button btnFilterExpired;
+    @FXML private ComboBox<String> cbSortBy;
     @FXML private VBox vboxCropsList;
     @FXML private VBox vboxEmptyState;
     @FXML private Button btnAddNew;
@@ -42,6 +43,16 @@ public class MyCropsController {
             showError("অ্যাক্সেস অস্বীকার", "শুধুমাত্র কৃষকরা এই পেজ দেখতে পারবেন।");
             App.loadScene("login-view.fxml", "Login");
             return;
+        }
+        
+        // Initialize sort dropdown with default selection
+        if (cbSortBy != null) {
+            cbSortBy.getSelectionModel().select(0); // Default: Newest First
+            cbSortBy.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null) {
+                    loadCrops(currentFilter);
+                }
+            });
         }
 
         loadCrops(currentFilter);
@@ -100,7 +111,21 @@ public class MyCropsController {
         if (!"all".equals(filter)) {
             query += " AND c.status = ?";
         }
-        query += " ORDER BY c.created_at DESC";
+        
+        // Apply sorting based on user selection
+        String sortOption = cbSortBy != null ? cbSortBy.getSelectionModel().getSelectedItem() : null;
+        if (sortOption != null) {
+            if (sortOption.contains("High to Low") || sortOption.contains("বেশি থেকে কম")) {
+                query += " ORDER BY c.price_per_kg DESC";
+            } else if (sortOption.contains("Low to High") || sortOption.contains("কম থেকে বেশি")) {
+                query += " ORDER BY c.price_per_kg ASC";
+            } else {
+                // Default: Newest First
+                query += " ORDER BY c.created_at DESC";
+            }
+        } else {
+            query += " ORDER BY c.created_at DESC";
+        }
 
         Object[] params = "all".equals(filter) ? 
             new Object[]{currentUser.getId()} : 
@@ -301,6 +326,7 @@ public class MyCropsController {
 
     @FXML
     private void onAddNew() {
+        App.setPreviousScene("my-crops-view.fxml");
         App.loadScene("post-crop-view.fxml", "নতুন ফসল যোগ করুন");
     }
 

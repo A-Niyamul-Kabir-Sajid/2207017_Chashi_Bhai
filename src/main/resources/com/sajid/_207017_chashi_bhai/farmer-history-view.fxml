@@ -96,6 +96,17 @@
                 </ComboBox>
                 
                 <Button fx:id="btnApplyFilter" styleClass="button-primary" text="🔍 প্রয়োগ করুন" />
+                
+                <Label styleClass="filter-label" text="সাজান:" />
+                <ComboBox fx:id="cbSortBy" prefWidth="200" styleClass="form-input">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="নতুন প্রথম (Newest First)" />
+                            <String fx:value="মূল্য: বেশি থেকে কম (Price: High to Low)" />
+                            <String fx:value="মূল্য: কম থেকে বেশি (Price: Low to High)" />
+                        </FXCollections>
+                    </items>
+                </ComboBox>
             </HBox>
 
             <!-- History List -->

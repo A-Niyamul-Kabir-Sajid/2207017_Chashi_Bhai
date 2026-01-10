@@ -21,6 +21,9 @@ CREATE TABLE IF NOT EXISTS users (
     most_sold_crop TEXT,
     total_income REAL DEFAULT 0.0,
     rating REAL DEFAULT 0.0,
+    total_buyer_orders INTEGER DEFAULT 0,
+    most_bought_crop TEXT,
+    total_expense REAL DEFAULT 0.0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

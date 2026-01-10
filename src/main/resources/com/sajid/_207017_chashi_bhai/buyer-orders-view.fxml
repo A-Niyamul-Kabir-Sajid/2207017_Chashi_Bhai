@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.collections.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.image.ImageView?>
+<?import java.lang.String?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.BuyerOrdersController" styleClass="root" minHeight="700" minWidth="1024">
     
@@ -33,6 +35,17 @@
                 <Button fx:id="btnFilterConfirmed" text="নিশ্চিত (Confirmed)" styleClass="filter-tab" onAction="#onFilterConfirmed"/>
                 <Button fx:id="btnFilterInTransit" text="পাঠানো হচ্ছে (In Transit)" styleClass="filter-tab" onAction="#onFilterInTransit"/>
                 <Button fx:id="btnFilterDelivered" text="ডেলিভার (Delivered)" styleClass="filter-tab" onAction="#onFilterDelivered"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="সাজান:" styleClass="filter-label"/>
+                <ComboBox fx:id="cbSortBy" prefWidth="200" styleClass="filter-combo">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="নতুন প্রথম (Newest First)"/>
+                            <String fx:value="মূল্য: বেশি থেকে কম (Price: High to Low)"/>
+                            <String fx:value="মূল্য: কম থেকে বেশি (Price: Low to High)"/>
+                        </FXCollections>
+                    </items>
+                </ComboBox>
             </HBox>
 
             <!-- Orders List -->

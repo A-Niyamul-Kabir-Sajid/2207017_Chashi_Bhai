@@ -4,6 +4,7 @@ import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
+import com.sajid._207017_chashi_bhai.utils.StatisticsCalculator;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -29,6 +30,7 @@ public class FarmerOrdersController {
     @FXML private Button btnFilterAccepted;
     @FXML private Button btnFilterInTransit;
     @FXML private Button btnFilterDelivered;
+    @FXML private ComboBox<String> cbSortBy;
     @FXML private VBox vboxOrdersList;
     @FXML private VBox vboxEmptyState;
     @FXML private Button btnRefresh;
@@ -47,6 +49,16 @@ public class FarmerOrdersController {
             showError("অ্যাক্সেস অস্বীকার", "শুধুমাত্র কৃষকরা এই পেজ দেখতে পারবেন।");
             App.loadScene("login-view.fxml", "Login");
             return;
+        }
+        
+        // Initialize sort dropdown with default selection
+        if (cbSortBy != null) {
+            cbSortBy.getSelectionModel().select(0); // Default: Newest First
+            cbSortBy.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null) {
+                    loadOrders(currentFilter);
+                }
+            });
         }
 
         loadOrders(currentFilter);
@@ -117,7 +129,21 @@ public class FarmerOrdersController {
         if (!"all".equals(filter)) {
             query += " AND o.status = ?";
         }
-        query += " ORDER BY o.created_at DESC";
+        
+        // Apply sorting based on user selection
+        String sortOption = cbSortBy != null ? cbSortBy.getSelectionModel().getSelectedItem() : null;
+        if (sortOption != null) {
+            if (sortOption.contains("High to Low") || sortOption.contains("বেশি থেকে কম")) {
+                query += " ORDER BY (o.quantity_kg * c.price_per_kg) DESC";
+            } else if (sortOption.contains("Low to High") || sortOption.contains("কম থেকে বেশি")) {
+                query += " ORDER BY (o.quantity_kg * c.price_per_kg) ASC";
+            } else {
+                // Default: Newest First
+                query += " ORDER BY o.created_at DESC";
+            }
+        } else {
+            query += " ORDER BY o.created_at DESC";
+        }
 
         Object[] params = "all".equals(filter) ? 
             new Object[]{currentUser.getId()} : 
@@ -381,23 +407,46 @@ public class FarmerOrdersController {
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            DatabaseService.executeUpdateAsync(
-                "UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?",
-                new Object[]{newStatus, orderId},
-                rowsAffected -> {
-                    Platform.runLater(() -> {
-                        if (rowsAffected > 0) {
-                            showSuccess("সফল", "অর্ডার স্ট্যাটাস আপডেট করা হয়েছে।");
-                            loadOrders(currentFilter);
+            // First get buyer_id from the order
+            DatabaseService.executeQueryAsync(
+                "SELECT buyer_id FROM orders WHERE id = ?",
+                new Object[]{orderId},
+                rs -> {
+                    try {
+                        if (rs.next()) {
+                            int buyerId = rs.getInt("buyer_id");
+                            
+                            // Update order status
+                            DatabaseService.executeUpdateAsync(
+                                "UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?",
+                                new Object[]{newStatus, orderId},
+                                rowsAffected -> {
+                                    Platform.runLater(() -> {
+                                        if (rowsAffected > 0) {
+                                            showSuccess("সফল", "অর্ডার স্ট্যাটাস আপডেট করা হয়েছে।");
+                                            loadOrders(currentFilter);
+                                            
+                                            // Update statistics if order completed
+                                            if ("delivered".equals(newStatus) || "completed".equals(newStatus)) {
+                                                StatisticsCalculator.updateFarmerStatistics(currentUser.getId());
+                                                StatisticsCalculator.updateBuyerStatistics(buyerId);
+                                            }
+                                        }
+                                    });
+                                },
+                                error -> {
+                                    Platform.runLater(() -> {
+                                        showError("ত্রুটি", "স্ট্যাটাস আপডেট করতে সমস্যা হয়েছে।");
+                                        error.printStackTrace();
+                                    });
+                                }
+                            );
                         }
-                    });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 },
-                error -> {
-                    Platform.runLater(() -> {
-                        showError("ত্রুটি", "স্ট্যাটাস আপডেট করতে সমস্যা হয়েছে।");
-                        error.printStackTrace();
-                    });
-                }
+                error -> error.printStackTrace()
             );
         }
     }

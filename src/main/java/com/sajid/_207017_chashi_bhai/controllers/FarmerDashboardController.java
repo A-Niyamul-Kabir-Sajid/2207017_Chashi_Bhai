@@ -112,6 +112,7 @@ public class FarmerDashboardController {
     @FXML
     private void onPostCrop() {
         System.out.println("[DEBUG] Post Crop button clicked!");
+        App.setPreviousScene("farmer-dashboard-view.fxml");
         App.loadScene("post-crop-view.fxml", "নতুন ফসল যোগ করুন");
     }
 

@@ -3,6 +3,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.utils.StatisticsCalculator;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -144,6 +145,9 @@ public class RateOrderDialogController {
                 Platform.runLater(() -> {
                     ratingSubmitted = true;
                     showSuccess("সফল!", "আপনার রেটিং সফলভাবে জমা হয়েছে। ধন্যবাদ!");
+                    
+                    // Update farmer rating statistics
+                    StatisticsCalculator.updateFarmerStatistics(farmerId);
                     
                     // Create notification for farmer
                     createNotification(farmerId, "নতুন রেটিং", 

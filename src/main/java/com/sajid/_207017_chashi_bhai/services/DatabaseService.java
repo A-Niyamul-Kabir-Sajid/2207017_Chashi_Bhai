@@ -191,6 +191,71 @@ public class DatabaseService {
                     "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                     "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
                 );
+                
+                // Add farmer statistics columns (if not exist)
+                try {
+                    stmt.execute("ALTER TABLE users ADD COLUMN total_accepted_orders INTEGER DEFAULT 0");
+                    System.out.println("Added column: total_accepted_orders");
+                } catch (SQLException e) {
+                    if (!e.getMessage().contains("duplicate column name")) {
+                        throw e;
+                    }
+                }
+                
+                try {
+                    stmt.execute("ALTER TABLE users ADD COLUMN most_sold_crop TEXT");
+                    System.out.println("Added column: most_sold_crop");
+                } catch (SQLException e) {
+                    if (!e.getMessage().contains("duplicate column name")) {
+                        throw e;
+                    }
+                }
+                
+                try {
+                    stmt.execute("ALTER TABLE users ADD COLUMN total_income REAL DEFAULT 0.0");
+                    System.out.println("Added column: total_income");
+                } catch (SQLException e) {
+                    if (!e.getMessage().contains("duplicate column name")) {
+                        throw e;
+                    }
+                }
+                
+                try {
+                    stmt.execute("ALTER TABLE users ADD COLUMN rating REAL DEFAULT 0.0");
+                    System.out.println("Added column: rating");
+                } catch (SQLException e) {
+                    if (!e.getMessage().contains("duplicate column name")) {
+                        throw e;
+                    }
+                }
+                
+                // Add buyer statistics columns (if not exist)
+                try {
+                    stmt.execute("ALTER TABLE users ADD COLUMN total_buyer_orders INTEGER DEFAULT 0");
+                    System.out.println("Added column: total_buyer_orders");
+                } catch (SQLException e) {
+                    if (!e.getMessage().contains("duplicate column name")) {
+                        throw e;
+                    }
+                }
+                
+                try {
+                    stmt.execute("ALTER TABLE users ADD COLUMN most_bought_crop TEXT");
+                    System.out.println("Added column: most_bought_crop");
+                } catch (SQLException e) {
+                    if (!e.getMessage().contains("duplicate column name")) {
+                        throw e;
+                    }
+                }
+                
+                try {
+                    stmt.execute("ALTER TABLE users ADD COLUMN total_expense REAL DEFAULT 0.0");
+                    System.out.println("Added column: total_expense");
+                } catch (SQLException e) {
+                    if (!e.getMessage().contains("duplicate column name")) {
+                        throw e;
+                    }
+                }
 
                 // Crops table with proper columns
                 stmt.execute(
@@ -440,6 +505,15 @@ public class DatabaseService {
      * Shutdown the database executor (call on app exit)
      */
     public static void shutdown() {
-        dbExecutor.shutdown();
+        System.out.println("[DatabaseService] Shutting down executor...");
+        dbExecutor.shutdownNow();
+        try {
+            if (!dbExecutor.awaitTermination(2, java.util.concurrent.TimeUnit.SECONDS)) {
+                System.out.println("[DatabaseService] Executor did not terminate in time");
+            }
+        } catch (InterruptedException e) {
+            System.err.println("[DatabaseService] Shutdown interrupted: " + e.getMessage());
+            Thread.currentThread().interrupt();
+        }
     }
 }

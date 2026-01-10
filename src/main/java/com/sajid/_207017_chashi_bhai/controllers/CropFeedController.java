@@ -29,8 +29,7 @@ public class CropFeedController {
     @FXML private TextField txtQuickSearch;
     @FXML private ComboBox<String> cbFilterCropType;
     @FXML private ComboBox<String> cbFilterDistrict;
-    @FXML private Slider sliderPriceMin;
-    @FXML private Label lblPriceRange;
+    @FXML private ComboBox<String> cbSortBy;
     @FXML private CheckBox chkVerifiedOnly;
     @FXML private GridPane gridCropFeed;
     @FXML private VBox vboxEmptyState;
@@ -93,6 +92,16 @@ public class CropFeedController {
         if (cbFilterCropType != null) {
             cbFilterCropType.setItems(FXCollections.observableArrayList(CATEGORIES));
         }
+        
+        // Initialize sort dropdown with default selection
+        if (cbSortBy != null) {
+            cbSortBy.getSelectionModel().select(0); // Default: Newest First
+            cbSortBy.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null) {
+                    loadCrops(true);
+                }
+            });
+        }
 
         // Pre-select district for farmer
         if ("farmer".equals(role) && currentUser.getDistrict() != null && cbFilterDistrict != null) {
@@ -104,8 +113,8 @@ public class CropFeedController {
             txtQuickSearch.textProperty().addListener((obs, oldV, newV) -> filterLocally(newV));
         }
 
-        // Initial load
-        loadCrops(false);
+        // Initial load - use filters=true to apply sort selection
+        loadCrops(true);
     }
 
     @FXML
@@ -306,6 +315,7 @@ public class CropFeedController {
     private void onResetFilter() {
         if (cbFilterCropType != null) cbFilterCropType.getSelectionModel().clearSelection();
         if (cbFilterDistrict != null) cbFilterDistrict.getSelectionModel().clearSelection();
+        if (cbSortBy != null) cbSortBy.getSelectionModel().select(0); // Reset to Newest First
         if (chkVerifiedOnly != null) chkVerifiedOnly.setSelected(false);
         if (txtQuickSearch != null) txtQuickSearch.clear();
         loadCrops(false);
@@ -347,16 +357,30 @@ public class CropFeedController {
 
         // Ordering by role
         if ("farmer".equals(role)) {
-            sql.append(" ORDER BY CASE WHEN c.farmer_id = ? THEN 0 ELSE 1 END, c.created_at DESC");
+            sql.append(" ORDER BY CASE WHEN c.farmer_id = ? THEN 0 ELSE 1 END");
             params.add(currentUser.getId());
         } else { // buyer
             String district = currentUser.getDistrict();
             if (district != null && !district.isEmpty()) {
-                sql.append(" ORDER BY CASE WHEN c.district = ? THEN 0 ELSE 1 END, c.created_at DESC");
+                sql.append(" ORDER BY CASE WHEN c.district = ? THEN 0 ELSE 1 END");
                 params.add(district);
-            } else {
-                sql.append(" ORDER BY c.created_at DESC");
             }
+        }
+        
+        // Apply sorting based on user selection
+        String sortOption = cbSortBy != null ? cbSortBy.getSelectionModel().getSelectedItem() : null;
+        if (sortOption != null) {
+            if (sortOption.contains("High to Low") || sortOption.contains("বেশি থেকে কম")) {
+                sql.append(", c.price_per_kg DESC");
+            } else if (sortOption.contains("Low to High") || sortOption.contains("কম থেকে বেশি")) {
+                sql.append(", c.price_per_kg ASC");
+            } else {
+                // Default: Newest First
+                sql.append(", c.created_at DESC");
+            }
+        } else {
+            // No sort selected, default to newest
+            sql.append(", c.created_at DESC");
         }
 
         System.out.println("[CropFeed] Loading crops with query: " + sql.toString());
@@ -625,6 +649,7 @@ public class CropFeedController {
 
     private void openDetails(int cropId) {
         App.setCurrentCropId(cropId);
+        App.setPreviousScene("crop-feed-view.fxml");
         App.loadScene("crop-detail-view.fxml", "ফসলের বিস্তারিত");
     }
 
@@ -660,6 +685,7 @@ public class CropFeedController {
 
     private void orderCrop(int cropId) {
         App.setCurrentCropId(cropId);
+        App.setPreviousScene("crop-feed-view.fxml");
         App.loadScene("crop-detail-view.fxml", "অর্ডার করুন");
     }
 

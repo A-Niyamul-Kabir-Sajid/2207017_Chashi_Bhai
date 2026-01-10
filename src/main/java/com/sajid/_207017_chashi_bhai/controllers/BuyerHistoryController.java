@@ -23,6 +23,7 @@ public class BuyerHistoryController {
     @FXML private Label lblTotalAcceptedOrders;
     @FXML private ComboBox<String> cbFilterMonth;
     @FXML private ComboBox<String> cbFilterCrop;
+    @FXML private ComboBox<String> cbSortBy;
     @FXML private Button btnApplyFilter;
     @FXML private Button btnExport;
     @FXML private VBox vboxHistoryList;
@@ -45,6 +46,16 @@ public class BuyerHistoryController {
         cbFilterMonth.setValue("সকল সময়");
         cbFilterCrop.getItems().add("সকল ফসল");
         cbFilterCrop.setValue("সকল ফসল");
+        
+        // Initialize sort dropdown with default selection
+        if (cbSortBy != null) {
+            cbSortBy.getSelectionModel().select(0); // Default: Newest First
+            cbSortBy.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null) {
+                    loadHistory();
+                }
+            });
+        }
 
         loadSummaryStats();
         loadHistory();
@@ -52,37 +63,49 @@ public class BuyerHistoryController {
     }
 
     private void loadSummaryStats() {
+        // Load total expense and total orders from user statistics
         DatabaseService.executeQueryAsync(
-            "SELECT " +
-            "(SELECT COALESCE(SUM(o.quantity_kg * o.price_per_kg), 0) FROM orders o " +
-            " WHERE o.buyer_id = ? AND o.status IN ('delivered', 'completed')) as total_expense, " +
-            "(SELECT c.name FROM orders o " +
-            " JOIN crops c ON o.crop_id = c.id " +
-            " WHERE o.buyer_id = ? AND o.status IN ('delivered', 'completed') " +
-            " GROUP BY c.name ORDER BY COUNT(*) DESC LIMIT 1) as most_bought, " +
-            "(SELECT COUNT(DISTINCT c.farmer_id) FROM orders o " +
-            " JOIN crops c ON o.crop_id = c.id " +
-            " WHERE o.buyer_id = ? AND o.status IN ('delivered', 'completed')) as favorite_farmers, " +
-            "(SELECT COUNT(*) FROM orders WHERE buyer_id = ? AND status IN ('delivered', 'completed')) as total_orders",
-            new Object[]{currentUser.getId(), currentUser.getId(), currentUser.getId(), currentUser.getId()},
+            "SELECT total_expense, total_buyer_orders, most_bought_crop FROM users WHERE id = ?",
+            new Object[]{currentUser.getId()},
             resultSet -> {
-                Platform.runLater(() -> {
-                    try {
-                        if (resultSet.next()) {
-                            double expense = resultSet.getDouble("total_expense");
-                            String mostBought = resultSet.getString("most_bought");
-                            int favoriteFarmers = resultSet.getInt("favorite_farmers");
-                            int totalOrders = resultSet.getInt("total_orders");
-
+                try {
+                    if (resultSet.next()) {
+                        // Read data BEFORE Platform.runLater
+                        double expense = resultSet.getDouble("total_expense");
+                        int totalOrders = resultSet.getInt("total_buyer_orders");
+                        String mostBought = resultSet.getString("most_bought_crop");
+                        
+                        Platform.runLater(() -> {
                             lblTotalExpense.setText(String.format("৳%.2f", expense));
-                            lblMostBought.setText(mostBought != null ? mostBought : "N/A");
-                            lblFavoriteFarmers.setText(String.valueOf(favoriteFarmers));
                             lblTotalAcceptedOrders.setText(String.valueOf(totalOrders));
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                            lblMostBought.setText(mostBought != null ? mostBought : "N/A");
+                        });
                     }
-                });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            },
+            error -> error.printStackTrace()
+        );
+        
+        // Load favorite farmers count
+        DatabaseService.executeQueryAsync(
+            "SELECT COUNT(DISTINCT c.farmer_id) as favorite_farmers FROM orders o " +
+            "JOIN crops c ON o.crop_id = c.id " +
+            "WHERE o.buyer_id = ? AND o.status IN ('delivered', 'completed')",
+            new Object[]{currentUser.getId()},
+            resultSet -> {
+                try {
+                    if (resultSet.next()) {
+                        int favoriteFarmers = resultSet.getInt("favorite_farmers");
+                        
+                        Platform.runLater(() -> {
+                            lblFavoriteFarmers.setText(String.valueOf(favoriteFarmers));
+                        });
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             },
             error -> error.printStackTrace()
         );
@@ -123,8 +146,22 @@ public class BuyerHistoryController {
                       "FROM orders o " +
                       "JOIN crops c ON o.crop_id = c.id " +
                       "JOIN users u ON c.farmer_id = u.id " +
-                      "WHERE o.buyer_id = ? AND o.status IN ('delivered', 'completed') " +
-                      "ORDER BY o.updated_at DESC";
+                      "WHERE o.buyer_id = ? AND o.status IN ('delivered', 'completed') ";
+        
+        // Apply sorting based on user selection
+        String sortOption = cbSortBy != null ? cbSortBy.getSelectionModel().getSelectedItem() : null;
+        if (sortOption != null) {
+            if (sortOption.contains("High to Low") || sortOption.contains("বেশি থেকে কম")) {
+                query += "ORDER BY (o.quantity_kg * c.price_per_kg) DESC";
+            } else if (sortOption.contains("Low to High") || sortOption.contains("কম থেকে বেশি")) {
+                query += "ORDER BY (o.quantity_kg * c.price_per_kg) ASC";
+            } else {
+                // Default: Newest First
+                query += "ORDER BY o.updated_at DESC";
+            }
+        } else {
+            query += "ORDER BY o.updated_at DESC";
+        }
 
         DatabaseService.executeQueryAsync(
             query,
@@ -406,6 +443,7 @@ public class BuyerHistoryController {
                         if (resultSet.next()) {
                             int cropId = resultSet.getInt("crop_id");
                             App.setCurrentCropId(cropId);
+                            App.setPreviousScene("buyer-history-view.fxml");
                             App.loadScene("crop-detail-view.fxml", "ফসলের বিস্তারিত");
                         }
                     } catch (Exception e) {

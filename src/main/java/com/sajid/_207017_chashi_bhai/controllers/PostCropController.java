@@ -293,7 +293,23 @@ public class PostCropController {
 
     @FXML
     private void onBack() {
-        App.loadScene("farmer-dashboard-view.fxml", "Dashboard");
+        // Navigate back to previous scene
+        String previousScene = App.getPreviousScene();
+        if (previousScene != null && !previousScene.isEmpty()) {
+            String title = getSceneTitle(previousScene);
+            App.loadScene(previousScene, title);
+        } else {
+            // Default fallback to farmer dashboard
+            App.loadScene("farmer-dashboard-view.fxml", "Dashboard");
+        }
+    }
+    
+    private String getSceneTitle(String sceneName) {
+        switch (sceneName) {
+            case "farmer-dashboard-view.fxml": return "Dashboard";
+            case "my-crops-view.fxml": return "আমার ফসল";
+            default: return "Dashboard";
+        }
     }
 
     private void showError(String title, String message) {

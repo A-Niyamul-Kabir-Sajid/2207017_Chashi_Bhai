@@ -24,6 +24,7 @@ public class FarmerHistoryController {
     @FXML private Label lblTotalAcceptedOrders;
     @FXML private ComboBox<String> cbFilterMonth;
     @FXML private ComboBox<String> cbFilterCrop;
+    @FXML private ComboBox<String> cbSortBy;
     @FXML private Button btnApplyFilter;
     @FXML private Button btnExport;
     @FXML private Button btnBack;
@@ -47,6 +48,16 @@ public class FarmerHistoryController {
         // Initialize filters
         cbFilterMonth.getItems().addAll("সকল সময়", "এই মাস", "গত মাস", "গত ৩ মাস", "গত ৬ মাস", "এই বছর");
         cbFilterMonth.setValue("সকল সময়");
+        
+        // Initialize sort dropdown with default selection
+        if (cbSortBy != null) {
+            cbSortBy.getSelectionModel().select(0); // Default: Newest First
+            cbSortBy.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null) {
+                    loadHistory();
+                }
+            });
+        }
         
         loadCropFilter();
         loadSummaryStats();
@@ -175,8 +186,22 @@ public class FarmerHistoryController {
                       "FROM orders o " +
                       "JOIN crops c ON o.crop_id = c.id " +
                       "JOIN users u ON o.buyer_id = u.id " +
-                      "WHERE o.farmer_id = ? AND o.status IN ('delivered', 'completed') " +
-                      "ORDER BY COALESCE(o.completed_at, o.delivered_at, o.created_at) DESC";
+                      "WHERE o.farmer_id = ? AND o.status IN ('delivered', 'completed') ";
+        
+        // Apply sorting based on user selection
+        String sortOption = cbSortBy != null ? cbSortBy.getSelectionModel().getSelectedItem() : null;
+        if (sortOption != null) {
+            if (sortOption.contains("High to Low") || sortOption.contains("বেশি থেকে কম")) {
+                query += "ORDER BY (o.quantity_kg * c.price_per_kg) DESC";
+            } else if (sortOption.contains("Low to High") || sortOption.contains("কম থেকে বেশি")) {
+                query += "ORDER BY (o.quantity_kg * c.price_per_kg) ASC";
+            } else {
+                // Default: Newest First
+                query += "ORDER BY COALESCE(o.completed_at, o.delivered_at, o.created_at) DESC";
+            }
+        } else {
+            query += "ORDER BY COALESCE(o.completed_at, o.delivered_at, o.created_at) DESC";
+        }
 
         DatabaseService.executeQueryAsync(
             query,

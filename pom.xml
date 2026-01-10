@@ -84,6 +84,7 @@
                 <configuration>
                     <source>25</source>
                     <target>25</target>
+                    <showWarnings>false</showWarnings>
                     <compilerArgs>
                         <arg>--add-reads</arg>
                         <arg>com.sajid._207017_chashi_bhai=ALL-UNNAMED</arg>

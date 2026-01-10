@@ -191,6 +191,7 @@ public class PublicFarmerProfileController {
         card.setPadding(new Insets(12));
         card.setOnMouseClicked(e -> {
             App.setCurrentCropId(cropId);
+            App.setPreviousScene("public-farmer-profile-view.fxml");
             App.loadScene("crop-detail-view.fxml", "ফসলের বিস্তারিত");
         });
         card.setStyle("-fx-cursor: hand;");

@@ -309,6 +309,7 @@ public class OrderDetailController {
     private void onViewCrop() {
         App.setCurrentCropId(cropId);
         App.setCurrentOrderId(orderId); // Pass order context to show ordered quantity
+        App.setPreviousScene("order-detail-view.fxml");
         App.loadScene("crop-detail-view.fxml", "ফসলের বিস্তারিত");
     }
 

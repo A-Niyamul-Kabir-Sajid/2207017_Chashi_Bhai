@@ -219,6 +219,7 @@ public class BuyerDashboardController {
 
     private void onViewCrop(int cropId) {
         App.setCurrentCropId(cropId);
+        App.setPreviousScene("buyer-dashboard-view.fxml");
         App.loadScene("crop-detail-view.fxml", "ফসলের বিস্তারিত");
     }
 

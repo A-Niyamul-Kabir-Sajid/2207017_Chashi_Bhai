@@ -24,10 +24,14 @@ public class App extends Application {
     private static int currentOrderId = -1; // For viewing order details
     private static String currentOrderNumber = ""; // For searching orders by number
     private static String searchQuery = "";
+    private static String previousScene = ""; // Track previous scene for back navigation
 
     @Override
     public void start(Stage stage) {
         primaryStage = stage;
+        
+        // Set implicit exit to true - allows app to exit when last window closes
+        javafx.application.Platform.setImplicitExit(true);
         
         // Initialize SQLite database (local storage)
         DatabaseService.initializeDatabase();
@@ -53,11 +57,72 @@ public class App extends Application {
         loadScene("welcome-view.fxml", "Chashi Bhai - কৃষি বাজার");
         
         primaryStage.setOnCloseRequest(event -> {
-            DatabaseService.shutdown();
-            FirebaseService.getInstance().shutdown();
+            System.out.println("[App] Shutting down application...");
+            
+            // Don't consume the event - let it close naturally
+            // But shutdown all background services first
+            new Thread(() -> {
+                // Shutdown all services in a separate thread to avoid blocking UI
+                try {
+                    com.sajid._207017_chashi_bhai.utils.DataSyncManager.getInstance().shutdown();
+                    System.out.println("[App] DataSyncManager stopped");
+                } catch (IllegalAccessError | Exception e) {
+                    System.err.println("Error shutting down DataSyncManager: " + e.getMessage());
+                }
+                
+                try {
+                    DatabaseService.shutdown();
+                    System.out.println("[App] DatabaseService stopped");
+                } catch (IllegalAccessError | Exception e) {
+                    System.err.println("Error shutting down DatabaseService: " + e.getMessage());
+                }
+                
+                try {
+                    FirebaseService.getInstance().shutdown();
+                    System.out.println("[App] FirebaseService stopped");
+                } catch (IllegalAccessError | Exception e) {
+                    System.err.println("Error shutting down FirebaseService: " + e.getMessage());
+                }
+                
+                System.out.println("[App] All services stopped, exiting...");
+                
+                // Force exit after cleanup
+                javafx.application.Platform.exit();
+                System.exit(0);
+            }, "Shutdown-Thread").start();
         });
         
         primaryStage.show();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        // JavaFX stop() method - called when app is closing
+        System.out.println("[App] JavaFX stop() called");
+        
+        // Ensure all services are shut down
+        try {
+            com.sajid._207017_chashi_bhai.utils.DataSyncManager.getInstance().shutdown();
+            System.out.println("[App] DataSyncManager stopped");
+        } catch (IllegalAccessError | Exception e) {
+            System.err.println("Error in stop() shutting down DataSyncManager: " + e.getMessage());
+        }
+        
+        try {
+            DatabaseService.shutdown();
+            System.out.println("[App] DatabaseService stopped");
+        } catch (IllegalAccessError | Exception e) {
+            System.err.println("Error in stop() shutting down DatabaseService: " + e.getMessage());
+        }
+        
+        try {
+            FirebaseService.getInstance().shutdown();
+            System.out.println("[App] FirebaseService stopped");
+        } catch (IllegalAccessError | Exception e) {
+            System.err.println("Error in stop() shutting down FirebaseService: " + e.getMessage());
+        }
+        
+        super.stop();
     }
 
     /**
@@ -150,6 +215,20 @@ public class App extends Application {
      */
     public static void clearSearchQuery() {
         searchQuery = "";
+    }
+
+    /**
+     * Get previous scene (for back navigation)
+     */
+    public static String getPreviousScene() {
+        return previousScene;
+    }
+
+    /**
+     * Set previous scene (call before navigating to detail views)
+     */
+    public static void setPreviousScene(String sceneName) {
+        previousScene = sceneName;
     }
 
     /**

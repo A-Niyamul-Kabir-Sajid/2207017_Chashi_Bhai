@@ -405,7 +405,28 @@ public class CropDetailController {
     private void onBack() {
         // Clear order context when going back
         App.setCurrentOrderId(-1);
-        App.loadScene("crop-feed-view.fxml", "সকল ফসল");
+        
+        // Navigate back to previous scene
+        String previousScene = App.getPreviousScene();
+        if (previousScene != null && !previousScene.isEmpty()) {
+            String title = getSceneTitle(previousScene);
+            App.loadScene(previousScene, title);
+        } else {
+            // Default fallback to crop feed
+            App.loadScene("crop-feed-view.fxml", "সকল ফসল");
+        }
+    }
+    
+    private String getSceneTitle(String sceneName) {
+        switch (sceneName) {
+            case "crop-feed-view.fxml": return "সকল ফসল";
+            case "my-crops-view.fxml": return "আমার ফসল";
+            case "buyer-dashboard-view.fxml": return "Dashboard";
+            case "buyer-history-view.fxml": return "ক্রয়ের ইতিহাস";
+            case "order-detail-view.fxml": return "অর্ডার বিস্তারিত";
+            case "public-farmer-profile-view.fxml": return "কৃষকের প্রোফাইল";
+            default: return "ফসলের তালিকা";
+        }
     }
 
     private void showError(String title, String message) {

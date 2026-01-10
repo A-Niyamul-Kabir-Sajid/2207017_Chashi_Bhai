@@ -20,6 +20,11 @@ public class User {
     private String mostSoldCrop;
     private double totalIncome;
     private double rating;
+    
+    // Buyer statistics
+    private int totalBuyerOrders;
+    private String mostBoughtCrop;
+    private double totalExpense;
 
     // Constructors
     public User() {}
@@ -146,6 +151,30 @@ public class User {
 
     public void setRating(double rating) {
         this.rating = rating;
+    }
+
+    public int getTotalBuyerOrders() {
+        return totalBuyerOrders;
+    }
+
+    public void setTotalBuyerOrders(int totalBuyerOrders) {
+        this.totalBuyerOrders = totalBuyerOrders;
+    }
+
+    public String getMostBoughtCrop() {
+        return mostBoughtCrop;
+    }
+
+    public void setMostBoughtCrop(String mostBoughtCrop) {
+        this.mostBoughtCrop = mostBoughtCrop;
+    }
+
+    public double getTotalExpense() {
+        return totalExpense;
+    }
+
+    public void setTotalExpense(double totalExpense) {
+        this.totalExpense = totalExpense;
     }
 
     @Override

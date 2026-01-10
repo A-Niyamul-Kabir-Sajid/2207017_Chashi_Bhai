@@ -83,27 +83,27 @@ public class PublicBuyerProfileController {
         }
 
         String sql = "SELECT u.*, " +
-                    "(SELECT COUNT(*) FROM orders WHERE buyer_id = u.id AND status IN ('delivered', 'completed')) as total_purchases, " +
-                    "(SELECT COALESCE(SUM(o.quantity_kg * o.price_per_kg), 0) FROM orders o " +
-                    " WHERE o.buyer_id = u.id AND o.status IN ('delivered', 'completed')) as total_spent, " +
+                    "u.total_buyer_orders, " +
+                    "u.total_expense, " +
                     "(SELECT COALESCE(AVG(r.rating), 0.0) FROM reviews r WHERE r.reviewer_id = u.id) as avg_rating " +
                     "FROM users u WHERE u.id = ?";
 
         DatabaseService.executeQueryAsync(sql, new Object[]{buyerId},
             rs -> {
-                Platform.runLater(() -> {
-                    try {
-                        if (rs.next()) {
-                            String name = rs.getString("name");
-                            String phone = rs.getString("phone");
-                            String district = rs.getString("district");
-                            boolean isVerified = rs.getBoolean("is_verified");
-                            String createdAt = rs.getString("created_at");
-                            int totalPurchases = rs.getInt("total_purchases");
-                            double totalSpent = rs.getDouble("total_spent");
-                            double avgRating = rs.getDouble("avg_rating");
-                            String photoPath = rs.getString("profile_photo");
+                try {
+                    if (rs.next()) {
+                        // Read all data BEFORE Platform.runLater
+                        String name = rs.getString("name");
+                        String phone = rs.getString("phone");
+                        String district = rs.getString("district");
+                        boolean isVerified = rs.getBoolean("is_verified");
+                        String createdAt = rs.getString("created_at");
+                        int totalPurchases = rs.getInt("total_buyer_orders");
+                        double totalSpent = rs.getDouble("total_expense");
+                        double avgRating = rs.getDouble("avg_rating");
+                        String photoPath = rs.getString("profile_photo");
 
+                        Platform.runLater(() -> {
                             lblBuyerName.setText(name);
                             lblUserId.setText("ID: " + buyerId);
                             lblPhone.setText(phone != null ? phone : "N/A");
@@ -129,16 +129,21 @@ public class PublicBuyerProfileController {
                                     imgProfilePhoto.setImage(new Image(photoFile.toURI().toString()));
                                 }
                             }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                            
+                            if (progressIndicator != null) {
+                                progressIndicator.setVisible(false);
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Platform.runLater(() -> {
                         showError("ত্রুটি", "প্রোফাইল লোড করতে ব্যর্থ হয়েছে।");
-                    } finally {
                         if (progressIndicator != null) {
                             progressIndicator.setVisible(false);
                         }
-                    }
-                });
+                    });
+                }
             },
             error -> {
                 Platform.runLater(() -> {

@@ -72,23 +72,24 @@ public class BuyerProfileController {
         
         DatabaseService.executeQueryAsync(
             "SELECT u.*, " +
-            "(SELECT COUNT(*) FROM orders WHERE buyer_id = u.id AND status IN ('delivered', 'completed')) as total_purchases, " +
-            "(SELECT COALESCE(SUM(o.quantity_kg * o.price_per_kg), 0) FROM orders o WHERE o.buyer_id = u.id AND o.status IN ('delivered', 'completed')) as total_spent " +
+            "u.total_buyer_orders, " +
+            "u.total_expense " +
             "FROM users u WHERE u.id = ?",
             new Object[]{currentUser.getId()},
             resultSet -> {
-                Platform.runLater(() -> {
-                    try {
-                        if (resultSet.next()) {
-                            String name = resultSet.getString("name");
-                            String phone = resultSet.getString("phone");
-                            String district = resultSet.getString("district");
-                            String upazila = resultSet.getString("upazila");
-                            int totalPurchases = resultSet.getInt("total_purchases");
-                            double totalSpent = resultSet.getDouble("total_spent");
-                            String createdAt = resultSet.getString("created_at");
-                            String photoPath = resultSet.getString("profile_photo");
+                try {
+                    if (resultSet.next()) {
+                        // Read all data BEFORE Platform.runLater
+                        String name = resultSet.getString("name");
+                        String phone = resultSet.getString("phone");
+                        String district = resultSet.getString("district");
+                        String upazila = resultSet.getString("upazila");
+                        int totalPurchases = resultSet.getInt("total_buyer_orders");
+                        double totalSpent = resultSet.getDouble("total_expense");
+                        String createdAt = resultSet.getString("created_at");
+                        String photoPath = resultSet.getString("profile_photo");
 
+                        Platform.runLater(() -> {
                             // Set profile data
                             lblBuyerName.setText(name);
                             lblUserId.setText("ID: " + currentUser.getId());
@@ -110,20 +111,25 @@ public class BuyerProfileController {
                                     imgProfilePhoto.setImage(new Image(photoFile.toURI().toString()));
                                 }
                             }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                            
+                            if (progressIndicator != null) {
+                                progressIndicator.setVisible(false);
+                            }
+                            // Update last updated label
+                            if (lblLastUpdated != null) {
+                                lblLastUpdated.setText("সর্বশেষ আপডেট: এখনই");
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Platform.runLater(() -> {
                         showError("ত্রুটি", "প্রোফাইল লোড করতে ব্যর্থ হয়েছে।");
-                    } finally {
                         if (progressIndicator != null) {
                             progressIndicator.setVisible(false);
                         }
-                        // Update last updated label
-                        if (lblLastUpdated != null) {
-                            lblLastUpdated.setText("সর্বশেষ আপডেট: এখনই");
-                        }
-                    }
-                });
+                    });
+                }
             },
             error -> {
                 Platform.runLater(() -> {
