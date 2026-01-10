@@ -25,14 +25,11 @@ public class FirebaseSyncService {
         private static final DateTimeFormatter SQLITE_TS_FORMAT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
     private final FirebaseService firebaseService;
-    private final DatabaseService databaseService;
     
     private static FirebaseSyncService instance;
     
     private FirebaseSyncService() {
         this.firebaseService = FirebaseService.getInstance();
-        this.databaseService = DatabaseService.getInstance() != null ? 
-                              DatabaseService.getInstance() : null;
     }
     
     public static FirebaseSyncService getInstance() {
@@ -111,6 +108,12 @@ public class FirebaseSyncService {
                 if (doc.exists()) {
                     try (Connection conn = DriverManager.getConnection(DB_URL)) {
                         Map<String, Object> data = doc.getData();
+                        if (data == null) {
+                            if (onComplete != null) {
+                                Platform.runLater(onComplete);
+                            }
+                            return;
+                        }
                         
                         // Check if user exists in SQLite
                         PreparedStatement checkStmt = conn.prepareStatement(
@@ -243,6 +246,12 @@ public class FirebaseSyncService {
                 for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
                     try (Connection conn = DriverManager.getConnection(DB_URL)) {
                         Map<String, Object> data = doc.getData();
+                        if (data == null) {
+                            continue;
+                        }
+                        if (data == null) {
+                            continue;
+                        }
                         
                         // Update or insert crop in SQLite
                         PreparedStatement stmt = conn.prepareStatement(

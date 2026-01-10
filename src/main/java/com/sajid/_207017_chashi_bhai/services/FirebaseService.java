@@ -11,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -149,6 +150,9 @@ public class FirebaseService {
                           Runnable onSuccess, Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
+                Objects.requireNonNull(userId, "userId");
+                Objects.requireNonNull(userData, "userData");
+
                 // Add timestamps
                 userData.put("created_at", FieldValue.serverTimestamp());
                 userData.put("updated_at", FieldValue.serverTimestamp());
@@ -178,6 +182,7 @@ public class FirebaseService {
                        Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
+                Objects.requireNonNull(userId, "userId");
                 DocumentSnapshot doc = firestore.collection(COLLECTION_USERS)
                         .document(userId)
                         .get()
@@ -202,6 +207,7 @@ public class FirebaseService {
                                Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
+                Objects.requireNonNull(phone, "phone");
                 QuerySnapshot querySnapshot = firestore.collection(COLLECTION_USERS)
                         .whereEqualTo("phone", phone)
                         .limit(1)
@@ -227,6 +233,8 @@ public class FirebaseService {
                           Runnable onSuccess, Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
+                Objects.requireNonNull(userId, "userId");
+                Objects.requireNonNull(updates, "updates");
                 updates.put("updated_at", FieldValue.serverTimestamp());
                 
                 firestore.collection(COLLECTION_USERS)
@@ -255,6 +263,8 @@ public class FirebaseService {
                           Runnable onSuccess, Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
+                Objects.requireNonNull(cropId, "cropId");
+                Objects.requireNonNull(cropData, "cropData");
                 cropData.put("created_at", FieldValue.serverTimestamp());
                 cropData.put("updated_at", FieldValue.serverTimestamp());
                 cropData.put("status", "active");
@@ -283,6 +293,7 @@ public class FirebaseService {
                                  Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
+                Objects.requireNonNull(farmerId, "farmerId");
                 QuerySnapshot querySnapshot = firestore.collection(COLLECTION_CROPS)
                         .whereEqualTo("farmer_id", farmerId)
                         .whereEqualTo("status", "active")
@@ -309,6 +320,7 @@ public class FirebaseService {
                            Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
+                Objects.requireNonNull(searchQuery, "searchQuery");
                 // Firestore doesn't support full-text search natively
                 // This is a basic implementation - consider using Algolia for production
                 QuerySnapshot querySnapshot = firestore.collection(COLLECTION_CROPS)
@@ -337,6 +349,8 @@ public class FirebaseService {
                           Runnable onSuccess, Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
+                Objects.requireNonNull(cropId, "cropId");
+                Objects.requireNonNull(updates, "updates");
                 updates.put("updated_at", FieldValue.serverTimestamp());
                 
                 firestore.collection(COLLECTION_CROPS)
@@ -365,6 +379,7 @@ public class FirebaseService {
                          Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
+                Objects.requireNonNull(orderId, "orderId");
                 DocumentSnapshot doc = firestore.collection(COLLECTION_ORDERS)
                         .document(orderId)
                         .get()
@@ -389,6 +404,8 @@ public class FirebaseService {
                             Runnable onSuccess, Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
+                Objects.requireNonNull(orderId, "orderId");
+                Objects.requireNonNull(orderData, "orderData");
                 orderData.put("updated_at", FieldValue.serverTimestamp());
 
                 firestore.collection(COLLECTION_ORDERS)
@@ -415,6 +432,8 @@ public class FirebaseService {
                            Runnable onSuccess, Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
+                Objects.requireNonNull(orderId, "orderId");
+                Objects.requireNonNull(orderData, "orderData");
                 orderData.putIfAbsent("created_at", FieldValue.serverTimestamp());
                 orderData.putIfAbsent("status", "new");
                 orderData.putIfAbsent("payment_status", "pending");
@@ -494,6 +513,8 @@ public class FirebaseService {
                                   Runnable onSuccess, Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
+                Objects.requireNonNull(orderId, "orderId");
+                Objects.requireNonNull(status, "status");
                 Map<String, Object> updates = new HashMap<>();
                 updates.put("status", status);
                 updates.put("updated_at", FieldValue.serverTimestamp());
@@ -541,6 +562,9 @@ public class FirebaseService {
                                        Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
+                Objects.requireNonNull(user1Id, "user1Id");
+                Objects.requireNonNull(user2Id, "user2Id");
+                Objects.requireNonNull(cropId, "cropId");
                 // Search for existing conversation
                 QuerySnapshot existing = firestore.collection(COLLECTION_CONVERSATIONS)
                         .whereEqualTo("user1_id", user1Id)
@@ -590,6 +614,8 @@ public class FirebaseService {
                            Runnable onSuccess, Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
+                Objects.requireNonNull(conversationId, "conversationId");
+                Objects.requireNonNull(messageData, "messageData");
                 messageData.put("created_at", FieldValue.serverTimestamp());
                 messageData.put("is_read", false);
                 
@@ -629,6 +655,8 @@ public class FirebaseService {
                             Runnable onSuccess, Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
+                Objects.requireNonNull(cropId, "cropId");
+                Objects.requireNonNull(photoPath, "photoPath");
                 Map<String, Object> photoData = new HashMap<>();
                 photoData.put("crop_id", cropId);
                 photoData.put("photo_path", photoPath);
@@ -687,21 +715,31 @@ public class FirebaseService {
                             Runnable onSuccess, Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
+                Objects.requireNonNull(operations, "operations");
                 WriteBatch batch = firestore.batch();
                 
                 for (Map<String, Object> op : operations) {
+                    if (op == null) continue;
                     String collection = (String) op.get("collection");
                     String docId = (String) op.get("docId");
                     String action = (String) op.get("action");
                     @SuppressWarnings("unchecked")
                     Map<String, Object> data = (Map<String, Object>) op.get("data");
+
+                    if (collection == null || docId == null || action == null) {
+                        continue;
+                    }
                     
                     DocumentReference docRef = firestore.collection(collection).document(docId);
                     
                     if ("set".equals(action)) {
-                        batch.set(docRef, data);
+                        if (data != null) {
+                            batch.set(docRef, data);
+                        }
                     } else if ("update".equals(action)) {
-                        batch.update(docRef, data);
+                        if (data != null) {
+                            batch.update(docRef, data);
+                        }
                     } else if ("delete".equals(action)) {
                         batch.delete(docRef);
                     }

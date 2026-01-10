@@ -5,7 +5,6 @@ import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import com.sajid._207017_chashi_bhai.services.FirebaseSyncService;
 import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
-import com.sajid._207017_chashi_bhai.utils.StatisticsCalculator;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -318,135 +317,6 @@ public class FarmerOrdersController {
         return card;
     }
 
-    private HBox createDummyOrderCard(int orderId, String cropName, String buyerName, 
-                                      String buyerPhone, String buyerDistrict, double quantity, 
-                                      double price, String unit, String status, String createdAt) {
-        HBox card = new HBox(15);
-        card.getStyleClass().addAll("order-card", "order-" + status.replace("_", "-"));
-        card.setPadding(new Insets(15));
-
-        // Crop image placeholder
-        ImageView imageView = new ImageView();
-        imageView.setFitWidth(90);
-        imageView.setFitHeight(90);
-        imageView.setPreserveRatio(true);
-        imageView.setStyle("-fx-background-color: #e0e0e0;");
-
-        // Order details
-        VBox detailsBox = new VBox(8);
-        detailsBox.setPrefWidth(400);
-        
-        Label lblOrderId = new Label("অর্ডার #" + orderId);
-        lblOrderId.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #888;");
-        
-        Label lblCrop = new Label("🌾 " + cropName);
-        lblCrop.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
-        
-        Label lblBuyer = new Label("ক্রেতা: " + buyerName);
-        lblBuyer.setStyle("-fx-font-size: 14px;");
-        
-        Label lblPhone = new Label("📞 " + buyerPhone);
-        lblPhone.setStyle("-fx-font-size: 14px;");
-        
-        Label lblLocation = new Label("📍 " + buyerDistrict);
-        lblLocation.setStyle("-fx-font-size: 14px;");
-        
-        Label lblQuantity = new Label(String.format("পরিমাণ: %.1f %s", quantity, unit));
-        lblQuantity.setStyle("-fx-font-size: 14px;");
-        
-        double totalPrice = quantity * price;
-        Label lblPrice = new Label(String.format("মোট: ৳%.2f", totalPrice));
-        lblPrice.setStyle("-fx-font-size: 16px; -fx-text-fill: #4CAF50; -fx-font-weight: bold;");
-        
-        Label lblDate = new Label("তারিখ: " + createdAt);
-        lblDate.setStyle("-fx-font-size: 12px; -fx-text-fill: #888;");
-        
-        Label lblStatus = new Label(getStatusText(status));
-        lblStatus.getStyleClass().add("status-badge");
-
-        detailsBox.getChildren().addAll(lblOrderId, lblCrop, lblBuyer, lblPhone, lblLocation, lblQuantity, lblPrice, lblDate, lblStatus);
-
-        // Action buttons
-        VBox actionsBox = new VBox(10);
-        actionsBox.setPrefWidth(180);
-        actionsBox.getChildren().addAll(getActionButtons(orderId, status, buyerPhone));
-
-        card.getChildren().addAll(imageView, detailsBox, actionsBox);
-        return card;
-    }
-
-    private HBox createOrderCardFromResultSet(java.sql.ResultSet rs) throws Exception {
-        int orderId = rs.getInt("id");
-        String cropName = rs.getString("crop_name");
-        String buyerName = rs.getString("buyer_name");
-        String buyerPhone = rs.getString("buyer_phone");
-        String buyerDistrict = rs.getString("buyer_district");
-        double quantity = rs.getDouble("quantity_kg");
-        double price = rs.getDouble("price");
-        String unit = "কেজি";
-        String status = rs.getString("status");
-        String createdAt = rs.getString("created_at");
-        String photoPath = rs.getString("crop_photo");
-
-        HBox card = new HBox(15);
-        card.getStyleClass().addAll("order-card", "order-" + status.replace("_", "-"));
-        card.setPadding(new Insets(15));
-
-        // Crop image
-        ImageView imageView = new ImageView();
-        imageView.setFitWidth(90);
-        imageView.setFitHeight(90);
-        imageView.setPreserveRatio(true);
-        if (photoPath != null && !photoPath.isEmpty()) {
-            File photoFile = new File(photoPath);
-            if (photoFile.exists()) {
-                imageView.setImage(new Image(photoFile.toURI().toString()));
-            }
-        }
-
-        // Order details
-        VBox detailsBox = new VBox(8);
-        detailsBox.setPrefWidth(400);
-        
-        Label lblOrderId = new Label("অর্ডার #" + orderId);
-        lblOrderId.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #888;");
-        
-        Label lblCrop = new Label("🌾 " + cropName);
-        lblCrop.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
-        
-        Label lblBuyer = new Label("ক্রেতা: " + buyerName);
-        lblBuyer.setStyle("-fx-font-size: 14px;");
-        
-        Label lblPhone = new Label("📞 " + buyerPhone);
-        lblPhone.setStyle("-fx-font-size: 14px;");
-        
-        Label lblLocation = new Label("📍 " + buyerDistrict);
-        lblLocation.setStyle("-fx-font-size: 14px;");
-        
-        Label lblQuantity = new Label(String.format("পরিমাণ: %.1f %s", quantity, unit));
-        lblQuantity.setStyle("-fx-font-size: 14px;");
-        
-        double totalPrice = quantity * price;
-        Label lblPrice = new Label(String.format("মোট: ৳%.2f", totalPrice));
-        lblPrice.setStyle("-fx-font-size: 16px; -fx-text-fill: #4CAF50; -fx-font-weight: bold;");
-        
-        Label lblDate = new Label("তারিখ: " + createdAt.substring(0, 10));
-        lblDate.setStyle("-fx-font-size: 12px; -fx-text-fill: #888;");
-        
-        Label lblStatus = new Label(getStatusText(status));
-        lblStatus.getStyleClass().add("status-badge");
-
-        detailsBox.getChildren().addAll(lblOrderId, lblCrop, lblBuyer, lblPhone, lblLocation, lblQuantity, lblPrice, lblDate, lblStatus);
-
-        // Action buttons
-        VBox actionsBox = new VBox(10);
-        actionsBox.setPrefWidth(180);
-        actionsBox.getChildren().addAll(getActionButtons(orderId, status, buyerPhone));
-
-        card.getChildren().addAll(imageView, detailsBox, actionsBox);
-        return card;
-    }
-
     private VBox getActionButtons(int orderId, String status, String buyerPhone) {
         VBox actionsBox = new VBox(10);
 
@@ -539,60 +409,37 @@ public class FarmerOrdersController {
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            // First get buyer_id from the order
-            DatabaseService.executeQueryAsync(
-                "SELECT buyer_id FROM orders WHERE id = ?",
-                new Object[]{orderId},
-                rs -> {
-                    try {
-                        if (rs.next()) {
-                            int buyerId = rs.getInt("buyer_id");
-                            
-                            // Update order status + timestamps
-                            String updateSql;
-                            Object[] updateParams;
-                            if ("accepted".equals(newStatus)) {
-                                updateSql = "UPDATE orders SET status = ?, accepted_at = datetime('now'), updated_at = datetime('now') WHERE id = ?";
-                                updateParams = new Object[]{newStatus, orderId};
-                            } else if ("in_transit".equals(newStatus)) {
-                                updateSql = "UPDATE orders SET status = ?, in_transit_at = datetime('now'), updated_at = datetime('now') WHERE id = ?";
-                                updateParams = new Object[]{newStatus, orderId};
-                            } else {
-                                updateSql = "UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?";
-                                updateParams = new Object[]{newStatus, orderId};
-                            }
+            // Update order status + timestamps
+            String updateSql;
+            Object[] updateParams;
+            if ("accepted".equals(newStatus)) {
+                updateSql = "UPDATE orders SET status = ?, accepted_at = datetime('now'), updated_at = datetime('now') WHERE id = ?";
+                updateParams = new Object[]{newStatus, orderId};
+            } else if ("in_transit".equals(newStatus)) {
+                updateSql = "UPDATE orders SET status = ?, in_transit_at = datetime('now'), updated_at = datetime('now') WHERE id = ?";
+                updateParams = new Object[]{newStatus, orderId};
+            } else {
+                updateSql = "UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?";
+                updateParams = new Object[]{newStatus, orderId};
+            }
 
-                            DatabaseService.executeUpdateAsync(
-                                updateSql,
-                                updateParams,
-                                rowsAffected -> {
-                                    Platform.runLater(() -> {
-                                        if (rowsAffected > 0) {
-                                            showSuccess("সফল", "অর্ডার স্ট্যাটাস আপডেট করা হয়েছে।");
-                                            refreshOrders();
+            DatabaseService.executeUpdateAsync(
+                updateSql,
+                updateParams,
+                rowsAffected -> Platform.runLater(() -> {
+                    if (rowsAffected > 0) {
+                        showSuccess("সফল", "অর্ডার স্ট্যাটাস আপডেট করা হয়েছে।");
+                        refreshOrders();
 
-                                            // Best-effort cloud sync
-                                            FirebaseSyncService.getInstance().syncOrderToFirebase(orderId);
-                                            FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, newStatus, null);
-                                            
-                                            // Update statistics if order completed
-                                            // Final revenue stats are updated on buyer 'received' (completed)
-                                        }
-                                    });
-                                },
-                                error -> {
-                                    Platform.runLater(() -> {
-                                        showError("ত্রুটি", "স্ট্যাটাস আপডেট করতে সমস্যা হয়েছে।");
-                                        error.printStackTrace();
-                                    });
-                                }
-                            );
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        // Best-effort cloud sync
+                        FirebaseSyncService.getInstance().syncOrderToFirebase(orderId);
+                        FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, newStatus, null);
                     }
-                },
-                error -> error.printStackTrace()
+                }),
+                error -> Platform.runLater(() -> {
+                    showError("ত্রুটি", "স্ট্যাটাস আপডেট করতে সমস্যা হয়েছে।");
+                    error.printStackTrace();
+                })
             );
         }
     }
