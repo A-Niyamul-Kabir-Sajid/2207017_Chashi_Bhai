@@ -189,44 +189,92 @@ public class BuyerDashboardController {
     @FXML
     private void onSearchOrder() {
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("অর্ডার খুঁজুন");
-        dialog.setHeaderText("Order Number/ID দিয়ে খুঁজুন");
-        dialog.setContentText("Order Number বা ID:");
+        dialog.setTitle("অর্ডার ID দিয়ে খুঁজুন");
+        dialog.setHeaderText("অর্ডার খুঁজুন / Search Order by ID");
+        dialog.setContentText("অর্ডার ID লিখুন (সংখ্যা):");
 
         dialog.showAndWait().ifPresent(input -> {
-            String term = input.trim();
-            if (term.isEmpty()) return;
+            try {
+                int orderId = Integer.parseInt(input.trim());
+                searchOrderById(orderId);
+            } catch (NumberFormatException e) {
+                showError("ত্রুটি", "সঠিক Order ID লিখুন (শুধুমাত্র সংখ্যা)");
+            }
+        });
+    }
 
-            int idVal = -1;
-            try { idVal = Integer.parseInt(term); } catch (Exception ignored) {}
-            final int orderId = idVal;
-
-            String sql = "SELECT id, order_number FROM orders WHERE buyer_id = ? AND (order_number LIKE ? OR id = ? ) LIMIT 1";
-            DatabaseService.executeQueryAsync(
-                sql,
-                new Object[]{currentUser.getId(), "%" + term + "%", orderId},
-                rs -> Platform.runLater(() -> {
+    private void searchOrderById(int orderId) {
+        String sql = "SELECT o.id, o.order_number, o.status, o.total_amount, o.created_at, " +
+                    "c.name as crop_name, f.name as farmer_name " +
+                    "FROM orders o " +
+                    "JOIN crops c ON o.crop_id = c.id " +
+                    "JOIN users f ON o.farmer_id = f.id " +
+                    "WHERE o.id = ? AND o.buyer_id = ?";
+        
+        DatabaseService.executeQueryAsync(sql, new Object[]{orderId, currentUser.getId()},
+            rs -> {
+                // Read ResultSet data BEFORE Platform.runLater
+                String orderNum = null;
+                String status = null;
+                double total = 0.0;
+                String cropName = null;
+                String farmerName = null;
+                boolean found = false;
+                try {
+                    if (rs.next()) {
+                        orderNum = rs.getString("order_number");
+                        status = rs.getString("status");
+                        total = rs.getDouble("total_amount");
+                        cropName = rs.getString("crop_name");
+                        farmerName = rs.getString("farmer_name");
+                        found = true;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                
+                // Now update UI on JavaFX thread with pre-loaded data
+                final String finalOrderNum = orderNum;
+                final String finalStatus = status;
+                final double finalTotal = total;
+                final String finalCropName = cropName;
+                final String finalFarmerName = farmerName;
+                final boolean finalFound = found;
+                Platform.runLater(() -> {
                     try {
-                        if (rs.next()) {
-                            int foundId = rs.getInt("id");
-                            String orderNum = rs.getString("order_number");
-                            App.setCurrentOrderId(foundId);
-                            App.setCurrentOrderNumber(orderNum);
-                            App.loadScene("order-detail-view.fxml", "অর্ডার বিবরণ");
+                        if (finalFound) {
+                            Alert info = new Alert(Alert.AlertType.CONFIRMATION);
+                            info.setTitle("অর্ডার পাওয়া গেছে / Order Found");
+                            info.setHeaderText(finalOrderNum);
+                            info.setContentText(
+                                "ফসল: " + finalCropName + "\n" +
+                                "কৃষক: " + finalFarmerName + "\n" +
+                                "মোট: ৳" + String.format("%.2f", finalTotal) + "\n" +
+                                "স্ট্যাটাস: " + finalStatus + "\n\n" +
+                                "বিস্তারিত দেখতে চান?"
+                            );
+
+                            info.showAndWait().ifPresent(response -> {
+                                if (response == ButtonType.OK) {
+                                    App.setCurrentOrderId(orderId);
+                                    App.setCurrentOrderNumber(finalOrderNum);
+                                    App.loadScene("order-detail-view.fxml", "অর্ডার বিবরণ");
+                                }
+                            });
                         } else {
-                            showError("পাওয়া যায়নি", "এই অর্ডারটি আপনার তালিকায় নেই।");
+                            showError("পাওয়া যায়নি", "এই ID এর কোনো অর্ডার আপনার তালিকায় নেই।");
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
                         showError("ত্রুটি", "অর্ডার খুঁজতে ব্যর্থ হয়েছে।");
                     }
-                }),
-                err -> {
-                    err.printStackTrace();
-                    Platform.runLater(() -> showError("ডাটাবেস ত্রুটি", "অর্ডার সার্চ করতে সমস্যা হয়েছে।"));
-                }
-            );
-        });
+                });
+            },
+            err -> {
+                Platform.runLater(() -> showError("ডাটাবেস ত্রুটি", "অর্ডার সার্চ করতে সমস্যা হয়েছে।"));
+                err.printStackTrace();
+            }
+        );
     }
 
     @FXML

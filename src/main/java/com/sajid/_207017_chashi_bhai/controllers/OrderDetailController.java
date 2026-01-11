@@ -564,7 +564,7 @@ public class OrderDetailController {
             javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
             content.putString(String.valueOf(orderId));
             clipboard.setContent(content);
-            showInfo("কপি সফল", "অর্ডার নম্বর কপি হয়েছে: " + orderNumber);
+            showInfo("কপি সফল", "অর্ডার নম্বর কপি হয়েছে: " + orderId);
         } catch (Exception e) {
             e.printStackTrace();
         }
