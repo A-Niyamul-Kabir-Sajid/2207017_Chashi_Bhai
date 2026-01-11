@@ -38,6 +38,9 @@ public class PublicFarmerProfileController {
     @FXML private TableView<?> tblSalesHistory;
     @FXML private VBox vboxReviews;
     @FXML private Label lblNoReviews;
+    @FXML private HBox hboxContactActions;
+    @FXML private Button btnChat;
+    @FXML private Button btnWhatsApp;
 
     private User currentUser;
     private int farmerId;
@@ -58,6 +61,22 @@ public class PublicFarmerProfileController {
             showError("ত্রুটি", "কৃষকের প্রোফাইল খুঁজে পাওয়া যায়নি।");
             App.loadScene("crop-feed-view.fxml", "ফসলের তালিকা");
             return;
+        }
+
+        // Hide contact buttons if user is viewing their own public profile.
+        if (currentUser != null && farmerId == currentUser.getId()) {
+            if (hboxContactActions != null) {
+                hboxContactActions.setVisible(false);
+                hboxContactActions.setManaged(false);
+            }
+            if (btnChat != null) {
+                btnChat.setVisible(false);
+                btnChat.setManaged(false);
+            }
+            if (btnWhatsApp != null) {
+                btnWhatsApp.setVisible(false);
+                btnWhatsApp.setManaged(false);
+            }
         }
 
         loadFarmerProfile();
@@ -227,27 +246,38 @@ public class PublicFarmerProfileController {
 
         DatabaseService.executeQueryAsync(sql, new Object[]{farmerId},
             rs -> {
-                Platform.runLater(() -> {
-                    try {
-                        vboxReviews.getChildren().clear();
-                        boolean hasReviews = false;
-
-                        while (rs.next()) {
-                            hasReviews = true;
-                            VBox reviewCard = createReviewCard(
-                                rs.getInt("rating"),
-                                rs.getString("comment"),
-                                rs.getString("reviewer_name"),
-                                rs.getString("created_at")
-                            );
-                            vboxReviews.getChildren().add(reviewCard);
-                        }
-
-                        lblNoReviews.setVisible(!hasReviews);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                try {
+                    java.util.List<java.util.Map<String, Object>> reviews = new java.util.ArrayList<>();
+                    while (rs.next()) {
+                        java.util.Map<String, Object> row = new java.util.HashMap<>();
+                        row.put("rating", rs.getInt("rating"));
+                        row.put("comment", rs.getString("comment"));
+                        row.put("reviewerName", rs.getString("reviewer_name"));
+                        row.put("createdAt", rs.getString("created_at"));
+                        reviews.add(row);
                     }
-                });
+
+                    Platform.runLater(() -> {
+                        try {
+                            vboxReviews.getChildren().clear();
+                            boolean hasReviews = !reviews.isEmpty();
+                            for (java.util.Map<String, Object> r : reviews) {
+                                VBox reviewCard = createReviewCard(
+                                    (int) r.get("rating"),
+                                    (String) r.get("comment"),
+                                    (String) r.get("reviewerName"),
+                                    (String) r.get("createdAt")
+                                );
+                                vboxReviews.getChildren().add(reviewCard);
+                            }
+                            lblNoReviews.setVisible(!hasReviews);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             },
             error -> error.printStackTrace()
         );

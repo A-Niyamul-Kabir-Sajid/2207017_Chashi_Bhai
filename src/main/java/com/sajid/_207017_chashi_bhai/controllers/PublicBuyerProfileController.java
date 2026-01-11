@@ -41,6 +41,9 @@ public class PublicBuyerProfileController {
     @FXML private Label lblNoReviews;
     @FXML private ProgressIndicator progressIndicator;
     @FXML private VBox profileContent;
+    @FXML private HBox hboxContactActions;
+    @FXML private Button btnChat;
+    @FXML private Button btnWhatsApp;
 
     private User currentUser;
     private int buyerId;
@@ -61,6 +64,22 @@ public class PublicBuyerProfileController {
             showError("ত্রুটি", "ক্রেতার প্রোফাইল খুঁজে পাওয়া যায়নি।");
             App.loadScene("crop-feed-view.fxml", "ফসলের তালিকা");
             return;
+        }
+
+        // Hide contact buttons if user is viewing their own public profile.
+        if (currentUser != null && buyerId == currentUser.getId()) {
+            if (hboxContactActions != null) {
+                hboxContactActions.setVisible(false);
+                hboxContactActions.setManaged(false);
+            }
+            if (btnChat != null) {
+                btnChat.setVisible(false);
+                btnChat.setManaged(false);
+            }
+            if (btnWhatsApp != null) {
+                btnWhatsApp.setVisible(false);
+                btnWhatsApp.setManaged(false);
+            }
         }
 
         loadBuyerProfile();
@@ -158,51 +177,95 @@ public class PublicBuyerProfileController {
     }
 
     private void loadPurchaseHistory() {
-        String sql = "SELECT o.*, c.name as crop_name, c.price_per_kg as price, " +
+        String sql = "SELECT o.id, o.crop_id, o.quantity_kg, o.price_per_kg, o.total_amount, " +
+                    "COALESCE(o.completed_at, o.delivered_at, o.updated_at, o.created_at) as effective_date, " +
+                    "c.name as crop_name, " +
                     "u.name as farmer_name, u.is_verified " +
                     "FROM orders o " +
                     "JOIN crops c ON o.crop_id = c.id " +
-                    "JOIN users u ON c.farmer_id = u.id " +
-                    "WHERE o.buyer_id = ? AND o.status IN ('delivered','completed') " +
-                    "ORDER BY o.updated_at DESC LIMIT 5";
+                    "JOIN users u ON o.farmer_id = u.id " +
+                    "WHERE o.buyer_id = ? " +
+                    "ORDER BY effective_date DESC LIMIT 5";
 
         DatabaseService.executeQueryAsync(sql, new Object[]{buyerId},
             rs -> {
-                Platform.runLater(() -> {
-                    try {
-                        vboxPurchaseHistory.getChildren().clear();
-                        boolean hasPurchases = false;
-
-                        while (rs.next()) {
-                            hasPurchases = true;
-                            HBox purchaseCard = createPurchaseCard(
-                                rs.getString("crop_name"),
-                                rs.getString("farmer_name"),
-                                rs.getBoolean("is_verified"),
-                                rs.getDouble("quantity"),
-                                rs.getString("unit"),
-                                rs.getDouble("price"),
-                                rs.getString("updated_at")
-                            );
-                            vboxPurchaseHistory.getChildren().add(purchaseCard);
-                        }
-
-                        lblNoPurchases.setVisible(!hasPurchases);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                try {
+                    java.util.List<PurchaseRow> rows = new java.util.ArrayList<>();
+                    while (rs.next()) {
+                        int cropId = rs.getInt("crop_id");
+                        String cropName = rs.getString("crop_name");
+                        String farmerName = rs.getString("farmer_name");
+                        boolean isVerified = rs.getBoolean("is_verified");
+                        double quantity = rs.getDouble("quantity_kg");
+                        double price = rs.getDouble("price_per_kg");
+                        String date = rs.getString("effective_date");
+                        rows.add(new PurchaseRow(cropId, cropName, farmerName, isVerified, quantity, price, date));
                     }
-                });
+
+                    Platform.runLater(() -> {
+                        try {
+                            vboxPurchaseHistory.getChildren().clear();
+                            boolean hasPurchases = !rows.isEmpty();
+                            for (PurchaseRow row : rows) {
+                                HBox purchaseCard = createPurchaseCard(
+                                    row.cropId,
+                                    row.cropName,
+                                    row.farmerName,
+                                    row.isVerified,
+                                    row.quantityKg,
+                                    "কেজি",
+                                    row.pricePerKg,
+                                    row.date
+                                );
+                                vboxPurchaseHistory.getChildren().add(purchaseCard);
+                            }
+                            lblNoPurchases.setVisible(!hasPurchases);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             },
             error -> error.printStackTrace()
         );
     }
 
-    private HBox createPurchaseCard(String cropName, String farmerName, boolean isVerified,
+    private static final class PurchaseRow {
+        final int cropId;
+        final String cropName;
+        final String farmerName;
+        final boolean isVerified;
+        final double quantityKg;
+        final double pricePerKg;
+        final String date;
+
+        PurchaseRow(int cropId, String cropName, String farmerName, boolean isVerified, double quantityKg, double pricePerKg, String date) {
+            this.cropId = cropId;
+            this.cropName = cropName;
+            this.farmerName = farmerName;
+            this.isVerified = isVerified;
+            this.quantityKg = quantityKg;
+            this.pricePerKg = pricePerKg;
+            this.date = date;
+        }
+    }
+
+    private HBox createPurchaseCard(int cropId, String cropName, String farmerName, boolean isVerified,
                                     double quantity, String unit, double price, String date) {
         HBox card = new HBox(20);
         card.getStyleClass().add("history-card");
         card.setPadding(new Insets(12));
         card.setStyle("-fx-background-color: #f8f8f8; -fx-background-radius: 8;");
+        card.setStyle(card.getStyle() + " -fx-cursor: hand;");
+        card.setOnMouseClicked(e -> {
+            if (cropId > 0) {
+                App.setCurrentCropId(cropId);
+                App.setPreviousScene("public-buyer-profile-view.fxml");
+                App.loadScene("crop-detail-view.fxml", "ফসলের বিস্তারিত");
+            }
+        });
 
         // Date
         VBox dateBox = new VBox(3);
@@ -259,28 +322,40 @@ public class PublicBuyerProfileController {
 
         DatabaseService.executeQueryAsync(sql, new Object[]{buyerId},
             rs -> {
-                Platform.runLater(() -> {
-                    try {
-                        hboxFavoriteFarmers.getChildren().clear();
-                        boolean hasFarmers = false;
-
-                        while (rs.next()) {
-                            hasFarmers = true;
-                            VBox farmerCard = createFarmerCard(
-                                rs.getInt("id"),
-                                rs.getString("name"),
-                                rs.getBoolean("is_verified"),
-                                rs.getString("profile_photo"),
-                                rs.getInt("order_count")
-                            );
-                            hboxFavoriteFarmers.getChildren().add(farmerCard);
-                        }
-
-                        lblNoFarmers.setVisible(!hasFarmers);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                try {
+                    java.util.List<java.util.Map<String, Object>> farmers = new java.util.ArrayList<>();
+                    while (rs.next()) {
+                        java.util.Map<String, Object> row = new java.util.HashMap<>();
+                        row.put("id", rs.getInt("id"));
+                        row.put("name", rs.getString("name"));
+                        row.put("isVerified", rs.getBoolean("is_verified"));
+                        row.put("profilePhoto", rs.getString("profile_photo"));
+                        row.put("orderCount", rs.getInt("order_count"));
+                        farmers.add(row);
                     }
-                });
+
+                    Platform.runLater(() -> {
+                        try {
+                            hboxFavoriteFarmers.getChildren().clear();
+                            boolean hasFarmers = !farmers.isEmpty();
+                            for (java.util.Map<String, Object> f : farmers) {
+                                VBox farmerCard = createFarmerCard(
+                                    (int) f.get("id"),
+                                    (String) f.get("name"),
+                                    (boolean) f.get("isVerified"),
+                                    (String) f.get("profilePhoto"),
+                                    (int) f.get("orderCount")
+                                );
+                                hboxFavoriteFarmers.getChildren().add(farmerCard);
+                            }
+                            lblNoFarmers.setVisible(!hasFarmers);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             },
             error -> error.printStackTrace()
         );
@@ -331,33 +406,47 @@ public class PublicBuyerProfileController {
     }
 
     private void loadReviews() {
+        // Reviews given by this buyer to farmers
         String sql = "SELECT r.rating, r.comment, r.created_at, u.name as farmer_name " +
-                    "FROM ratings r JOIN users u ON r.farmer_id = u.id " +
-                    "WHERE r.buyer_id = ? ORDER BY r.created_at DESC LIMIT 10";
+                    "FROM reviews r " +
+                    "JOIN users u ON r.reviewee_id = u.id " +
+                    "WHERE r.reviewer_id = ? " +
+                    "ORDER BY r.created_at DESC LIMIT 10";
 
         DatabaseService.executeQueryAsync(sql, new Object[]{buyerId},
             rs -> {
-                Platform.runLater(() -> {
-                    try {
-                        vboxReviews.getChildren().clear();
-                        boolean hasReviews = false;
-
-                        while (rs.next()) {
-                            hasReviews = true;
-                            HBox reviewCard = createReviewCard(
-                                rs.getString("farmer_name"),
-                                rs.getInt("rating"),
-                                rs.getString("comment"),
-                                rs.getString("created_at")
-                            );
-                            vboxReviews.getChildren().add(reviewCard);
-                        }
-
-                        lblNoReviews.setVisible(!hasReviews);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                try {
+                    java.util.List<java.util.Map<String, Object>> reviews = new java.util.ArrayList<>();
+                    while (rs.next()) {
+                        java.util.Map<String, Object> row = new java.util.HashMap<>();
+                        row.put("farmerName", rs.getString("farmer_name"));
+                        row.put("rating", rs.getInt("rating"));
+                        row.put("comment", rs.getString("comment"));
+                        row.put("createdAt", rs.getString("created_at"));
+                        reviews.add(row);
                     }
-                });
+
+                    Platform.runLater(() -> {
+                        try {
+                            vboxReviews.getChildren().clear();
+                            boolean hasReviews = !reviews.isEmpty();
+                            for (java.util.Map<String, Object> r : reviews) {
+                                HBox reviewCard = createReviewCard(
+                                    (String) r.get("farmerName"),
+                                    (int) r.get("rating"),
+                                    (String) r.get("comment"),
+                                    (String) r.get("createdAt")
+                                );
+                                vboxReviews.getChildren().add(reviewCard);
+                            }
+                            lblNoReviews.setVisible(!hasReviews);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             },
             error -> error.printStackTrace()
         );

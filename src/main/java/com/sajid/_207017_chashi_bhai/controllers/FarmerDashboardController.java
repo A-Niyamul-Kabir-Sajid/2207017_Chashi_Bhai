@@ -20,6 +20,7 @@ public class FarmerDashboardController {
 
     @FXML private Label lblWelcome;
     @FXML private Label lblVerifiedBadge;
+    @FXML private Label lblVerifiedText;
     @FXML private Label lblTotalEarnings;
     @FXML private Label lblActiveListings;
     @FXML private Label lblPendingOrders;
@@ -53,10 +54,21 @@ public class FarmerDashboardController {
         
         // Show/hide verified badge
         if (currentUser.isVerified()) {
-            lblVerifiedBadge.setVisible(true);
-            lblVerifiedBadge.setText("✓ যাচাইকৃত কৃষক");
+            if (lblVerifiedBadge != null) {
+                lblVerifiedBadge.setVisible(true);
+                lblVerifiedBadge.setText("✓");
+            }
+            if (lblVerifiedText != null) {
+                lblVerifiedText.setVisible(true);
+                lblVerifiedText.setText("যাচাইকৃত কৃষক");
+            }
         } else {
-            lblVerifiedBadge.setVisible(false);
+            if (lblVerifiedBadge != null) {
+                lblVerifiedBadge.setVisible(false);
+            }
+            if (lblVerifiedText != null) {
+                lblVerifiedText.setVisible(false);
+            }
         }
 
         // Load dashboard statistics
@@ -73,23 +85,44 @@ public class FarmerDashboardController {
 
         DatabaseService.executeQueryAsync(
             "SELECT " +
-            "(SELECT COALESCE(SUM(o.quantity_kg * o.price_per_kg), 0) FROM orders o " +
+            "(SELECT COALESCE(SUM(o.total_amount), 0) FROM orders o " +
             " WHERE o.farmer_id = ? AND o.status IN ('delivered', 'completed')) as total_earnings, " +
             "(SELECT COUNT(*) FROM crops WHERE farmer_id = ? AND status = 'active') as active_crops, " +
             "(SELECT COUNT(*) FROM orders o " +
-            " WHERE o.farmer_id = ? AND o.status IN ('new', 'pending', 'accepted')) as pending_orders",
+            " WHERE o.farmer_id = ? AND o.status IN ('new', 'processing', 'accepted', 'shipped', 'in_transit')) as pending_orders",
             new Object[]{currentUser.getId(), currentUser.getId(), currentUser.getId()},
             resultSet -> {
+                double earnings = 0.0;
+                int activeCrops = 0;
+                int pendingOrders = 0;
+                boolean ok = false;
+                try {
+                    if (resultSet.next()) {
+                        earnings = resultSet.getDouble("total_earnings");
+                        activeCrops = resultSet.getInt("active_crops");
+                        pendingOrders = resultSet.getInt("pending_orders");
+                        ok = true;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                final boolean finalOk = ok;
+                final double finalEarnings = earnings;
+                final int finalActiveCrops = activeCrops;
+                final int finalPendingOrders = pendingOrders;
                 Platform.runLater(() -> {
                     try {
-                        if (resultSet.next()) {
-                            double earnings = resultSet.getDouble("total_earnings");
-                            int activeCrops = resultSet.getInt("active_crops");
-                            int pendingOrders = resultSet.getInt("pending_orders");
-
-                            lblTotalEarnings.setText(String.format("৳%.2f", earnings));
-                            lblActiveListings.setText(String.valueOf(activeCrops));
-                            lblPendingOrders.setText(String.valueOf(pendingOrders));
+                        if (finalOk) {
+                            if (lblTotalEarnings != null) {
+                                lblTotalEarnings.setText(String.format("৳%.2f", finalEarnings));
+                            }
+                            if (lblActiveListings != null) {
+                                lblActiveListings.setText(String.valueOf(finalActiveCrops));
+                            }
+                            if (lblPendingOrders != null) {
+                                lblPendingOrders.setText(String.valueOf(finalPendingOrders));
+                            }
                         }
                     } catch (Exception e) {
                         e.printStackTrace();

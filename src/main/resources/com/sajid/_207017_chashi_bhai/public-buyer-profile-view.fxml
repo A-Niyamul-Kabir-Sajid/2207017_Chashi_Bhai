@@ -112,9 +112,9 @@
                 </HBox>
 
                 <!-- Contact Actions -->
-                <HBox spacing="15" alignment="CENTER">
-                    <Button text="💬 চ্যাট করুন" styleClass="button-primary" onAction="#onChat" prefWidth="200" prefHeight="45"/>
-                    <Button text="📞 WhatsApp" styleClass="button-secondary" onAction="#onWhatsApp" prefWidth="200" prefHeight="45"/>
+                <HBox fx:id="hboxContactActions" spacing="15" alignment="CENTER">
+                    <Button fx:id="btnChat" text="💬 চ্যাট করুন" styleClass="button-primary" onAction="#onChat" prefWidth="200" prefHeight="45"/>
+                    <Button fx:id="btnWhatsApp" text="📞 WhatsApp" styleClass="button-secondary" onAction="#onWhatsApp" prefWidth="200" prefHeight="45"/>
                 </HBox>
 
                 <!-- Purchase History Section -->

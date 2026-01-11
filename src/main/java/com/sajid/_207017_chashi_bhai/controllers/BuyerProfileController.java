@@ -12,8 +12,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.FileChooser;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 /**
  * BuyerProfileController - Display buyer profile with purchase history stats
@@ -60,6 +65,65 @@ public class BuyerProfileController {
     @FXML
     private void onRefresh() {
         loadProfileData();
+    }
+
+    @FXML
+    private void onChangeProfilePhoto() {
+        if (imgProfilePhoto == null || imgProfilePhoto.getScene() == null) {
+            showError("ত্রুটি", "ছবি পরিবর্তন করা যাচ্ছে না (UI প্রস্তুত নয়)।");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("প্রোফাইল ছবি নির্বাচন করুন");
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
+        );
+
+        File file = fileChooser.showOpenDialog(imgProfilePhoto.getScene().getWindow());
+        if (file == null) {
+            return;
+        }
+
+        try {
+            Path photosDir = Paths.get("data/profile_photos/" + currentUser.getId());
+            Files.createDirectories(photosDir);
+
+            String fileName = "profile_" + System.currentTimeMillis() + getFileExtension(file);
+            Path destination = photosDir.resolve(fileName);
+            Files.copy(file.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);
+
+            if (progressIndicator != null) {
+                progressIndicator.setVisible(true);
+            }
+
+            DatabaseService.executeUpdateAsync(
+                "UPDATE users SET profile_photo = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                new Object[]{destination.toString(), currentUser.getId()},
+                rows -> Platform.runLater(() -> {
+                    if (progressIndicator != null) {
+                        progressIndicator.setVisible(false);
+                    }
+                    if (rows > 0) {
+                        currentUser.setProfilePhoto(destination.toString());
+                        imgProfilePhoto.setImage(new Image(destination.toUri().toString()));
+                        showSuccess("সফল!", "প্রোফাইল ছবি আপডেট হয়েছে।");
+                    } else {
+                        showError("ত্রুটি", "প্রোফাইল ছবি আপডেট করা যায়নি।");
+                    }
+                }),
+                error -> Platform.runLater(() -> {
+                    if (progressIndicator != null) {
+                        progressIndicator.setVisible(false);
+                    }
+                    showError("ডাটাবেস ত্রুটি", "প্রোফাইল ছবি সংরক্ষণে সমস্যা হয়েছে।");
+                    error.printStackTrace();
+                })
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("ত্রুটি", "ছবি আপলোড করতে ব্যর্থ হয়েছে।");
+        }
     }
 
     /**
@@ -195,6 +259,12 @@ public class BuyerProfileController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    private String getFileExtension(File file) {
+        String name = file.getName();
+        int lastDot = name.lastIndexOf('.');
+        return lastDot > 0 ? name.substring(lastDot) : "";
     }
 
     private void showError(String title, String message) {

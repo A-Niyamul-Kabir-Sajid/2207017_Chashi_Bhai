@@ -47,6 +47,13 @@
                                 <!-- Placeholder will be set in controller -->
                             </image>
                         </ImageView>
+                        <Button fx:id="btnChangeProfilePhoto" text="📷" onAction="#onChangeProfilePhoto"
+                                styleClass="button-secondary" StackPane.alignment="TOP_RIGHT"
+                                style="-fx-background-radius: 18; -fx-min-width: 36; -fx-min-height: 36; -fx-max-width: 36; -fx-max-height: 36; -fx-padding: 0; -fx-cursor: hand;" >
+                            <StackPane.margin>
+                                <Insets top="6" right="6" />
+                            </StackPane.margin>
+                        </Button>
                     </StackPane>
 
                     <!-- Name & Title -->

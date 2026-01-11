@@ -13,6 +13,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * FarmerHistoryController - Display completed sales history and analytics
@@ -46,18 +48,28 @@ public class FarmerHistoryController {
             return;
         }
 
-        // Initialize filters
-        cbFilterMonth.getItems().addAll("সকল সময়", "এই মাস", "গত মাস", "গত ৩ মাস", "গত ৬ মাস", "এই বছর");
-        cbFilterMonth.setValue("সকল সময়");
+        // Initialize filters (FXML may already provide items)
+        if (cbFilterMonth != null && cbFilterMonth.getItems().isEmpty()) {
+            cbFilterMonth.getItems().addAll("সব সময় (All Time)", "এই মাস (This Month)", "গত মাস (Last Month)", "গত ৩ মাস (Last 3 Months)", "এই বছর (This Year)");
+        }
+        if (cbFilterMonth != null && cbFilterMonth.getValue() == null && !cbFilterMonth.getItems().isEmpty()) {
+            cbFilterMonth.getSelectionModel().select(0);
+        }
         
         // Initialize sort dropdown with default selection
         if (cbSortBy != null) {
-            cbSortBy.getSelectionModel().select(0); // Default: Newest First
+            if (cbSortBy.getSelectionModel().getSelectedItem() == null && !cbSortBy.getItems().isEmpty()) {
+                cbSortBy.getSelectionModel().select(0); // Default: Newest First
+            }
             cbSortBy.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
                 if (newVal != null) {
                     loadHistory();
                 }
             });
+        }
+
+        if (btnApplyFilter != null) {
+            btnApplyFilter.setOnAction(e -> loadHistory());
         }
         
         loadCropFilter();
@@ -76,104 +88,120 @@ public class FarmerHistoryController {
             "SELECT DISTINCT name FROM crops WHERE farmer_id = ? ORDER BY name",
             new Object[]{currentUser.getId()},
             resultSet -> {
-                Platform.runLater(() -> {
-                    try {
-                        cbFilterCrop.getItems().add("সকল ফসল");
-                        while (resultSet.next()) {
-                            cbFilterCrop.getItems().add(resultSet.getString("name"));
+                try {
+                    List<String> crops = new ArrayList<>();
+                    while (resultSet.next()) {
+                        String name = resultSet.getString("name");
+                        if (name != null && !name.isBlank()) {
+                            crops.add(name);
                         }
-                        cbFilterCrop.setValue("সকল ফসল");
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
-                });
+
+                    Platform.runLater(() -> {
+                        try {
+                            if (cbFilterCrop == null) {
+                                return;
+                            }
+                            String selected = cbFilterCrop.getValue();
+                            cbFilterCrop.getItems().clear();
+                            cbFilterCrop.getItems().add("সব ফসল (All Crops)");
+                            cbFilterCrop.getItems().addAll(crops);
+
+                            if (selected != null && cbFilterCrop.getItems().contains(selected)) {
+                                cbFilterCrop.getSelectionModel().select(selected);
+                            } else {
+                                cbFilterCrop.getSelectionModel().select(0);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             },
             error -> error.printStackTrace()
         );
     }
 
     private void loadSummaryStats() {
-        // Get total income
+        // Get total income (completed/delivered)
         DatabaseService.executeQueryAsync(
-            "SELECT COALESCE(SUM(o.quantity_kg * o.price_per_kg), 0) as total_income " +
-            "FROM orders o " +
-            "WHERE o.farmer_id = ? AND o.status IN ('delivered', 'completed')",
+            "SELECT COALESCE(SUM(o.total_amount), 0) as total_income " +
+                "FROM orders o " +
+                "WHERE o.farmer_id = ? AND o.status IN ('delivered', 'completed')",
             new Object[]{currentUser.getId()},
             resultSet -> {
+                double income = 0.0;
                 try {
-                    double income = 0.0;
                     if (resultSet.next()) {
                         income = resultSet.getDouble("total_income");
                     }
-                    final double finalIncome = income;
-                    Platform.runLater(() -> {
-                        try {
-                            lblTotalIncome.setText(String.format("৳%.2f", finalIncome));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    });
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                final double finalIncome = income;
+                Platform.runLater(() -> {
+                    if (lblTotalIncome != null) {
+                        lblTotalIncome.setText(String.format("৳%.2f", finalIncome));
+                    }
+                });
             },
             error -> error.printStackTrace()
         );
 
-        // Get most sold crop
+        // Get most sold crop (by quantity)
         DatabaseService.executeQueryAsync(
-            "SELECT c.name as most_sold, COUNT(*) as count " +
-            "FROM orders o " +
-            "JOIN crops c ON o.crop_id = c.id " +
-            "WHERE o.farmer_id = ? AND o.status IN ('delivered', 'completed') " +
-            "GROUP BY c.id " +
-            "ORDER BY count DESC LIMIT 1",
+            "SELECT c.name as most_sold, COALESCE(SUM(o.quantity_kg), 0) as qty " +
+                "FROM orders o " +
+                "JOIN crops c ON o.crop_id = c.id " +
+                "WHERE o.farmer_id = ? AND o.status IN ('delivered', 'completed') " +
+                "GROUP BY c.id " +
+                "ORDER BY qty DESC LIMIT 1",
             new Object[]{currentUser.getId()},
             resultSet -> {
+                String mostSold = "N/A";
                 try {
-                    String mostSold = "N/A";
                     if (resultSet.next()) {
                         String name = resultSet.getString("most_sold");
-                        mostSold = name != null ? name : "N/A";
-                    }
-                    final String finalMostSold = mostSold;
-                    Platform.runLater(() -> {
-                        try {
-                            lblMostSold.setText(finalMostSold);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        if (name != null && !name.isBlank()) {
+                            mostSold = name;
                         }
-                    });
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                final String finalMostSold = mostSold;
+                Platform.runLater(() -> {
+                    if (lblMostSold != null) {
+                        lblMostSold.setText(finalMostSold);
+                    }
+                });
             },
             error -> error.printStackTrace()
         );
 
-        // Get total accepted orders
+        // Get total accepted orders (pipeline statuses)
         DatabaseService.executeQueryAsync(
             "SELECT COUNT(*) as total_orders " +
             "FROM orders o " +
-            "WHERE o.farmer_id = ? AND o.status IN ('delivered', 'completed')",
+            "WHERE o.farmer_id = ? AND o.status IN ('accepted','shipped','in_transit','delivered','completed')",
             new Object[]{currentUser.getId()},
             resultSet -> {
+                int totalOrders = 0;
                 try {
-                    int totalOrders = 0;
                     if (resultSet.next()) {
                         totalOrders = resultSet.getInt("total_orders");
                     }
-                    final int finalTotalOrders = totalOrders;
-                    Platform.runLater(() -> {
-                        try {
-                            lblTotalAcceptedOrders.setText(String.valueOf(finalTotalOrders));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    });
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                final int finalTotalOrders = totalOrders;
+                Platform.runLater(() -> {
+                    if (lblTotalAcceptedOrders != null) {
+                        lblTotalAcceptedOrders.setText(String.valueOf(finalTotalOrders));
+                    }
+                });
             },
             error -> error.printStackTrace()
         );
@@ -183,33 +211,64 @@ public class FarmerHistoryController {
         if (progressIndicator != null) {
             progressIndicator.setVisible(true);
         }
-        vboxHistoryList.getChildren().clear();
+        if (vboxHistoryList != null) {
+            vboxHistoryList.getChildren().clear();
+        }
 
-        String query = "SELECT o.*, c.name as crop_name, c.price_per_kg as price, 'কেজি' as unit, u.name as buyer_name, " +
-                      "COALESCE(o.completed_at, o.delivered_at, o.created_at) as order_date " +
+        String effectiveDateExpr = "COALESCE(o.completed_at, o.delivered_at, o.updated_at, o.created_at)";
+
+        String query = "SELECT o.id, o.quantity_kg, o.price_per_kg, o.total_amount, o.payment_status, " +
+                      effectiveDateExpr + " as order_date, " +
+                      "c.name as crop_name, " +
+                      "u.name as buyer_name " +
                       "FROM orders o " +
                       "JOIN crops c ON o.crop_id = c.id " +
                       "JOIN users u ON o.buyer_id = u.id " +
                       "WHERE o.farmer_id = ? AND o.status IN ('delivered', 'completed') ";
+
+        List<Object> params = new ArrayList<>();
+        params.add(currentUser.getId());
+
+        // Month filter (based on effective date)
+        String month = cbFilterMonth != null ? cbFilterMonth.getValue() : null;
+        if (month != null) {
+            if (month.contains("This Month") || month.contains("এই মাস")) {
+                query += " AND date(" + effectiveDateExpr + ") >= date('now','start of month')";
+            } else if (month.contains("Last Month") || month.contains("গত মাস")) {
+                query += " AND date(" + effectiveDateExpr + ") >= date('now','start of month','-1 month')";
+                query += " AND date(" + effectiveDateExpr + ") < date('now','start of month')";
+            } else if (month.contains("Last 3") || month.contains("গত ৩")) {
+                query += " AND date(" + effectiveDateExpr + ") >= date('now','-3 months')";
+            } else if (month.contains("This Year") || month.contains("এই বছর")) {
+                query += " AND date(" + effectiveDateExpr + ") >= date('now','start of year')";
+            }
+        }
+
+        // Crop filter
+        String crop = cbFilterCrop != null ? cbFilterCrop.getValue() : null;
+        if (crop != null && !crop.isBlank() && !crop.contains("All") && !crop.contains("সব")) {
+            query += " AND c.name = ?";
+            params.add(crop);
+        }
         
         // Apply sorting based on user selection
         String sortOption = cbSortBy != null ? cbSortBy.getSelectionModel().getSelectedItem() : null;
         if (sortOption != null) {
             if (sortOption.contains("High to Low") || sortOption.contains("বেশি থেকে কম")) {
-                query += "ORDER BY (o.quantity_kg * c.price_per_kg) DESC";
+                query += " ORDER BY o.total_amount DESC";
             } else if (sortOption.contains("Low to High") || sortOption.contains("কম থেকে বেশি")) {
-                query += "ORDER BY (o.quantity_kg * c.price_per_kg) ASC";
+                query += " ORDER BY o.total_amount ASC";
             } else {
                 // Default: Newest First
-                query += "ORDER BY COALESCE(o.completed_at, o.delivered_at, o.created_at) DESC";
+                query += " ORDER BY " + effectiveDateExpr + " DESC";
             }
         } else {
-            query += "ORDER BY COALESCE(o.completed_at, o.delivered_at, o.created_at) DESC";
+            query += " ORDER BY " + effectiveDateExpr + " DESC";
         }
 
         DatabaseService.executeQueryAsync(
             query,
-            new Object[]{currentUser.getId()},
+            params.toArray(),
             resultSet -> {
                 try {
                     java.util.List<HistoryCardData> cardRows = new java.util.ArrayList<>();
@@ -284,7 +343,7 @@ public class FarmerHistoryController {
         String buyerName = rs.getString("buyer_name");
         String cropName = rs.getString("crop_name");
         double quantity = rs.getDouble("quantity_kg");
-        double price = rs.getDouble("price");
+        double price = rs.getDouble("price_per_kg");
         String paymentStatus = rs.getString("payment_status");
 
         return new HistoryCardData(orderId, date, buyerName, cropName, quantity, price, paymentStatus);
@@ -380,33 +439,76 @@ public class FarmerHistoryController {
             "WHERE o.id = ?",
             new Object[]{orderId},
             resultSet -> {
-                Platform.runLater(() -> {
-                    try {
-                        if (resultSet.next()) {
-                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                            alert.setTitle("অর্ডার বিস্তারিত");
-                            alert.setHeaderText("অর্ডার #" + orderId);
-                            
-                            double quantity = resultSet.getDouble("quantity_kg");
-                            double price = resultSet.getDouble("price");
-                            String unit = "কেজি";
-                            
-                            alert.setContentText(
-                                "ফসল: " + resultSet.getString("crop_name") + "\n" +
-                                "ক্রেতা: " + resultSet.getString("buyer_name") + "\n" +
-                                "ফোন: " + resultSet.getString("buyer_phone") + "\n" +
-                                "ঠিকানা: " + resultSet.getString("buyer_district") + "\n" +
-                                "পরিমাণ: " + quantity + " " + unit + "\n" +
-                                "দাম: ৳" + String.format("%.2f", price) + "/" + unit + "\n" +
-                                "মোট আয়: ৳" + String.format("%.2f", quantity * price) + "\n" +
-                                "অর্ডারের তারিখ: " + resultSet.getString("created_at") + "\n" +
-                                "ডেলিভারির তারিখ: " + resultSet.getString("delivery_date")
-                            );
-                            alert.showAndWait();
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                boolean found = false;
+                String cropName = null;
+                String buyerName = null;
+                String buyerPhone = null;
+                String buyerDistrict = null;
+                String createdAt = null;
+                String deliveryDate = null;
+                double quantity = 0.0;
+                double price = 0.0;
+
+                try {
+                    if (resultSet.next()) {
+                        found = true;
+                        cropName = resultSet.getString("crop_name");
+                        buyerName = resultSet.getString("buyer_name");
+                        buyerPhone = resultSet.getString("buyer_phone");
+                        buyerDistrict = resultSet.getString("buyer_district");
+                        createdAt = resultSet.getString("created_at");
+                        deliveryDate = resultSet.getString("delivery_date");
+                        quantity = resultSet.getDouble("quantity_kg");
+                        price = resultSet.getDouble("price");
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                final boolean finalFound = found;
+                final String finalCropName = cropName;
+                final String finalBuyerName = buyerName;
+                final String finalBuyerPhone = buyerPhone;
+                final String finalBuyerDistrict = buyerDistrict;
+                final String finalCreatedAt = createdAt;
+                final String finalDeliveryDate = deliveryDate;
+                final double finalQuantity = quantity;
+                final double finalPrice = price;
+
+                Platform.runLater(() -> {
+                    if (!finalFound) {
+                        showError("পাওয়া যায়নি", "অর্ডারটি পাওয়া যায়নি।");
+                        return;
+                    }
+
+                    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                    alert.setTitle("অর্ডার বিস্তারিত");
+                    alert.setHeaderText("অর্ডার #" + orderId);
+
+                    String unit = "কেজি";
+                    alert.setContentText(
+                        "ফসল: " + (finalCropName != null ? finalCropName : "") + "\n" +
+                        "ক্রেতা: " + (finalBuyerName != null ? finalBuyerName : "") + "\n" +
+                        "ফোন: " + (finalBuyerPhone != null ? finalBuyerPhone : "") + "\n" +
+                        "ঠিকানা: " + (finalBuyerDistrict != null ? finalBuyerDistrict : "") + "\n" +
+                        "পরিমাণ: " + String.format("%.1f", finalQuantity) + " " + unit + "\n" +
+                        "দাম: ৳" + String.format("%.2f", finalPrice) + "/" + unit + "\n" +
+                        "মোট আয়: ৳" + String.format("%.2f", finalQuantity * finalPrice) + "\n" +
+                        "অর্ডারের তারিখ: " + (finalCreatedAt != null ? finalCreatedAt : "") + "\n" +
+                        "ডেলিভারির/সম্পন্নের তারিখ: " + (finalDeliveryDate != null ? finalDeliveryDate : "")
+                    );
+
+                    ButtonType viewDetails = new ButtonType("👁 বিস্তারিত দেখুন", ButtonBar.ButtonData.OK_DONE);
+                    ButtonType close = new ButtonType("বন্ধ", ButtonBar.ButtonData.CANCEL_CLOSE);
+                    alert.getButtonTypes().setAll(viewDetails, close);
+
+                    alert.showAndWait().ifPresent(choice -> {
+                        if (choice == viewDetails) {
+                            App.setCurrentOrderId(orderId);
+                            App.setPreviousScene("farmer-history-view.fxml");
+                            App.loadScene("order-detail-view.fxml", "অর্ডার বিস্তারিত");
+                        }
+                    });
                 });
             },
             error -> error.printStackTrace()

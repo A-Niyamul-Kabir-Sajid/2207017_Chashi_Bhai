@@ -75,6 +75,65 @@ public class FarmerProfileController {
         loadFarmPhotos();
     }
 
+    @FXML
+    private void onChangeProfilePhoto() {
+        if (imgProfilePhoto == null || imgProfilePhoto.getScene() == null) {
+            showError("ত্রুটি", "ছবি পরিবর্তন করা যাচ্ছে না (UI প্রস্তুত নয়)।");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("প্রোফাইল ছবি নির্বাচন করুন");
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
+        );
+
+        File file = fileChooser.showOpenDialog(imgProfilePhoto.getScene().getWindow());
+        if (file == null) {
+            return;
+        }
+
+        try {
+            Path photosDir = Paths.get("data/profile_photos/" + currentUser.getId());
+            Files.createDirectories(photosDir);
+
+            String fileName = "profile_" + System.currentTimeMillis() + getFileExtension(file);
+            Path destination = photosDir.resolve(fileName);
+            Files.copy(file.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);
+
+            if (progressIndicator != null) {
+                progressIndicator.setVisible(true);
+            }
+
+            DatabaseService.executeUpdateAsync(
+                "UPDATE users SET profile_photo = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                new Object[]{destination.toString(), currentUser.getId()},
+                rows -> Platform.runLater(() -> {
+                    if (progressIndicator != null) {
+                        progressIndicator.setVisible(false);
+                    }
+                    if (rows > 0) {
+                        currentUser.setProfilePhoto(destination.toString());
+                        imgProfilePhoto.setImage(new Image(destination.toUri().toString()));
+                        showSuccess("সফল!", "প্রোফাইল ছবি আপডেট হয়েছে।");
+                    } else {
+                        showError("ত্রুটি", "প্রোফাইল ছবি আপডেট করা যায়নি।");
+                    }
+                }),
+                error -> Platform.runLater(() -> {
+                    if (progressIndicator != null) {
+                        progressIndicator.setVisible(false);
+                    }
+                    showError("ডাটাবেস ত্রুটি", "প্রোফাইল ছবি সংরক্ষণে সমস্যা হয়েছে।");
+                    error.printStackTrace();
+                })
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("ত্রুটি", "ছবি আপলোড করতে ব্যর্থ হয়েছে।");
+        }
+    }
+
     /**
      * Load farmer profile data from database
      */
