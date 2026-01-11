@@ -621,11 +621,17 @@ public class OrderDetailController {
     @FXML
     private void onChatBuyer() {
         try {
+            if (currentUser != null && buyerId == currentUser.getId()) {
+                showInfo("Not Allowed", "You cannot chat with yourself.");
+                return;
+            }
+
             String name = buyerName != null && !buyerName.isBlank() ? buyerName : ("User " + buyerId);
+            App.setPreviousScene("order-detail-view.fxml");
             App.showView("chat-conversation-view.fxml", controller -> {
                 if (controller instanceof ChatConversationController) {
                     ChatConversationController chatController = (ChatConversationController) controller;
-                    chatController.loadConversation(0, buyerId, name, cropId);
+                    chatController.loadConversation(0, buyerId, name, (cropId > 0 ? cropId : null));
                 }
             });
         } catch (Exception e) {
@@ -637,11 +643,17 @@ public class OrderDetailController {
     @FXML
     private void onChatFarmer() {
         try {
+            if (currentUser != null && farmerId == currentUser.getId()) {
+                showInfo("Not Allowed", "You cannot chat with yourself.");
+                return;
+            }
+
             String name = lblFarmerName != null ? lblFarmerName.getText() : ("User " + farmerId);
+            App.setPreviousScene("order-detail-view.fxml");
             App.showView("chat-conversation-view.fxml", controller -> {
                 if (controller instanceof ChatConversationController) {
                     ChatConversationController chatController = (ChatConversationController) controller;
-                    chatController.loadConversation(0, farmerId, name, cropId);
+                    chatController.loadConversation(0, farmerId, name, (cropId > 0 ? cropId : null));
                 }
             });
         } catch (Exception e) {

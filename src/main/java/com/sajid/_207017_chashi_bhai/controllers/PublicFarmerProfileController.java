@@ -35,7 +35,7 @@ public class PublicFarmerProfileController {
     @FXML private Label lblRating;
     @FXML private GridPane gridProducts;
     @FXML private Label lblNoProducts;
-    @FXML private TableView tblSalesHistory;
+    @FXML private TableView<?> tblSalesHistory;
     @FXML private VBox vboxReviews;
     @FXML private Label lblNoReviews;
 
@@ -285,10 +285,16 @@ public class PublicFarmerProfileController {
     @FXML
     private void onChat() {
         try {
+            if (currentUser != null && farmerId == currentUser.getId()) {
+                showInfo("Not Allowed", "You cannot chat with yourself.");
+                return;
+            }
+
+            App.setPreviousScene("public-farmer-profile-view.fxml");
             App.showView("chat-conversation-view.fxml", controller -> {
                 if (controller instanceof ChatConversationController) {
                     ChatConversationController chatController = (ChatConversationController) controller;
-                    chatController.loadConversation(0, farmerId, lblFarmerName.getText(), 0);
+                    chatController.loadConversation(0, farmerId, lblFarmerName.getText(), null);
                 }
             });
         } catch (Exception e) {

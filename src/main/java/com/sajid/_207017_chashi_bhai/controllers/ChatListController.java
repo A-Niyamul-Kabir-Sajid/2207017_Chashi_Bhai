@@ -9,11 +9,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-
-import java.io.File;
 import java.sql.ResultSet;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -212,6 +208,7 @@ public class ChatListController {
 
     private void openConversation(ConversationItem item) {
         try {
+            App.setPreviousScene("chat-list-view.fxml");
             App.showView("chat-conversation-view.fxml", controller -> {
                 if (controller instanceof ChatConversationController) {
                     ChatConversationController chatController = (ChatConversationController) controller;

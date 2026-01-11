@@ -86,6 +86,7 @@
                     <target>25</target>
                     <showWarnings>false</showWarnings>
                     <compilerArgs>
+                        <arg>-Xlint:-module</arg>
                         <arg>--add-reads</arg>
                         <arg>com.sajid._207017_chashi_bhai=ALL-UNNAMED</arg>
                     </compilerArgs>

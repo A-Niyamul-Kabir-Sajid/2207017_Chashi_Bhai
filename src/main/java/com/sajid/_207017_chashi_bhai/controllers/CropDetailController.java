@@ -118,7 +118,6 @@ public class CropDetailController {
                         double unitPrice = rs.getDouble("unit_price");
                         String unit = "কেজি"; // All crops measured in kg
                         double quantity = rs.getDouble("available_qty");
-                        String harvestDate = rs.getString("harvest_date");
                         String district = rs.getString("district");
                         String transport = rs.getString("transport_info");
                         String description = rs.getString("description");
@@ -305,11 +304,22 @@ public class CropDetailController {
     private void onChat() {
         // Navigate to chat conversation with farmer
         try {
+            if (App.getCurrentUser() != null && farmerId == App.getCurrentUser().getId()) {
+                showInfo("Not Allowed", "You cannot chat with yourself.");
+                return;
+            }
+
+            if (farmerId <= 0) {
+                showError("ত্রুটি", "কৃষকের তথ্য পাওয়া যায়নি।");
+                return;
+            }
+
+            App.setPreviousScene("crop-detail-view.fxml");
             App.showView("chat-conversation-view.fxml", controller -> {
                 if (controller instanceof ChatConversationController) {
                     ChatConversationController chatController = (ChatConversationController) controller;
                     // Get or create conversation with farmer
-                    chatController.loadConversation(0, farmerId, lblFarmerName.getText(), cropId);
+                    chatController.loadConversation(0, farmerId, lblFarmerName.getText(), (cropId > 0 ? cropId : null));
                 }
             });
         } catch (Exception e) {
@@ -438,14 +448,6 @@ public class CropDetailController {
 
     private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    private void showSuccess(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);

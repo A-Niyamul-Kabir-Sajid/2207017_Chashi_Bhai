@@ -405,10 +405,16 @@ public class PublicBuyerProfileController {
     private void onChat() {
         if (buyerId > 0) {
             try {
+                if (currentUser != null && buyerId == currentUser.getId()) {
+                    showInfo("Not Allowed", "You cannot chat with yourself.");
+                    return;
+                }
+
+                App.setPreviousScene("public-buyer-profile-view.fxml");
                 App.showView("chat-conversation-view.fxml", controller -> {
                     if (controller instanceof ChatConversationController) {
                         ChatConversationController chatController = (ChatConversationController) controller;
-                        chatController.loadConversation(0, buyerId, lblBuyerName.getText(), 0);
+                        chatController.loadConversation(0, buyerId, lblBuyerName.getText(), null);
                     }
                 });
             } catch (Exception e) {

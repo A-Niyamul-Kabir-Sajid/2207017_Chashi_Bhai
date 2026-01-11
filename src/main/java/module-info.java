@@ -21,4 +21,5 @@ module com.sajid._207017_chashi_bhai {
     opens com.sajid._207017_chashi_bhai.services to javafx.fxml;
 
     exports com.sajid._207017_chashi_bhai;
+    exports com.sajid._207017_chashi_bhai.models;
 }

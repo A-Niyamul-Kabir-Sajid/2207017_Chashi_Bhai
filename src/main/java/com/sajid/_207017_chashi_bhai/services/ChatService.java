@@ -5,6 +5,7 @@ import javafx.application.Platform;
 
 import java.sql.*;
 import java.util.*;
+import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
@@ -366,6 +367,7 @@ public class ChatService {
      */
     private void sendToFirestore(String firebaseConvId, ChatMessage msg) {
         try {
+            Objects.requireNonNull(firebaseConvId, "firebaseConvId");
             Firestore db = firebaseService.getFirestore();
             
             // Build message document
@@ -424,6 +426,7 @@ public class ChatService {
      */
     private void updateConversationLastMessage(String firebaseConvId, ChatMessage msg) {
         try {
+            Objects.requireNonNull(firebaseConvId, "firebaseConvId");
             Firestore db = firebaseService.getFirestore();
             
             String preview = msg.getText();
@@ -895,8 +898,13 @@ public class ChatService {
     private Conversation mapFirestoreToConversation(DocumentSnapshot doc) {
         Conversation conv = new Conversation();
         conv.setFirebaseId(doc.getId());
-        conv.setUser1Id(doc.getLong("user1Id").intValue());
-        conv.setUser2Id(doc.getLong("user2Id").intValue());
+        Long user1 = doc.getLong("user1Id");
+        Long user2 = doc.getLong("user2Id");
+        if (user1 == null || user2 == null) {
+            throw new IllegalStateException("Firestore conversation missing user ids: " + doc.getId());
+        }
+        conv.setUser1Id(user1.intValue());
+        conv.setUser2Id(user2.intValue());
         
         Long cropIdLong = doc.getLong("cropId");
         conv.setCropId(cropIdLong != null ? cropIdLong.intValue() : null);
@@ -942,7 +950,11 @@ public class ChatService {
     private ChatMessage mapFirestoreToMessage(DocumentSnapshot doc) {
         ChatMessage msg = new ChatMessage();
         msg.setFirebaseId(doc.getId());
-        msg.setSenderId(doc.getLong("senderId").intValue());
+        Long senderId = doc.getLong("senderId");
+        if (senderId == null) {
+            throw new IllegalStateException("Firestore message missing senderId: " + doc.getId());
+        }
+        msg.setSenderId(senderId.intValue());
         msg.setSenderName(doc.getString("senderName"));
         msg.setText(doc.getString("text"));
         msg.setType(doc.getString("type"));
