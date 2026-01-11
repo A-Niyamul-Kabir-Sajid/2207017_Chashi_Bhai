@@ -187,6 +187,54 @@ public class BuyerDashboardController {
     }
 
     @FXML
+    private void onSearchOrder() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("অর্ডার খুঁজুন");
+        dialog.setHeaderText("Order Number/ID দিয়ে খুঁজুন");
+        dialog.setContentText("Order Number বা ID:");
+
+        dialog.showAndWait().ifPresent(input -> {
+            String term = input.trim();
+            if (term.isEmpty()) return;
+
+            int idVal = -1;
+            try { idVal = Integer.parseInt(term); } catch (Exception ignored) {}
+            final int orderId = idVal;
+
+            String sql = "SELECT id, order_number FROM orders WHERE buyer_id = ? AND (order_number LIKE ? OR id = ? ) LIMIT 1";
+            DatabaseService.executeQueryAsync(
+                sql,
+                new Object[]{currentUser.getId(), "%" + term + "%", orderId},
+                rs -> Platform.runLater(() -> {
+                    try {
+                        if (rs.next()) {
+                            int foundId = rs.getInt("id");
+                            String orderNum = rs.getString("order_number");
+                            App.setCurrentOrderId(foundId);
+                            App.setCurrentOrderNumber(orderNum);
+                            App.loadScene("order-detail-view.fxml", "অর্ডার বিবরণ");
+                        } else {
+                            showError("পাওয়া যায়নি", "এই অর্ডারটি আপনার তালিকায় নেই।");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        showError("ত্রুটি", "অর্ডার খুঁজতে ব্যর্থ হয়েছে।");
+                    }
+                }),
+                err -> {
+                    err.printStackTrace();
+                    Platform.runLater(() -> showError("ডাটাবেস ত্রুটি", "অর্ডার সার্চ করতে সমস্যা হয়েছে।"));
+                }
+            );
+        });
+    }
+
+    @FXML
+    private void onAllChat() {
+        App.loadScene("chat-list-view.fxml", "সব চ্যাট");
+    }
+
+    @FXML
     private void onHistory() {
         System.out.println("[DEBUG] History button clicked!");
         try {

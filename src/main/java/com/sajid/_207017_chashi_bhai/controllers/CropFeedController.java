@@ -187,69 +187,105 @@ public class CropFeedController {
     }
 
     @FXML
-    private void onSearchOrder() {
-        // Show order number search dialog
+    private void onSearchCropId() {
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("অর্ডার নম্বর দিয়ে খুঁজুন");
-        dialog.setHeaderText("অর্ডার খুঁজুন / Search Order by Number");
-        dialog.setContentText("অর্ডার নম্বর লিখুন (যেমন: ORD-20260108-0001):");
+        dialog.setTitle("Crop ID দিয়ে খুঁজুন");
+        dialog.setHeaderText("ফসল খুঁজুন / Search Crop by ID");
+        dialog.setContentText("Crop ID লিখুন:");
 
-        dialog.showAndWait().ifPresent(orderNum -> {
-            String trimmed = orderNum.trim();
-            if (!trimmed.isEmpty()) {
-                searchOrderByNumber(trimmed);
+        dialog.showAndWait().ifPresent(cropIdStr -> {
+            try {
+                int cropId = Integer.parseInt(cropIdStr.trim());
+                searchCropById(cropId);
+            } catch (NumberFormatException e) {
+                showError("ত্রুটি", "সঠিক Crop ID লিখুন (শুধুমাত্র সংখ্যা)");
             }
         });
     }
 
-    private void searchOrderByNumber(String orderNumber) {
+    @FXML
+    private void onSearchOrder() {
+        // Show order ID search dialog
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("অর্ডার ID দিয়ে খুঁজুন");
+        dialog.setHeaderText("অর্ডার খুঁজুন / Search Order by ID");
+        dialog.setContentText("অর্ডার ID লিখুন (সংখ্যা):");
+
+        dialog.showAndWait().ifPresent(orderIdStr -> {
+            try {
+                int orderId = Integer.parseInt(orderIdStr.trim());
+                searchOrderById(orderId);
+            } catch (NumberFormatException e) {
+                showError("ত্রুটি", "সঠিক Order ID লিখুন (শুধুমাত্র সংখ্যা)");
+            }
+        });
+    }
+
+    private void searchOrderById(int orderId) {
         String sql = "SELECT o.id, o.order_number, o.status, o.total_amount, o.created_at, " +
                     "c.name as crop_name, f.name as farmer_name, b.name as buyer_name " +
                     "FROM orders o " +
                     "JOIN crops c ON o.crop_id = c.id " +
                     "JOIN users f ON o.farmer_id = f.id " +
                     "JOIN users b ON o.buyer_id = b.id " +
-                    "WHERE o.order_number LIKE ? OR o.id = ?";
+                    "WHERE o.id = ?";
         
-        int orderId = -1;
-        try { orderId = Integer.parseInt(orderNumber); } catch (Exception e) {}
-        
-        final int finalOrderId = orderId;
-        DatabaseService.executeQueryAsync(sql, new Object[]{"%" + orderNumber + "%", finalOrderId},
+        DatabaseService.executeQueryAsync(sql, new Object[]{orderId},
             rs -> {
+                // Read ResultSet data BEFORE Platform.runLater
+                String orderNum = null;
+                String status = null;
+                double total = 0.0;
+                String cropName = null;
+                String farmerName = null;
+                String buyerName = null;
+                boolean found = false;
+                try {
+                    if (rs.next()) {
+                        orderNum = rs.getString("order_number");
+                        status = rs.getString("status");
+                        total = rs.getDouble("total_amount");
+                        cropName = rs.getString("crop_name");
+                        farmerName = rs.getString("farmer_name");
+                        buyerName = rs.getString("buyer_name");
+                        found = true;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                
+                // Now update UI on JavaFX thread with pre-loaded data
+                final String finalOrderNum = orderNum;
+                final String finalStatus = status;
+                final double finalTotal = total;
+                final String finalCropName = cropName;
+                final String finalFarmerName = farmerName;
+                final String finalBuyerName = buyerName;
+                final boolean finalFound = found;
                 Platform.runLater(() -> {
                     try {
-                        if (rs.next()) {
-                            int id = rs.getInt("id");
-                            String orderNum = rs.getString("order_number");
-                            String status = rs.getString("status");
-                            double total = rs.getDouble("total_amount");
-                            String cropName = rs.getString("crop_name");
-                            String farmerName = rs.getString("farmer_name");
-                            String buyerName = rs.getString("buyer_name");
-
-                            // Show order info and ask to view details
+                        if (finalFound) {
                             Alert info = new Alert(Alert.AlertType.CONFIRMATION);
                             info.setTitle("অর্ডার পাওয়া গেছে / Order Found");
-                            info.setHeaderText(orderNum);
+                            info.setHeaderText(finalOrderNum);
                             info.setContentText(
-                                "ফসল: " + cropName + "\n" +
-                                "কৃষক: " + farmerName + "\n" +
-                                "ক্রেতা: " + buyerName + "\n" +
-                                "মোট: ৳" + String.format("%.2f", total) + "\n" +
-                                "স্ট্যাটাস: " + status + "\n\n" +
+                                "ফসল: " + finalCropName + "\n" +
+                                "কৃষক: " + finalFarmerName + "\n" +
+                                "ক্রেতা: " + finalBuyerName + "\n" +
+                                "মোট: ৳" + String.format("%.2f", finalTotal) + "\n" +
+                                "স্ট্যাটাস: " + finalStatus + "\n\n" +
                                 "বিস্তারিত দেখতে চান?"
                             );
 
                             info.showAndWait().ifPresent(response -> {
                                 if (response == ButtonType.OK) {
-                                    App.setCurrentOrderId(id);
-                                    App.setCurrentOrderNumber(orderNum);
+                                    App.setCurrentOrderId(orderId);
+                                    App.setCurrentOrderNumber(finalOrderNum);
                                     App.loadScene("order-detail-view.fxml", "অর্ডার বিবরণ");
                                 }
                             });
                         } else {
-                            showError("পাওয়া যায়নি", "এই নম্বরের কোনো অর্ডার পাওয়া যায়নি।");
+                            showError("পাওয়া যায়নি", "এই ID এর কোনো অর্ডার পাওয়া যায়নি।");
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -269,30 +305,51 @@ public class CropFeedController {
         
         DatabaseService.executeQueryAsync(sql, new Object[]{userId},
             rs -> {
+                // Read ResultSet data BEFORE Platform.runLater
+                String userRole = null;
+                String userName = null;
+                String phone = null;
+                String district = null;
+                boolean isVerified = false;
+                boolean found = false;
+                try {
+                    if (rs.next()) {
+                        userRole = rs.getString("role");
+                        userName = rs.getString("name");
+                        phone = rs.getString("phone");
+                        district = rs.getString("district");
+                        isVerified = rs.getBoolean("is_verified");
+                        found = true;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                
+                // Now update UI on JavaFX thread with pre-loaded data
+                final String finalUserRole = userRole;
+                final String finalUserName = userName;
+                final String finalPhone = phone;
+                final String finalDistrict = district;
+                final boolean finalIsVerified = isVerified;
+                final boolean finalFound = found;
                 Platform.runLater(() -> {
                     try {
-                        if (rs.next()) {
-                            String userRole = rs.getString("role");
-                            String userName = rs.getString("name");
-                            String phone = rs.getString("phone");
-                            String district = rs.getString("district");
-                            boolean isVerified = rs.getBoolean("is_verified");
-
+                        if (finalFound) {
                             // Show user info and ask to view profile
                             Alert info = new Alert(Alert.AlertType.CONFIRMATION);
                             info.setTitle("ইউজার পাওয়া গেছে / User Found");
-                            info.setHeaderText(userName + (isVerified ? " ✓" : ""));
+                            info.setHeaderText(finalUserName + (finalIsVerified ? " ✓" : ""));
                             info.setContentText(
-                                "Role: " + (userRole.equals("farmer") ? "কৃষক / Farmer" : "ক্রেতা / Buyer") + "\n" +
-                                "Phone: " + phone + "\n" +
-                                "District: " + district + "\n\n" +
+                                "Role: " + (finalUserRole.equals("farmer") ? "কৃষক / Farmer" : "ক্রেতা / Buyer") + "\n" +
+                                "Phone: " + finalPhone + "\n" +
+                                "District: " + finalDistrict + "\n\n" +
                                 "প্রোফাইল দেখতে চান?"
                             );
 
                             info.showAndWait().ifPresent(response -> {
                                 if (response == ButtonType.OK) {
                                     App.setCurrentViewedUserId(userId);
-                                    if (userRole.equals("farmer")) {
+                                    if (finalUserRole.equals("farmer")) {
                                         App.loadScene("public-farmer-profile-view.fxml", "কৃষকের প্রোফাইল");
                                     } else {
                                         App.loadScene("public-buyer-profile-view.fxml", "ক্রেতার প্রোফাইল");
@@ -311,6 +368,60 @@ public class CropFeedController {
             err -> {
                 Platform.runLater(() -> showError("ডাটাবেস ত্রুটি", "ইউজার সার্চ করতে সমস্যা হয়েছে।"));
                 err.printStackTrace();
+            }
+        );
+    }
+
+    private void searchCropById(int cropId) {
+        String sql = "SELECT id, name, status FROM crops WHERE id = ?";
+        DatabaseService.executeQueryAsync(
+            sql,
+            new Object[]{cropId},
+            rs -> {
+                // Read ResultSet data BEFORE Platform.runLater
+                String cropName = null;
+                String status = null;
+                boolean found = false;
+                try {
+                    if (rs.next()) {
+                        cropName = rs.getString("name");
+                        status = rs.getString("status");
+                        found = true;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                
+                // Now update UI on JavaFX thread with pre-loaded data
+                final String finalCropName = cropName;
+                final String finalStatus = status;
+                final boolean finalFound = found;
+                Platform.runLater(() -> {
+                    try {
+                        if (finalFound) {
+                            Alert info = new Alert(Alert.AlertType.CONFIRMATION);
+                            info.setTitle("ফসল পাওয়া গেছে / Crop Found");
+                            info.setHeaderText(finalCropName + " (ID: " + cropId + ")");
+                            info.setContentText("স্ট্যাটাস: " + (finalStatus != null ? finalStatus : "N/A") + "\n\nবিস্তারিত দেখতে চান?");
+                            info.showAndWait().ifPresent(response -> {
+                                if (response == ButtonType.OK) {
+                                    App.setCurrentCropId(cropId);
+                                    App.setPreviousScene("crop-feed-view.fxml");
+                                    App.loadScene("crop-detail-view.fxml", "ফসলের বিস্তারিত");
+                                }
+                            });
+                        } else {
+                            showError("পাওয়া যায়নি", "এই ID এর কোনো ফসল পাওয়া যায়নি।");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        showError("ত্রুটি", "ফসল খুঁজতে ব্যর্থ হয়েছে।");
+                    }
+                });
+            },
+            err -> {
+                err.printStackTrace();
+                Platform.runLater(() -> showError("ডাটাবেস ত্রুটি", "ফসল সার্চ করতে সমস্যা হয়েছে।"));
             }
         );
     }

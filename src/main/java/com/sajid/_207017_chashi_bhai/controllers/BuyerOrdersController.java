@@ -6,6 +6,7 @@ import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import com.sajid._207017_chashi_bhai.services.FirebaseSyncService;
 import com.sajid._207017_chashi_bhai.services.OrderService;
 import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
+import com.sajid._207017_chashi_bhai.utils.StatisticsCalculator;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -59,10 +60,11 @@ public class BuyerOrdersController {
         final String paymentStatus;
         final String createdAt;
         final String photoPath;
+        final boolean hasReview;
 
         private OrderRow(int orderId, String cropName, String farmerName, String farmerPhone,
                          boolean isVerified, double quantity, double price, String status,
-                         String paymentStatus, String createdAt, String photoPath) {
+                         String paymentStatus, String createdAt, String photoPath, boolean hasReview) {
             this.orderId = orderId;
             this.cropName = cropName;
             this.farmerName = farmerName;
@@ -74,6 +76,7 @@ public class BuyerOrdersController {
             this.paymentStatus = paymentStatus;
             this.createdAt = createdAt;
             this.photoPath = photoPath;
+            this.hasReview = hasReview;
         }
     }
 
@@ -99,6 +102,10 @@ public class BuyerOrdersController {
                     loadOrders(currentFilter);
                 }
             });
+        }
+
+        if (btnRefresh != null) {
+            btnRefresh.setOnAction(e -> onRefresh());
         }
         
         loadOrders(currentFilter);
@@ -166,7 +173,8 @@ public class BuyerOrdersController {
         vboxOrdersList.getChildren().clear();
 
         String query = "SELECT o.*, c.name as crop_name, c.price_per_kg as price, " +
-                      "u.name as farmer_name, u.phone as farmer_phone, u.is_verified, " +
+                  "u.name as farmer_name, u.phone as farmer_phone, u.is_verified, " +
+                  "(SELECT COUNT(*) FROM reviews r WHERE r.order_id = o.id AND r.reviewer_id = ?) as has_review, " +
                       "(SELECT photo_path FROM crop_photos WHERE crop_id = c.id ORDER BY photo_order LIMIT 1) as crop_photo " +
                       "FROM orders o " +
                       "JOIN crops c ON o.crop_id = c.id " +
@@ -197,8 +205,8 @@ public class BuyerOrdersController {
         }
 
         Object[] params = "all".equals(filter) || "completed".equals(filter) ?
-            new Object[]{currentUser.getId()} :
-            new Object[]{currentUser.getId(), filter};
+            new Object[]{currentUser.getId(), currentUser.getId()} :
+            new Object[]{currentUser.getId(), currentUser.getId(), filter};
 
         DatabaseService.executeQueryAsync(
                 query,
@@ -219,7 +227,8 @@ public class BuyerOrdersController {
                                     resultSet.getString("status"),
                                     resultSet.getString("payment_status"),
                                     resultSet.getString("created_at"),
-                                    resultSet.getString("crop_photo")
+                                    resultSet.getString("crop_photo"),
+                                    resultSet.getInt("has_review") > 0
                             ));
                         }
                     } catch (Exception e) {
@@ -331,7 +340,7 @@ public class BuyerOrdersController {
         // Action buttons
         VBox actionsBox = new VBox(10);
         actionsBox.setPrefWidth(180);
-        actionsBox.getChildren().addAll(getActionButtons(row.orderId, safeStatus, row.farmerPhone));
+        actionsBox.getChildren().addAll(getActionButtons(row.orderId, safeStatus, row.farmerPhone, row.hasReview));
 
         mainBox.getChildren().addAll(imageView, detailsBox, actionsBox);
 
@@ -349,7 +358,7 @@ public class BuyerOrdersController {
         return card;
     }
 
-    private VBox getActionButtons(int orderId, String status, String farmerPhone) {
+    private VBox getActionButtons(int orderId, String status, String farmerPhone, boolean hasReview) {
         VBox actionsBox = new VBox(10);
 
         Button btnDetails = new Button("📄 বিস্তারিত");
@@ -411,10 +420,13 @@ public class BuyerOrdersController {
                 break;
                 
             case "completed":
-                Button btnRate = new Button("⭐ রেটিং দিন");
+                Button btnRate = new Button(hasReview ? "✅ রেটিং দেওয়া হয়েছে" : "⭐ রেটিং দিন");
                 btnRate.getStyleClass().add("button-success");
                 btnRate.setMaxWidth(Double.MAX_VALUE);
-                btnRate.setOnAction(e -> showRatingDialog(orderId));
+                btnRate.setDisable(hasReview);
+                if (!hasReview) {
+                    btnRate.setOnAction(e -> showRatingDialog(orderId));
+                }
                 
                 Button btnContactDelivered = new Button("📞 যোগাযোগ");
                 btnContactDelivered.getStyleClass().add("button-info");
@@ -491,6 +503,9 @@ public class BuyerOrdersController {
                     if (r.ok) {
                         showSuccess("সফল", r.message);
                         refreshOrders();
+                        // Update buyer and farmer statistics after completion
+                        StatisticsCalculator.updateBuyerStatistics(currentUser.getId());
+                        updateFarmerStatsForOrder(orderId);
                         FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "completed", null);
                     } else {
                         showError("ত্রুটি", r.message);
@@ -502,6 +517,24 @@ public class BuyerOrdersController {
                 }
             );
         }
+    }
+
+    private void updateFarmerStatsForOrder(int orderId) {
+        DatabaseService.executeQueryAsync(
+            "SELECT farmer_id FROM orders WHERE id = ?",
+            new Object[]{orderId},
+            rs -> {
+                try {
+                    if (rs.next()) {
+                        int farmerId = rs.getInt("farmer_id");
+                        StatisticsCalculator.updateFarmerStatistics(farmerId);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            },
+            error -> error.printStackTrace()
+        );
     }
 
     private void cancelOrder(int orderId) {

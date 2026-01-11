@@ -18,7 +18,7 @@
             <Button text="←" styleClass="back-button" fx:id="btnBack" onAction="#onBack"/>
             <Label text="আমার অর্ডারসমূহ / My Orders" styleClass="page-title"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button fx:id="btnRefresh" text="🔄 রিফ্রেশ" styleClass="button-secondary"/>
+            <Button fx:id="btnRefresh" text="🔄 রিফ্রেশ" styleClass="button-secondary" onAction="#onRefresh"/>
         </HBox>
     </top>
 

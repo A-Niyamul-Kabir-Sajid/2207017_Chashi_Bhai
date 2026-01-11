@@ -81,6 +81,30 @@
                             </HBox>
                         </graphic>
                     </Button>
+
+                    <Button fx:id="btnSearchOrder" styleClass="action-button-large, card-orange" onAction="#onSearchOrder" prefWidth="280" prefHeight="100">
+                        <graphic>
+                            <HBox spacing="15" alignment="CENTER">
+                                <Label text="🔍" styleClass="action-icon"/>
+                                <VBox alignment="CENTER_LEFT">
+                                    <Label text="অর্ডার সার্চ" styleClass="action-title"/>
+                                    <Label text="Search Orders" styleClass="action-subtitle"/>
+                                </VBox>
+                            </HBox>
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="btnAllChat" styleClass="action-button-large, card-blue" onAction="#onAllChat" prefWidth="280" prefHeight="100">
+                        <graphic>
+                            <HBox spacing="15" alignment="CENTER">
+                                <Label text="💬" styleClass="action-icon"/>
+                                <VBox alignment="CENTER_LEFT">
+                                    <Label text="সব চ্যাট" styleClass="action-title"/>
+                                    <Label text="All Chats" styleClass="action-subtitle"/>
+                                </VBox>
+                            </HBox>
+                        </graphic>
+                    </Button>
                 </HBox>
 
                 <!-- Live Price Ticker -->

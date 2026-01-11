@@ -98,6 +98,29 @@
                             </VBox>
                         </graphic>
                     </Button>
+
+                    <!-- Row 3 -->
+                    <Button fx:id="btnSearchOrder" styleClass="dashboard-card, card-orange" onAction="#onSearchOrder"
+                            GridPane.rowIndex="2" GridPane.columnIndex="0" prefWidth="280" prefHeight="160">
+                        <graphic>
+                            <VBox alignment="CENTER" spacing="12">
+                                <Label text="🔍" styleClass="card-icon"/>
+                                <Label text="অর্ডার সার্চ" styleClass="card-title" wrapText="true"/>
+                                <Label text="Search Orders" styleClass="card-subtitle"/>
+                            </VBox>
+                        </graphic>
+                    </Button>
+
+                    <Button fx:id="btnAllChat" styleClass="dashboard-card, card-blue" onAction="#onAllChat"
+                            GridPane.rowIndex="2" GridPane.columnIndex="1" prefWidth="280" prefHeight="160">
+                        <graphic>
+                            <VBox alignment="CENTER" spacing="12">
+                                <Label text="💬" styleClass="card-icon"/>
+                                <Label text="সব চ্যাট" styleClass="card-title" wrapText="true"/>
+                                <Label text="All Chats" styleClass="card-subtitle"/>
+                            </VBox>
+                        </graphic>
+                    </Button>
                 </GridPane>
 
                 <!-- Quick Stats Section -->

@@ -52,6 +52,8 @@ public class ChatConversationController {
     private int otherUserId;
     private String otherUserName;
     private Integer cropId;
+    private int user1Id;
+    private int user2Id;
     private final List<MessageItem> loadedMessages = new ArrayList<>();
 
     private static class MessageItem {
@@ -87,26 +89,69 @@ public class ChatConversationController {
         this.otherUserId = otherUser;
         this.otherUserName = userName;
         this.cropId = crop;
-        
-        // Update header
-        lblUserName.setText(userName);
-        lblUserStatus.setText("অফলাইন");
-        
-        // Load user details
-        loadOtherUserDetails();
-        
-        // Load crop context if available
-        if (cropId != null) {
-            loadCropContext();
-        } else {
-            hboxCropContext.setVisible(false);
-        }
-        
-        // Load messages
-        loadMessages();
-        
-        // Mark messages as read
-        markMessagesAsRead();
+
+        validateAndLoadConversation();
+    }
+
+    private void validateAndLoadConversation() {
+        String sql = "SELECT id, user1_id, user2_id, crop_id FROM conversations WHERE id = ?";
+        DatabaseService.executeQueryAsync(
+            sql,
+            new Object[]{conversationId},
+            rs -> {
+                try {
+                    if (!rs.next()) {
+                        Platform.runLater(() -> {
+                            showError("Error", "Conversation not found");
+                            onBack();
+                        });
+                        return;
+                    }
+
+                    user1Id = rs.getInt("user1_id");
+                    user2Id = rs.getInt("user2_id");
+
+                    if (currentUser.getId() != user1Id && currentUser.getId() != user2Id) {
+                        Platform.runLater(() -> {
+                            showError("Error", "You are not a participant of this chat.");
+                            onBack();
+                        });
+                        return;
+                    }
+
+                    if (cropId == null && rs.getObject("crop_id") != null) {
+                        cropId = rs.getInt("crop_id");
+                    }
+
+                    // Derive other user from conversation participants to avoid mixing users
+                    otherUserId = (currentUser.getId() == user1Id) ? user2Id : user1Id;
+
+                    Platform.runLater(() -> {
+                        lblUserName.setText(otherUserName != null ? otherUserName : "User " + otherUserId);
+                        lblUserStatus.setText("অফলাইন");
+
+                        loadOtherUserDetails();
+                        if (cropId != null) {
+                            loadCropContext();
+                        } else {
+                            hboxCropContext.setVisible(false);
+                        }
+                        loadMessages();
+                        markMessagesAsRead();
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Platform.runLater(() -> {
+                        showError("Error", "Failed to open conversation.");
+                        onBack();
+                    });
+                }
+            },
+            err -> Platform.runLater(() -> {
+                showError("Database Error", "Could not load conversation.");
+                onBack();
+            })
+        );
     }
 
     private void setupEventHandlers() {
@@ -198,8 +243,10 @@ public class ChatConversationController {
     private void loadMessages() {
         loadedMessages.clear();
         
-        String sql = "SELECT * FROM messages WHERE conversation_id = ? ORDER BY created_at ASC";
-        DatabaseService.executeQueryAsync(sql, new Object[]{conversationId},
+        String sql = "SELECT * FROM messages WHERE conversation_id = ? " +
+                     "AND sender_id IN (?, ?) AND receiver_id IN (?, ?) " +
+                     "ORDER BY created_at ASC";
+        DatabaseService.executeQueryAsync(sql, new Object[]{conversationId, user1Id, user2Id, user1Id, user2Id},
             rs -> {
                 try {
                     while (rs.next()) {
@@ -368,11 +415,10 @@ public class ChatConversationController {
         
         DatabaseService.executeUpdateAsync(sql, params,
             rows -> {
-                // Update unread count in conversations
-                String updateConv = "UPDATE conversations SET " +
-                                  (currentUser.getId() == conversationId ? 
-                                   "unread_count_user1 = 0" : "unread_count_user2 = 0") +
-                                  " WHERE id = ?";
+                // Update unread count in conversations for the correct side
+                String updateConv = (currentUser.getId() == user1Id) ?
+                    "UPDATE conversations SET unread_count_user1 = 0 WHERE id = ?" :
+                    "UPDATE conversations SET unread_count_user2 = 0 WHERE id = ?";
                 DatabaseService.executeUpdateAsync(updateConv, new Object[]{conversationId},
                     r -> {}, e -> {});
             },

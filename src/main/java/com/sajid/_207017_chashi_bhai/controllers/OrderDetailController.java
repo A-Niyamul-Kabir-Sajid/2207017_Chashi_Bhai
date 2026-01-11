@@ -5,6 +5,7 @@ import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import com.sajid._207017_chashi_bhai.services.FirebaseSyncService;
 import com.sajid._207017_chashi_bhai.services.OrderService;
+import com.sajid._207017_chashi_bhai.utils.StatisticsCalculator;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -561,7 +562,7 @@ public class OrderDetailController {
         try {
             javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
             javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
-            content.putString(orderNumber);
+            content.putString(String.valueOf(orderId));
             clipboard.setContent(content);
             showInfo("কপি সফল", "অর্ডার নম্বর কপি হয়েছে: " + orderNumber);
         } catch (Exception e) {
@@ -742,6 +743,8 @@ public class OrderDetailController {
                         if (r.ok) {
                             showInfo("সফল", r.message);
                             FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "completed", null);
+                            StatisticsCalculator.updateBuyerStatistics(currentUser.getId());
+                            updateFarmerStats(orderId);
                             loadOrderDetails();
                         } else {
                             showError("ত্রুটি", r.message);
@@ -754,6 +757,23 @@ public class OrderDetailController {
                 );
             }
         });
+    }
+
+    private void updateFarmerStats(int orderId) {
+        DatabaseService.executeQueryAsync(
+            "SELECT farmer_id FROM orders WHERE id = ?",
+            new Object[]{orderId},
+            rs -> {
+                try {
+                    if (rs.next()) {
+                        StatisticsCalculator.updateFarmerStatistics(rs.getInt("farmer_id"));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            },
+            error -> error.printStackTrace()
+        );
     }
 
     @FXML

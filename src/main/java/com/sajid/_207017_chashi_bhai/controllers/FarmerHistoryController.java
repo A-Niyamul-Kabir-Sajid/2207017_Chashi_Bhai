@@ -66,6 +66,9 @@ public class FarmerHistoryController {
         
         // Start real-time sync polling for history (every 30 seconds)
         syncManager.startPolling("history_" + currentUser.getId(), this::refreshHistory, 30);
+
+        // Initial sync to align with remote updates on first load
+        refreshHistory();
     }
 
     private void loadCropFilter() {
@@ -208,21 +211,36 @@ public class FarmerHistoryController {
             query,
             new Object[]{currentUser.getId()},
             resultSet -> {
-                Platform.runLater(() -> {
-                    try {
-                        while (resultSet.next()) {
-                            HBox historyCard = createHistoryCard(resultSet);
-                            vboxHistoryList.getChildren().add(historyCard);
+                try {
+                    java.util.List<HistoryCardData> cardRows = new java.util.ArrayList<>();
+                    while (resultSet.next()) {
+                        cardRows.add(extractCardData(resultSet));
+                    }
+
+                    Platform.runLater(() -> {
+                        try {
+                            for (HistoryCardData data : cardRows) {
+                                HBox historyCard = createHistoryCard(data);
+                                vboxHistoryList.getChildren().add(historyCard);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            showError("ত্রুটি", "ইতিহাস লোড করতে ব্যর্থ হয়েছে।");
+                        } finally {
+                            if (progressIndicator != null) {
+                                progressIndicator.setVisible(false);
+                            }
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        showError("ত্রুটি", "ইতিহাস লোড করতে ব্যর্থ হয়েছে।");
-                    } finally {
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Platform.runLater(() -> {
                         if (progressIndicator != null) {
                             progressIndicator.setVisible(false);
                         }
-                    }
-                });
+                        showError("ত্রুটি", "ইতিহাস লোড করতে ব্যর্থ হয়েছে।");
+                    });
+                }
             },
             error -> {
                 Platform.runLater(() -> {
@@ -236,7 +254,28 @@ public class FarmerHistoryController {
         );
     }
 
-    private HBox createHistoryCard(ResultSet rs) throws Exception {
+    private static final class HistoryCardData {
+        final int orderId;
+        final String date;
+        final String buyerName;
+        final String cropName;
+        final double quantity;
+        final double price;
+        final String paymentStatus;
+
+        HistoryCardData(int orderId, String date, String buyerName, String cropName,
+                        double quantity, double price, String paymentStatus) {
+            this.orderId = orderId;
+            this.date = date;
+            this.buyerName = buyerName;
+            this.cropName = cropName;
+            this.quantity = quantity;
+            this.price = price;
+            this.paymentStatus = paymentStatus;
+        }
+    }
+
+    private HistoryCardData extractCardData(ResultSet rs) throws Exception {
         int orderId = rs.getInt("id");
         String date = rs.getString("order_date");
         if (date != null && date.length() > 10) {
@@ -246,9 +285,21 @@ public class FarmerHistoryController {
         String cropName = rs.getString("crop_name");
         double quantity = rs.getDouble("quantity_kg");
         double price = rs.getDouble("price");
+        String paymentStatus = rs.getString("payment_status");
+
+        return new HistoryCardData(orderId, date, buyerName, cropName, quantity, price, paymentStatus);
+    }
+
+    private HBox createHistoryCard(HistoryCardData data) throws Exception {
+        int orderId = data.orderId;
+        String date = data.date;
+        String buyerName = data.buyerName;
+        String cropName = data.cropName;
+        double quantity = data.quantity;
+        double price = data.price;
+        String paymentStatus = data.paymentStatus;
         String unit = "কেজি"; // All crops measured in kg
         double totalPrice = quantity * price;
-        String paymentStatus = rs.getString("payment_status");
 
         HBox card = new HBox(20);
         card.getStyleClass().add("history-card");

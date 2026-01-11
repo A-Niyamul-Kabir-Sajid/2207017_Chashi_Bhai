@@ -103,6 +103,9 @@ public class BuyerHistoryController {
 
         // Start real-time sync polling for history (every 30 seconds)
         syncManager.startPolling("buyer_history_" + currentUser.getId(), this::refreshHistory, 30);
+
+        // Initial sync to pull latest remote changes immediately
+        refreshHistory();
     }
 
     private void refreshHistory() {
@@ -273,25 +276,42 @@ public class BuyerHistoryController {
             query,
             params.toArray(),
             resultSet -> {
-                Platform.runLater(() -> {
-                    try {
-                        while (resultSet.next()) {
+                try {
+                    java.util.List<HistoryRow> tableRows = new java.util.ArrayList<>();
+                    java.util.List<HistoryCardData> cardRows = new java.util.ArrayList<>();
+                    while (resultSet.next()) {
+                        tableRows.add(createHistoryRow(resultSet));
+                        cardRows.add(extractCardData(resultSet));
+                    }
+
+                    Platform.runLater(() -> {
+                        try {
                             if (tableHistory != null) {
-                                tableHistory.getItems().add(createHistoryRow(resultSet));
+                                tableHistory.getItems().addAll(tableRows);
                             } else if (vboxHistoryList != null) {
-                                HBox historyCard = createHistoryCard(resultSet);
-                                vboxHistoryList.getChildren().add(historyCard);
+                                for (HistoryCardData data : cardRows) {
+                                    HBox historyCard = createHistoryCard(data);
+                                    vboxHistoryList.getChildren().add(historyCard);
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            showError("ত্রুটি", "ইতিহাস লোড করতে ব্যর্থ হয়েছে।");
+                        } finally {
+                            if (progressIndicator != null) {
+                                progressIndicator.setVisible(false);
                             }
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        showError("ত্রুটি", "ইতিহাস লোড করতে ব্যর্থ হয়েছে।");
-                    } finally {
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Platform.runLater(() -> {
                         if (progressIndicator != null) {
                             progressIndicator.setVisible(false);
                         }
-                    }
-                });
+                        showError("ত্রুটি", "ইতিহাস লোড করতে ব্যর্থ হয়েছে।");
+                    });
+                }
             },
             error -> {
                 Platform.runLater(() -> {
@@ -366,18 +386,55 @@ public class BuyerHistoryController {
         public String getRating() { return rating; }
     }
 
-    private HBox createHistoryCard(ResultSet rs) throws Exception {
+    private static final class HistoryCardData {
+        final int orderId;
+        final String date;
+        final String farmerName;
+        final boolean isVerified;
+        final String cropName;
+        final double quantity;
+        final double price;
+        final Integer myRating;
+
+        HistoryCardData(int orderId, String date, String farmerName, boolean isVerified,
+                        String cropName, double quantity, double price, Integer myRating) {
+            this.orderId = orderId;
+            this.date = date;
+            this.farmerName = farmerName;
+            this.isVerified = isVerified;
+            this.cropName = cropName;
+            this.quantity = quantity;
+            this.price = price;
+            this.myRating = myRating;
+        }
+    }
+
+    private HistoryCardData extractCardData(ResultSet rs) throws Exception {
         int orderId = rs.getInt("id");
-        String date = rs.getString("updated_at").substring(0, 10);
+        String dateValue = rs.getString("effective_date");
+        String date = (dateValue != null && dateValue.length() >= 10) ? dateValue.substring(0, 10) : "—";
         String farmerName = rs.getString("farmer_name");
         boolean isVerified = rs.getBoolean("is_verified");
         String cropName = rs.getString("crop_name");
         double quantity = rs.getDouble("quantity_kg");
         double price = rs.getDouble("price");
-        String unit = "কেজি"; // All crops measured in kg
-        double totalPrice = quantity * price;
         Object myRatingObj = rs.getObject("my_review_rating");
         Integer myRating = myRatingObj != null ? ((Number) myRatingObj).intValue() : null;
+
+        return new HistoryCardData(orderId, date, farmerName, isVerified, cropName, quantity, price, myRating);
+    }
+
+    private HBox createHistoryCard(HistoryCardData data) throws Exception {
+        int orderId = data.orderId;
+        String date = data.date;
+        String farmerName = data.farmerName;
+        boolean isVerified = data.isVerified;
+        String cropName = data.cropName;
+        double quantity = data.quantity;
+        double price = data.price;
+        String unit = "কেজি"; // All crops measured in kg
+        double totalPrice = quantity * price;
+        Integer myRating = data.myRating;
 
         HBox card = new HBox(20);
         card.getStyleClass().add("history-card");

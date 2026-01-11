@@ -92,6 +92,10 @@ public class FarmerOrdersController {
             });
         }
 
+        if (btnRefresh != null) {
+            btnRefresh.setOnAction(e -> onRefresh());
+        }
+
         loadOrders(currentFilter);
         
         // Start real-time sync polling for orders (every 15 seconds)

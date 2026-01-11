@@ -101,110 +101,127 @@ public class MyCropsController {
         }
         vboxCropsList.getChildren().clear();
 
-        String query = "SELECT c.*, " +
-                      "c.price_per_kg as price, " +
-                      "c.available_quantity_kg as quantity, " +
-                      "'কেজি' as unit, " +
-                      "(SELECT photo_path FROM crop_photos WHERE crop_id = c.id ORDER BY photo_order LIMIT 1) as first_photo " +
-                      "FROM crops c WHERE c.farmer_id = ?";
-        
-        if (!"all".equals(filter)) {
-            query += " AND c.status = ?";
-        }
-        
-        // Apply sorting based on user selection
-        String sortOption = cbSortBy != null ? cbSortBy.getSelectionModel().getSelectedItem() : null;
-        if (sortOption != null) {
-            if (sortOption.contains("High to Low") || sortOption.contains("বেশি থেকে কম")) {
-                query += " ORDER BY c.price_per_kg DESC";
-            } else if (sortOption.contains("Low to High") || sortOption.contains("কম থেকে বেশি")) {
-                query += " ORDER BY c.price_per_kg ASC";
+        Runnable loadQuery = () -> {
+            String query = "SELECT c.*, " +
+                          "c.price_per_kg as price, " +
+                          "c.available_quantity_kg as quantity, " +
+                          "'কেজি' as unit, " +
+                          "(SELECT photo_path FROM crop_photos WHERE crop_id = c.id ORDER BY photo_order LIMIT 1) as first_photo " +
+                          "FROM crops c WHERE c.farmer_id = ?";
+            
+            if (!"all".equals(filter)) {
+                query += " AND c.status = ?";
+            }
+            
+            // Apply sorting based on user selection
+            String sortOption = cbSortBy != null ? cbSortBy.getSelectionModel().getSelectedItem() : null;
+            if (sortOption != null) {
+                if (sortOption.contains("High to Low") || sortOption.contains("বেশি থেকে কম")) {
+                    query += " ORDER BY c.price_per_kg DESC";
+                } else if (sortOption.contains("Low to High") || sortOption.contains("কম থেকে বেশি")) {
+                    query += " ORDER BY c.price_per_kg ASC";
+                } else {
+                    // Default: Newest First
+                    query += " ORDER BY c.created_at DESC";
+                }
             } else {
-                // Default: Newest First
                 query += " ORDER BY c.created_at DESC";
             }
-        } else {
-            query += " ORDER BY c.created_at DESC";
-        }
 
-        Object[] params = "all".equals(filter) ? 
-            new Object[]{currentUser.getId()} : 
-            new Object[]{currentUser.getId(), filter};
+            Object[] params = "all".equals(filter) ? 
+                new Object[]{currentUser.getId()} : 
+                new Object[]{currentUser.getId(), filter};
 
-        System.out.println("[MyCrops] Loading crops for farmer_id=" + currentUser.getId() + ", filter=" + filter);
-        System.out.println("[MyCrops] Query: " + query);
+            System.out.println("[MyCrops] Loading crops for farmer_id=" + currentUser.getId() + ", filter=" + filter);
+            System.out.println("[MyCrops] Query: " + query);
 
-        DatabaseService.executeQueryAsync(
-            query,
-            params,
-            resultSet -> {
-                try {
-                    // Read ALL data from ResultSet FIRST (before Platform.runLater)
-                    java.util.List<java.util.Map<String, Object>> cropDataList = new java.util.ArrayList<>();
-                    while (resultSet.next()) {
-                        java.util.Map<String, Object> cropData = new java.util.HashMap<>();
-                        cropData.put("id", resultSet.getInt("id"));
-                        cropData.put("name", resultSet.getString("name"));
-                        cropData.put("category", resultSet.getString("category"));
-                        cropData.put("price", resultSet.getDouble("price"));
-                        cropData.put("unit", resultSet.getString("unit"));
-                        cropData.put("quantity", resultSet.getDouble("quantity"));
-                        cropData.put("harvest_date", resultSet.getString("harvest_date"));
-                        cropData.put("district", resultSet.getString("district"));
-                        cropData.put("status", resultSet.getString("status"));
-                        cropData.put("first_photo", resultSet.getString("first_photo"));
-                        cropDataList.add(cropData);
-                    }
-                    
-                    System.out.println("[MyCrops] Read " + cropDataList.size() + " crops from database");
-                    
-                    // NOW use Platform.runLater with the data we've already read
-                    Platform.runLater(() -> {
-                        try {
-                            for (java.util.Map<String, Object> cropData : cropDataList) {
-                                HBox cropCard = loadCropCard(cropData);
-                                if (cropCard != null) {
-                                    vboxCropsList.getChildren().add(cropCard);
+            DatabaseService.executeQueryAsync(
+                query,
+                params,
+                resultSet -> {
+                    try {
+                        // Read ALL data from ResultSet FIRST (before Platform.runLater)
+                        java.util.List<java.util.Map<String, Object>> cropDataList = new java.util.ArrayList<>();
+                        while (resultSet.next()) {
+                            java.util.Map<String, Object> cropData = new java.util.HashMap<>();
+                            cropData.put("id", resultSet.getInt("id"));
+                            cropData.put("name", resultSet.getString("name"));
+                            cropData.put("category", resultSet.getString("category"));
+                            cropData.put("price", resultSet.getDouble("price"));
+                            cropData.put("unit", resultSet.getString("unit"));
+                            cropData.put("quantity", resultSet.getDouble("quantity"));
+                            cropData.put("harvest_date", resultSet.getString("harvest_date"));
+                            cropData.put("district", resultSet.getString("district"));
+                            cropData.put("status", resultSet.getString("status"));
+                            cropData.put("first_photo", resultSet.getString("first_photo"));
+                            cropDataList.add(cropData);
+                        }
+                        
+                        System.out.println("[MyCrops] Read " + cropDataList.size() + " crops from database");
+                        
+                        // NOW use Platform.runLater with the data we've already read
+                        Platform.runLater(() -> {
+                            try {
+                                for (java.util.Map<String, Object> cropData : cropDataList) {
+                                    HBox cropCard = loadCropCard(cropData);
+                                    if (cropCard != null) {
+                                        vboxCropsList.getChildren().add(cropCard);
+                                    }
+                                }
+
+                                if (cropDataList.isEmpty()) {
+                                    vboxEmptyState.setVisible(true);
+                                    vboxCropsList.setVisible(false);
+                                } else {
+                                    vboxEmptyState.setVisible(false);
+                                    vboxCropsList.setVisible(true);
+                                }
+                            } catch (Exception e) {
+                                System.err.println("[MyCrops] Error creating crop cards: " + e.getMessage());
+                                e.printStackTrace();
+                                showError("ত্রুটি", "ফসল লোড করতে ব্যর্থ হয়েছে।");
+                            } finally {
+                                if (progressIndicator != null) {
+                                    progressIndicator.setVisible(false);
                                 }
                             }
-
-                            if (cropDataList.isEmpty()) {
-                                vboxEmptyState.setVisible(true);
-                                vboxCropsList.setVisible(false);
-                            } else {
-                                vboxEmptyState.setVisible(false);
-                                vboxCropsList.setVisible(true);
-                            }
-                        } catch (Exception e) {
-                            System.err.println("[MyCrops] Error creating crop cards: " + e.getMessage());
-                            e.printStackTrace();
-                            showError("ত্রুটি", "ফসল লোড করতে ব্যর্থ হয়েছে।");
-                        } finally {
+                        });
+                    } catch (Exception e) {
+                        System.err.println("[MyCrops] Error reading ResultSet: " + e.getMessage());
+                        e.printStackTrace();
+                        Platform.runLater(() -> {
                             if (progressIndicator != null) {
                                 progressIndicator.setVisible(false);
                             }
-                        }
-                    });
-                } catch (Exception e) {
-                    System.err.println("[MyCrops] Error reading ResultSet: " + e.getMessage());
-                    e.printStackTrace();
+                            showError("ত্রুটি", "ফসল লোড করতে ব্যর্থ হয়েছে।");
+                        });
+                    }
+                },
+                error -> {
                     Platform.runLater(() -> {
                         if (progressIndicator != null) {
                             progressIndicator.setVisible(false);
                         }
-                        showError("ত্রুটি", "ফসল লোড করতে ব্যর্থ হয়েছে।");
+                        showError("ডাটাবেস ত্রুটি", "ফসল লোড করতে সমস্যা হয়েছে।");
+                        error.printStackTrace();
                     });
                 }
-            },
-            error -> {
-                Platform.runLater(() -> {
-                    if (progressIndicator != null) {
-                        progressIndicator.setVisible(false);
-                    }
-                    showError("ডাটাবেস ত্রুটি", "ফসল লোড করতে সমস্যা হয়েছে।");
-                    error.printStackTrace();
-                });
-            }
+            );
+        };
+
+        // First, ensure sold-out crops are marked as 'sold' so they show in the correct tab
+        DatabaseService.executeUpdateAsync(
+            "UPDATE crops SET status = 'sold', updated_at = datetime('now') " +
+            "WHERE farmer_id = ? AND status != 'sold' AND initial_quantity_kg > 0 AND available_quantity_kg <= 0",
+            new Object[]{currentUser.getId()},
+            rows -> loadQuery.run(),
+            error -> Platform.runLater(() -> {
+                if (progressIndicator != null) {
+                    progressIndicator.setVisible(false);
+                }
+                showError("ত্রুটি", "ফসল লোড করতে ব্যর্থ হয়েছে।");
+                error.printStackTrace();
+            })
         );
     }
 

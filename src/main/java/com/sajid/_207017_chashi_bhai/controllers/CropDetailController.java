@@ -47,7 +47,7 @@ public class CropDetailController {
 
     private User currentUser;
     private int cropId;
-    private String productCode;
+    private int cropIdNumber; // The numeric crop ID to copy
     private int farmerId;
     private String farmerPhone;
     private double cropPrice;
@@ -113,7 +113,7 @@ public class CropDetailController {
                     if (rs.next()) {
                         // Read all crop details from ResultSet
                         String name = rs.getString("name");
-                        String pCode = rs.getString("product_code");
+                        int pCode = rs.getInt("id");
                         String category = rs.getString("category");
                         double unitPrice = rs.getDouble("unit_price");
                         String unit = "কেজি"; // All crops measured in kg
@@ -139,7 +139,7 @@ public class CropDetailController {
                         Platform.runLater(() -> {
                             try {
                                 // Set crop details
-                                productCode = pCode;
+                                cropIdNumber = pCode; // Store numeric crop ID for copying
                                 cropPrice = unitPrice;
                                 cropUnit = unit;
                                 farmerId = fId;
@@ -147,7 +147,7 @@ public class CropDetailController {
 
                                 lblCropName.setText(name != null ? name : "N/A");
                                 lblCropPrice.setText(String.format("৳%.2f/%s", cropPrice, cropUnit));
-                                lblProductCode.setText(productCode != null ? productCode : "N/A");
+                                lblProductCode.setText(String.valueOf(cropIdNumber)); // Show numeric crop ID
                                 lblCategory.setText(category != null ? category : "N/A");
                                 
                                 // Show ordered quantity if viewing from order, otherwise show available quantity
@@ -358,18 +358,18 @@ public class CropDetailController {
 
     @FXML
     private void onCopyProductCode() {
-        if (productCode == null || productCode.isEmpty()) {
-            showInfo("কোড নেই", "এই পণ্যের কোড পাওয়া যায়নি।");
+        if (cropIdNumber <= 0) {
+            showInfo("কোড নেই", "এই ফসলের ID পাওয়া যায়নি।");
             return;
         }
         try {
             javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
             javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
-            content.putString(productCode);
+            content.putString(String.valueOf(cropIdNumber)); // Copy only the numeric ID
             clipboard.setContent(content);
-            showInfo("কপি সফল", "পণ্য কোড কপি হয়েছে: " + productCode);
+            showInfo("কপি সফল", "ফসল ID কপি হয়েছে: " + cropIdNumber);
         } catch (Exception e) {
-            showError("ত্রুটি", "কোড কপি করতে ব্যর্থ হয়েছে।");
+            showError("ত্রুটি", "ID কপি করতে ব্যর্থ হয়েছে।");
             e.printStackTrace();
         }
     }
