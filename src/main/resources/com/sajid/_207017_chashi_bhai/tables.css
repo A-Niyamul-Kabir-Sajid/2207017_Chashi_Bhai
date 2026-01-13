@@ -1,16 +1,16 @@
 /* ========================================
    CHASHI BHAI - TABLES
    TableView and data display styling
+   No Hover Effects
    ======================================== */
 
-/* ===== BASE TABLE ===== */
-
+/* Base Table */
 .table-view,
 .data-table {
-    -fx-background-color: #161B22;
+    -fx-background-color: #1A2332;
     -fx-background-insets: 0;
     -fx-padding: 0;
-    -fx-border-color: #30363D;
+    -fx-border-color: #344861;
     -fx-border-width: 1;
     -fx-border-radius: 10;
     -fx-background-radius: 10;
@@ -21,24 +21,23 @@
     -fx-background-insets: 0;
 }
 
-/* ===== TABLE HEADER ===== */
-
+/* Table Header */
 .table-view .column-header-background,
 .data-table .column-header-background {
-    -fx-background-color: #21262D;
+    -fx-background-color: #243447;
     -fx-background-radius: 10 10 0 0;
 }
 
 .table-view .column-header,
 .data-table .column-header {
     -fx-background-color: transparent;
-    -fx-border-color: transparent #30363D transparent transparent;
+    -fx-border-color: transparent #344861 transparent transparent;
     -fx-border-width: 0 1 0 0;
 }
 
 .table-view .column-header .label,
 .data-table .column-header .label {
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
     -fx-font-size: 13px;
     -fx-font-weight: bold;
     -fx-padding: 12 16;
@@ -49,43 +48,40 @@
     -fx-border-width: 0;
 }
 
-/* ===== FILLER (Empty column header area) ===== */
-
+/* Filler */
 .table-view .filler,
 .data-table .filler {
-    -fx-background-color: #21262D;
+    -fx-background-color: #243447;
 }
 
-/* ===== TABLE ROWS ===== */
-
+/* Table Rows */
 .table-view .table-row-cell,
 .data-table .table-row-cell {
-    -fx-background-color: #161B22;
-    -fx-border-color: transparent transparent #21262D transparent;
+    -fx-background-color: #1A2332;
+    -fx-border-color: transparent transparent #243447 transparent;
     -fx-border-width: 0 0 1 0;
 }
 
 .table-view .table-row-cell:odd,
 .data-table .table-row-cell:odd {
-    -fx-background-color: #0D1117;
+    -fx-background-color: #0F1419;
 }
 
 .table-view .table-row-cell:selected,
 .data-table .table-row-cell:selected {
-    -fx-background-color: rgba(76, 175, 80, 0.2);
+    -fx-background-color: rgba(38, 166, 154, 0.2);
 }
 
 .table-view .table-row-cell:empty,
 .data-table .table-row-cell:empty {
-    -fx-background-color: #161B22;
+    -fx-background-color: #1A2332;
     -fx-border-color: transparent;
 }
 
-/* ===== TABLE CELLS ===== */
-
+/* Table Cells */
 .table-view .table-cell,
 .data-table .table-cell {
-    -fx-text-fill: #C9D1D9;
+    -fx-text-fill: #B4BCC2;
     -fx-font-size: 14px;
     -fx-padding: 14 16;
     -fx-alignment: center-left;
@@ -93,36 +89,34 @@
 
 .table-view .table-row-cell:selected .table-cell,
 .data-table .table-row-cell:selected .table-cell {
-    -fx-text-fill: #F0F6FC;
+    -fx-text-fill: #ECF0F1;
 }
 
-/* ===== PLACEHOLDER ===== */
-
+/* Placeholder */
 .table-view .placeholder,
 .data-table .placeholder {
-    -fx-background-color: #161B22;
+    -fx-background-color: #1A2332;
 }
 
 .table-view .placeholder .label,
 .data-table .placeholder .label {
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
     -fx-font-size: 14px;
 }
 
-/* ===== SCROLLBARS ===== */
-
+/* Scrollbars */
 .table-view .scroll-bar:horizontal,
 .table-view .scroll-bar:vertical,
 .data-table .scroll-bar:horizontal,
 .data-table .scroll-bar:vertical {
-    -fx-background-color: #0D1117;
+    -fx-background-color: #0F1419;
 }
 
 .table-view .scroll-bar:horizontal .thumb,
 .table-view .scroll-bar:vertical .thumb,
 .data-table .scroll-bar:horizontal .thumb,
 .data-table .scroll-bar:vertical .thumb {
-    -fx-background-color: #30363D;
+    -fx-background-color: #344861;
     -fx-background-radius: 4;
 }
 
@@ -148,55 +142,52 @@
     -fx-shape: "";
 }
 
-/* ===== COLUMN RESIZE LINE ===== */
-
+/* Column Resize Line */
 .table-view .column-resize-line {
-    -fx-background-color: #4CAF50;
+    -fx-background-color: #26A69A;
 }
 
 .table-view .column-drag-header {
-    -fx-background-color: rgba(76, 175, 80, 0.3);
+    -fx-background-color: rgba(38, 166, 154, 0.3);
 }
 
-/* ===== SORTING ===== */
-
+/* Sorting */
 .table-view .arrow {
-    -fx-background-color: #8B949E;
+    -fx-background-color: #8899A6;
     -fx-padding: 4 5;
 }
 
-/* ===== SPECIAL CELL STYLES ===== */
-
+/* Special Cell Styles */
 .cell-price {
-    -fx-text-fill: #4CAF50;
+    -fx-text-fill: #26A69A;
     -fx-font-weight: bold;
 }
 
 .cell-quantity {
-    -fx-text-fill: #2196F3;
+    -fx-text-fill: #5C6BC0;
 }
 
 .cell-date {
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
 }
 
 .cell-status-active {
-    -fx-background-color: rgba(76, 175, 80, 0.2);
-    -fx-text-fill: #81C784;
+    -fx-background-color: rgba(102, 187, 106, 0.2);
+    -fx-text-fill: #A5D6A7;
     -fx-background-radius: 10;
     -fx-padding: 4 10;
 }
 
 .cell-status-pending {
-    -fx-background-color: rgba(255, 179, 0, 0.2);
-    -fx-text-fill: #FFD54F;
+    -fx-background-color: rgba(255, 183, 77, 0.2);
+    -fx-text-fill: #FFE082;
     -fx-background-radius: 10;
     -fx-padding: 4 10;
 }
 
 .cell-status-completed {
-    -fx-background-color: rgba(33, 150, 243, 0.2);
-    -fx-text-fill: #64B5F6;
+    -fx-background-color: rgba(92, 107, 192, 0.2);
+    -fx-text-fill: #9FA8DA;
     -fx-background-radius: 10;
     -fx-padding: 4 10;
 }
@@ -208,18 +199,17 @@
     -fx-padding: 4 10;
 }
 
-/* ===== ACTION BUTTONS IN TABLE ===== */
-
+/* Action Buttons in Table */
 .table-action-btn {
     -fx-background-color: transparent;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
     -fx-font-size: 14px;
     -fx-padding: 6 12;
     -fx-cursor: hand;
 }
 
 .table-action-btn-primary {
-    -fx-text-fill: #4CAF50;
+    -fx-text-fill: #26A69A;
 }
 
 .table-action-btn-danger {
@@ -227,11 +217,10 @@
 }
 
 .table-action-btn-edit {
-    -fx-text-fill: #2196F3;
+    -fx-text-fill: #5C6BC0;
 }
 
-/* ===== COMPACT TABLE ===== */
-
+/* Compact Table */
 .table-compact .table-cell {
     -fx-padding: 8 12;
     -fx-font-size: 13px;
@@ -242,49 +231,46 @@
     -fx-font-size: 12px;
 }
 
-/* ===== STRIPED TABLE (alternate) ===== */
-
+/* Striped Table */
 .table-striped .table-row-cell:nth-child(even) {
-    -fx-background-color: #0D1117;
+    -fx-background-color: #0F1419;
 }
 
 .table-striped .table-row-cell:nth-child(odd) {
-    -fx-background-color: #161B22;
+    -fx-background-color: #1A2332;
 }
 
-/* ===== BORDERED TABLE ===== */
-
+/* Bordered Table */
 .table-bordered .table-cell {
-    -fx-border-color: #30363D;
+    -fx-border-color: #344861;
     -fx-border-width: 0 1 1 0;
 }
 
 .table-bordered .column-header {
-    -fx-border-color: #30363D;
+    -fx-border-color: #344861;
     -fx-border-width: 0 1 1 0;
 }
 
-/* ===== DATA GRID (ListView alternative) ===== */
-
+/* Data Grid */
 .data-grid {
-    -fx-background-color: #161B22;
-    -fx-border-color: #30363D;
+    -fx-background-color: #1A2332;
+    -fx-border-color: #344861;
     -fx-border-width: 1;
     -fx-border-radius: 10;
     -fx-background-radius: 10;
 }
 
 .data-grid-header {
-    -fx-background-color: #21262D;
+    -fx-background-color: #243447;
     -fx-padding: 12 16;
-    -fx-border-color: transparent transparent #30363D transparent;
+    -fx-border-color: transparent transparent #344861 transparent;
     -fx-border-width: 0 0 1 0;
 }
 
 .data-grid-row {
-    -fx-background-color: #161B22;
+    -fx-background-color: #1A2332;
     -fx-padding: 14 16;
-    -fx-border-color: transparent transparent #21262D transparent;
+    -fx-border-color: transparent transparent #243447 transparent;
     -fx-border-width: 0 0 1 0;
 }
 
@@ -293,18 +279,17 @@
 }
 
 .data-grid-cell {
-    -fx-text-fill: #C9D1D9;
+    -fx-text-fill: #B4BCC2;
     -fx-font-size: 14px;
 }
 
 .data-grid-cell-header {
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
     -fx-font-size: 12px;
     -fx-font-weight: bold;
 }
 
-/* ===== PAGINATION ===== */
-
+/* Pagination */
 .pagination {
     -fx-background-color: transparent;
 }
@@ -315,8 +300,8 @@
 
 .pagination .pagination-control .left-arrow-button,
 .pagination .pagination-control .right-arrow-button {
-    -fx-background-color: #21262D;
-    -fx-border-color: #30363D;
+    -fx-background-color: #243447;
+    -fx-border-color: #344861;
     -fx-border-width: 1;
     -fx-border-radius: 6;
     -fx-background-radius: 6;
@@ -325,14 +310,14 @@
 
 .pagination .pagination-control .left-arrow,
 .pagination .pagination-control .right-arrow {
-    -fx-background-color: #C9D1D9;
+    -fx-background-color: #B4BCC2;
     -fx-padding: 4 5;
 }
 
 .pagination .pagination-control .number-button {
-    -fx-background-color: #21262D;
-    -fx-text-fill: #C9D1D9;
-    -fx-border-color: #30363D;
+    -fx-background-color: #243447;
+    -fx-text-fill: #B4BCC2;
+    -fx-border-color: #344861;
     -fx-border-width: 1;
     -fx-border-radius: 6;
     -fx-background-radius: 6;
@@ -341,12 +326,12 @@
 }
 
 .pagination .pagination-control .number-button:selected {
-    -fx-background-color: #4CAF50;
+    -fx-background-color: #26A69A;
     -fx-text-fill: white;
-    -fx-border-color: #4CAF50;
+    -fx-border-color: #26A69A;
 }
 
 .pagination .page-information {
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
     -fx-font-size: 13px;
 }

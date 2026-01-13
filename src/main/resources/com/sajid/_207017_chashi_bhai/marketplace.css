@@ -1,20 +1,20 @@
 /* ========================================
    CHASHI BHAI - MARKETPLACE
    Crop cards, orders, history, filters
+   No Hover Effects
    ======================================== */
 
-/* ===== FILTER BAR ===== */
-
+/* Filter Bar */
 .filter-bar {
-    -fx-background-color: rgba(33, 38, 45, 0.8);
-    -fx-border-color: #30363D;
+    -fx-background-color: rgba(36, 52, 71, 0.8);
+    -fx-border-color: #344861;
     -fx-border-width: 0 0 1 0;
     -fx-padding: 12 20;
 }
 
 .filter-tab {
     -fx-background-color: transparent;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
     -fx-font-size: 14px;
     -fx-font-weight: bold;
     -fx-padding: 10 20;
@@ -25,28 +25,28 @@
 }
 
 .filter-active {
-    -fx-text-fill: #4CAF50;
-    -fx-border-color: #4CAF50;
+    -fx-text-fill: #26A69A;
+    -fx-border-color: #26A69A;
 }
 
 .filter-label {
     -fx-font-size: 13px;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
     -fx-font-weight: bold;
 }
 
 .filter-combo {
-    -fx-background-color: #0D1117;
+    -fx-background-color: #0F1419;
 }
 
 .filter-checkbox {
-    -fx-text-fill: #C9D1D9;
+    -fx-text-fill: #B4BCC2;
 }
 
 /* Search */
 .search-container {
-    -fx-background-color: #0D1117;
-    -fx-border-color: #30363D;
+    -fx-background-color: #0F1419;
+    -fx-border-color: #344861;
     -fx-border-width: 1;
     -fx-border-radius: 24;
     -fx-background-radius: 24;
@@ -55,30 +55,29 @@
 
 .search-input {
     -fx-background-color: transparent;
-    -fx-text-fill: #F0F6FC;
-    -fx-prompt-text-fill: #8B949E;
+    -fx-text-fill: #ECF0F1;
+    -fx-prompt-text-fill: #8899A6;
 }
 
 .search-icon {
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
     -fx-font-size: 18px;
 }
 
 .quick-search {
-    -fx-background-color: #0D1117;
-    -fx-border-color: #30363D;
+    -fx-background-color: #0F1419;
+    -fx-border-color: #344861;
     -fx-border-width: 1;
     -fx-border-radius: 24;
     -fx-background-radius: 24;
     -fx-padding: 10 18;
 }
 
-/* ===== CROP CARDS ===== */
-
+/* Crop Cards */
 .crop-card {
-    -fx-background-color: #21262D;
+    -fx-background-color: #243447;
     -fx-background-radius: 12;
-    -fx-border-color: #30363D;
+    -fx-border-color: #344861;
     -fx-border-width: 1;
     -fx-border-radius: 12;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0, 0, 3);
@@ -88,69 +87,62 @@
 .crop-name {
     -fx-font-size: 18px;
     -fx-font-weight: bold;
-    -fx-text-fill: #F0F6FC;
+    -fx-text-fill: #ECF0F1;
 }
 
 .crop-price {
     -fx-font-size: 18px;
     -fx-font-weight: bold;
-    -fx-text-fill: #4CAF50;
+    -fx-text-fill: #26A69A;
 }
 
 .crop-quantity {
     -fx-font-size: 14px;
-    -fx-text-fill: #C9D1D9;
+    -fx-text-fill: #B4BCC2;
 }
 
 .crop-date {
     -fx-font-size: 12px;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
 }
 
 .crop-location {
     -fx-font-size: 13px;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
 }
 
 .crop-transport {
     -fx-font-size: 12px;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
 }
 
 .crop-image {
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 6, 0, 0, 2);
-    -fx-background-color: #161b22;
+    -fx-background-color: #1A2332;
     -fx-background-radius: 8;
 }
 
-/* Better Button Colors */
+/* Button Colors */
 .button-primary {
-    -fx-background-color: #238636;
+    -fx-background-color: #26A69A;
     -fx-text-fill: white;
-}
-.button-primary:hover {
-    -fx-background-color: #2ea043;
-}
-.button-secondary {
-    -fx-background-color: #1f6feb;
-    -fx-text-fill: white;
-}
-.button-secondary:hover {
-    -fx-background-color: #388bfd;
-}
-.button-danger {
-    -fx-background-color: #da3633;
-    -fx-text-fill: white;
-}
-.button-danger:hover {
-    -fx-background-color: #f85149;
 }
 
-/* Crop Feed Specific */
+.button-secondary {
+    -fx-background-color: #5C6BC0;
+    -fx-text-fill: white;
+}
+
+.button-danger {
+    -fx-background-color: #EF5350;
+    -fx-text-fill: white;
+}
+
+/* Crop Feed */
 .crop-feed-card {
-    -fx-background-color: #21262D;
+    -fx-background-color: #243447;
     -fx-background-radius: 14;
-    -fx-border-color: #30363D;
+    -fx-border-color: #344861;
     -fx-border-width: 1;
     -fx-border-radius: 14;
     -fx-padding: 16;
@@ -160,7 +152,7 @@
 .crop-feed-name {
     -fx-font-size: 22px;
     -fx-font-weight: bold;
-    -fx-text-fill: #F0F6FC;
+    -fx-text-fill: #ECF0F1;
 }
 
 .crop-feed-image {
@@ -169,31 +161,30 @@
 
 .farmer-name {
     -fx-font-size: 14px;
-    -fx-text-fill: #C9D1D9;
+    -fx-text-fill: #B4BCC2;
 }
 
 .farmer-rating {
     -fx-font-size: 14px;
-    -fx-text-fill: #FFB300;
+    -fx-text-fill: #FFCA28;
     -fx-font-weight: bold;
 }
 
 .crop-info-label {
     -fx-font-size: 11px;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
 }
 
 .crop-info-value {
     -fx-font-size: 14px;
-    -fx-text-fill: #F0F6FC;
+    -fx-text-fill: #ECF0F1;
     -fx-font-weight: bold;
 }
 
-/* ===== STATUS LABELS ===== */
-
+/* Status Labels */
 .status-active {
-    -fx-background-color: rgba(76, 175, 80, 0.2);
-    -fx-text-fill: #81C784;
+    -fx-background-color: rgba(102, 187, 106, 0.2);
+    -fx-text-fill: #A5D6A7;
     -fx-font-size: 12px;
     -fx-font-weight: bold;
     -fx-padding: 5 12;
@@ -201,17 +192,16 @@
 }
 
 .status-sold {
-    -fx-background-color: rgba(139, 148, 158, 0.2);
-    -fx-text-fill: #8B949E;
+    -fx-background-color: rgba(136, 153, 166, 0.2);
+    -fx-text-fill: #8899A6;
     -fx-font-size: 12px;
     -fx-padding: 5 12;
     -fx-background-radius: 12;
 }
 
-/* ===== ORDER CARDS ===== */
-
+/* Order Cards */
 .order-card {
-    -fx-background-color: #21262D;
+    -fx-background-color: #243447;
     -fx-background-radius: 12;
     -fx-border-width: 2;
     -fx-border-radius: 12;
@@ -220,19 +210,19 @@
 }
 
 .order-new, .order-pending {
-    -fx-border-color: #FFB300;
+    -fx-border-color: #FFB74D;
 }
 
 .order-accepted {
-    -fx-border-color: #4CAF50;
+    -fx-border-color: #66BB6A;
 }
 
 .order-in-transit, .order-transit {
-    -fx-border-color: #2196F3;
+    -fx-border-color: #5C6BC0;
 }
 
 .order-delivered {
-    -fx-border-color: #8B949E;
+    -fx-border-color: #8899A6;
 }
 
 .order-rejected, .order-cancelled {
@@ -240,8 +230,8 @@
 }
 
 .order-status-new {
-    -fx-background-color: rgba(255, 179, 0, 0.2);
-    -fx-text-fill: #FFD54F;
+    -fx-background-color: rgba(255, 183, 77, 0.2);
+    -fx-text-fill: #FFE082;
     -fx-font-size: 13px;
     -fx-font-weight: bold;
     -fx-padding: 6 14;
@@ -249,8 +239,8 @@
 }
 
 .order-status-accepted {
-    -fx-background-color: rgba(76, 175, 80, 0.2);
-    -fx-text-fill: #81C784;
+    -fx-background-color: rgba(102, 187, 106, 0.2);
+    -fx-text-fill: #A5D6A7;
     -fx-font-size: 13px;
     -fx-font-weight: bold;
     -fx-padding: 6 14;
@@ -258,8 +248,8 @@
 }
 
 .order-status-transit {
-    -fx-background-color: rgba(33, 150, 243, 0.2);
-    -fx-text-fill: #64B5F6;
+    -fx-background-color: rgba(92, 107, 192, 0.2);
+    -fx-text-fill: #9FA8DA;
     -fx-font-size: 13px;
     -fx-font-weight: bold;
     -fx-padding: 6 14;
@@ -267,8 +257,8 @@
 }
 
 .order-status-delivered {
-    -fx-background-color: rgba(139, 148, 158, 0.2);
-    -fx-text-fill: #C9D1D9;
+    -fx-background-color: rgba(136, 153, 166, 0.2);
+    -fx-text-fill: #B4BCC2;
     -fx-font-size: 13px;
     -fx-font-weight: bold;
     -fx-padding: 6 14;
@@ -278,51 +268,51 @@
 .order-crop-name {
     -fx-font-size: 18px;
     -fx-font-weight: bold;
-    -fx-text-fill: #F0F6FC;
+    -fx-text-fill: #ECF0F1;
 }
 
 .order-label {
     -fx-font-size: 11px;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
 }
 
 .order-value {
     -fx-font-size: 14px;
-    -fx-text-fill: #C9D1D9;
+    -fx-text-fill: #B4BCC2;
 }
 
 .order-value-price {
     -fx-font-size: 16px;
     -fx-font-weight: bold;
-    -fx-text-fill: #4CAF50;
+    -fx-text-fill: #26A69A;
 }
 
 .order-id {
     -fx-font-size: 12px;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
     -fx-font-weight: bold;
 }
 
 .order-date {
     -fx-font-size: 12px;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
 }
 
 .order-location {
     -fx-font-size: 13px;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
 }
 
-/* Buyer Order Specific */
+/* Buyer Order */
 .buyer-order-card {
-    -fx-background-color: #21262D;
+    -fx-background-color: #243447;
     -fx-background-radius: 12;
     -fx-padding: 16;
 }
 
 .buyer-order-status-pending {
-    -fx-background-color: rgba(255, 179, 0, 0.2);
-    -fx-text-fill: #FFD54F;
+    -fx-background-color: rgba(255, 183, 77, 0.2);
+    -fx-text-fill: #FFE082;
     -fx-font-size: 13px;
     -fx-font-weight: bold;
     -fx-padding: 6 14;
@@ -330,8 +320,8 @@
 }
 
 .buyer-order-status-transit {
-    -fx-background-color: rgba(33, 150, 243, 0.2);
-    -fx-text-fill: #64B5F6;
+    -fx-background-color: rgba(92, 107, 192, 0.2);
+    -fx-text-fill: #9FA8DA;
     -fx-font-size: 13px;
     -fx-font-weight: bold;
     -fx-padding: 6 14;
@@ -339,8 +329,8 @@
 }
 
 .btn-payment {
-    -fx-background-color: linear-gradient(to bottom, #FFB300, #FF8F00);
-    -fx-text-fill: #161B22;
+    -fx-background-color: linear-gradient(to bottom, #FFB74D, #FF8F00);
+    -fx-text-fill: #1A2332;
     -fx-font-weight: bold;
     -fx-padding: 10 20;
     -fx-background-radius: 8;
@@ -350,12 +340,11 @@
     -fx-background-color: linear-gradient(to bottom, #FF8F00, #E65100);
 }
 
-/* ===== HISTORY ===== */
-
+/* History */
 .history-card {
-    -fx-background-color: #21262D;
+    -fx-background-color: #243447;
     -fx-background-radius: 12;
-    -fx-border-color: #30363D;
+    -fx-border-color: #344861;
     -fx-border-width: 1;
     -fx-border-radius: 12;
     -fx-padding: 14;
@@ -363,23 +352,23 @@
 
 .history-label {
     -fx-font-size: 11px;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
 }
 
 .history-value {
     -fx-font-size: 13px;
-    -fx-text-fill: #C9D1D9;
+    -fx-text-fill: #B4BCC2;
 }
 
 .history-value-price {
     -fx-font-size: 15px;
     -fx-font-weight: bold;
-    -fx-text-fill: #4CAF50;
+    -fx-text-fill: #26A69A;
 }
 
 .payment-complete {
-    -fx-background-color: rgba(76, 175, 80, 0.2);
-    -fx-text-fill: #81C784;
+    -fx-background-color: rgba(102, 187, 106, 0.2);
+    -fx-text-fill: #A5D6A7;
     -fx-font-size: 11px;
     -fx-font-weight: bold;
     -fx-padding: 4 10;
@@ -387,8 +376,8 @@
 }
 
 .payment-pending {
-    -fx-background-color: rgba(255, 179, 0, 0.2);
-    -fx-text-fill: #FFD54F;
+    -fx-background-color: rgba(255, 183, 77, 0.2);
+    -fx-text-fill: #FFE082;
     -fx-font-size: 11px;
     -fx-font-weight: bold;
     -fx-padding: 4 10;
@@ -397,13 +386,13 @@
 
 .rating-display {
     -fx-font-size: 14px;
-    -fx-text-fill: #FFB300;
+    -fx-text-fill: #FFCA28;
     -fx-font-weight: bold;
 }
 
 .btn-rate-small {
-    -fx-background-color: rgba(255, 179, 0, 0.2);
-    -fx-text-fill: #FFB300;
+    -fx-background-color: rgba(255, 202, 40, 0.2);
+    -fx-text-fill: #FFCA28;
     -fx-font-size: 11px;
     -fx-font-weight: bold;
     -fx-padding: 5 10;
@@ -411,29 +400,27 @@
     -fx-cursor: hand;
 }
 
-/* ===== EMPTY STATE ===== */
-
+/* Empty State */
 .empty-icon {
     -fx-font-size: 72px;
-    -fx-text-fill: #30363D;
+    -fx-text-fill: #344861;
 }
 
 .empty-text {
     -fx-font-size: 20px;
     -fx-font-weight: bold;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
 }
 
 .empty-subtext {
     -fx-font-size: 14px;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
 }
 
-/* ===== PHOTO UPLOAD ===== */
-
+/* Photo Upload */
 .photo-upload-box {
-    -fx-background-color: #161B22;
-    -fx-border-color: #4CAF50;
+    -fx-background-color: #1A2332;
+    -fx-border-color: #26A69A;
     -fx-border-width: 2;
     -fx-border-style: dashed;
     -fx-border-radius: 10;
@@ -444,19 +431,18 @@
 
 .photo-add-icon {
     -fx-font-size: 36px;
-    -fx-text-fill: #4CAF50;
+    -fx-text-fill: #26A69A;
 }
 
 .photo-label {
     -fx-font-size: 13px;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
 }
 
-/* Photo Thumbnail */
 .photo-thumbnail {
-    -fx-background-color: #21262D;
+    -fx-background-color: #243447;
     -fx-background-radius: 8;
-    -fx-border-color: #30363D;
+    -fx-border-color: #344861;
     -fx-border-width: 1;
     -fx-border-radius: 8;
 }
