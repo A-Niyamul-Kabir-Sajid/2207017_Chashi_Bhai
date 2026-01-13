@@ -3,6 +3,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.services.NotificationService;
 // import com.sajid._207017_chashi_bhai.services.FirebaseSyncService; // Removed - using REST API now
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -226,12 +227,8 @@ public class PlaceOrderDialogController {
                 Platform.runLater(() -> {
                     orderPlaced = true;
                     showSuccess("সফল!", "আপনার অর্ডার সফলভাবে সম্পন্ন হয়েছে। কৃষক শীঘ্রই যোগাযোগ করবেন।\nঅর্ডার নম্বর: " + orderNumber);
-                    
-                    // Create notification for farmer
-                    createNotification(farmerId, "নতুন অর্ডার", 
-                        currentUser.getName() + " " + finalQuantity + " কেজি " + finalCropName + " অর্ডার করেছেন।");
 
-                    // Sync order to Firebase (REST API)
+                    // Sync order to Firebase (REST API) and create notification
                     DatabaseService.executeQueryAsync(
                         "SELECT id FROM orders WHERE order_number = ?",
                         new Object[]{orderNumber},
@@ -239,6 +236,12 @@ public class PlaceOrderDialogController {
                             try {
                                 if (rs.next()) {
                                     int orderId = rs.getInt("id");
+                                    
+                                    // Create notification for farmer using NotificationService
+                                    NotificationService.getInstance().notifyFarmerNewOrder(
+                                        farmerId, orderId, currentUser.getName(), 
+                                        finalCropName, finalQuantity, "কেজি"
+                                    );
                                     
                                     // Prepare order data for Firebase
                                     java.util.Map<String, Object> orderData = new java.util.HashMap<>();
@@ -302,14 +305,6 @@ public class PlaceOrderDialogController {
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         int random = (int) (Math.random() * 9000) + 1000;
         return "ORD-" + date + "-" + random;
-    }
-
-    private void createNotification(int userId, String title, String message) {
-        String sql = "INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, 'order')";
-        DatabaseService.executeUpdateAsync(sql, new Object[]{userId, title, message}, 
-            result -> {}, 
-            error -> error.printStackTrace()
-        );
     }
 
     private void showError(String message) {

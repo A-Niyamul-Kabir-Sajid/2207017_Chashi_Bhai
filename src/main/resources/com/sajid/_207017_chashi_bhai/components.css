@@ -457,3 +457,137 @@
     -fx-border-width: 1;
     -fx-border-radius: 8;
 }
+
+/* ===== NOTIFICATION STYLES ===== */
+
+.notification-container {
+    -fx-background-color: transparent;
+}
+
+.notification-stats {
+    -fx-background-color: #21262D;
+    -fx-padding: 15 25;
+    -fx-background-radius: 10;
+}
+
+.stat-mini {
+    -fx-padding: 5 15;
+}
+
+.stat-value-small {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4CAF50;
+}
+
+.stat-label-small {
+    -fx-font-size: 12px;
+    -fx-text-fill: #8B949E;
+}
+
+.notification-card {
+    -fx-background-color: #21262D;
+    -fx-background-radius: 10;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 4, 0, 0, 1);
+}
+
+.notification-card:hover {
+    -fx-background-color: #2D333B;
+    -fx-border-color: #4CAF50;
+}
+
+.notification-unread {
+    -fx-border-color: #4CAF50;
+    -fx-background-color: rgba(76, 175, 80, 0.08);
+}
+
+.notification-read {
+    -fx-border-color: #30363D;
+    -fx-opacity: 0.85;
+}
+
+.notification-order {
+    -fx-border-left-width: 4;
+    -fx-border-left-color: #FFB300;
+}
+
+.notification-success {
+    -fx-border-left-width: 4;
+    -fx-border-left-color: #4CAF50;
+}
+
+.notification-error {
+    -fx-border-left-width: 4;
+    -fx-border-left-color: #EF5350;
+}
+
+.notification-warning {
+    -fx-border-left-width: 4;
+    -fx-border-left-color: #FF9800;
+}
+
+.notification-review {
+    -fx-border-left-width: 4;
+    -fx-border-left-color: #FFD700;
+}
+
+.notification-info {
+    -fx-border-left-width: 4;
+    -fx-border-left-color: #2196F3;
+}
+
+.notification-icon {
+    -fx-font-size: 20px;
+}
+
+.notification-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F0F6FC;
+}
+
+.notification-message {
+    -fx-font-size: 14px;
+    -fx-text-fill: #C9D1D9;
+}
+
+.notification-time {
+    -fx-font-size: 12px;
+    -fx-text-fill: #8B949E;
+}
+
+.notification-unread-dot {
+    -fx-font-size: 10px;
+    -fx-text-fill: #4CAF50;
+}
+
+/* Notification Bell Badge */
+.notification-badge {
+    -fx-background-color: #EF5350;
+    -fx-text-fill: white;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-min-width: 18px;
+    -fx-min-height: 18px;
+    -fx-background-radius: 9;
+    -fx-padding: 2 5;
+}
+
+.notification-bell {
+    -fx-font-size: 20px;
+    -fx-text-fill: #C9D1D9;
+}
+
+.notification-bell-button {
+    -fx-background-color: transparent;
+    -fx-padding: 8;
+    -fx-cursor: hand;
+}
+
+.notification-bell-button:hover {
+    -fx-background-color: rgba(76, 175, 80, 0.2);
+    -fx-background-radius: 20;
+}
+

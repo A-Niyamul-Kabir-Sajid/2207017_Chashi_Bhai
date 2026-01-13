@@ -433,6 +433,14 @@ public class DatabaseService {
                 } catch (SQLException e) {
                     // Ignore - column might not exist yet or no rows to update
                 }
+                
+                // Clean up old notifications without related_id (from before notification system update)
+                try {
+                    stmt.execute("DELETE FROM notifications WHERE related_id IS NULL");
+                    System.out.println("Cleaned up old notifications without related_id");
+                } catch (SQLException e) {
+                    // Ignore - notifications table might not exist yet
+                }
 
                 // Reviews table (replaces old ratings table)
                 stmt.execute(

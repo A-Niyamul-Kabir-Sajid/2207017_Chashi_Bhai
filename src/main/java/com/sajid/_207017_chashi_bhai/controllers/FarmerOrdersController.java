@@ -95,16 +95,46 @@ public class FarmerOrdersController {
         if (btnRefresh != null) {
             btnRefresh.setOnAction(e -> onRefresh());
         }
+        
+        // Check if navigating from notification with specific filter
+        String filterState = App.getOrderFilterState();
+        if (filterState != null && !filterState.isEmpty()) {
+            currentFilter = filterState;
+            applyFilterFromState(filterState);
+            App.setOrderFilterState(""); // Clear after using
+        }
 
         loadOrders(currentFilter);
         
         // Start real-time sync polling for orders (every 15 seconds)
         syncManager.startOrdersSync(currentUser.getId(), this::refreshOrders);
     }
+    
+    /**
+     * Apply filter button styling based on state from notification navigation
+     */
+    private void applyFilterFromState(String filterState) {
+        switch (filterState) {
+            case "new":
+                setActiveFilter(btnFilterNew);
+                break;
+            case "accepted":
+                setActiveFilter(btnFilterAccepted);
+                break;
+            case "in_transit":
+                setActiveFilter(btnFilterInTransit);
+                break;
+            case "delivered":
+                setActiveFilter(btnFilterDelivered);
+                break;
+            default:
+                setActiveFilter(btnFilterAll);
+                break;
+        }
+    }
 
     private void refreshOrders() {
-        // TODO: Implement REST API sync for farmer orders
-        // FirebaseSyncService has been removed - using REST API now
+        // Sync orders from REST API if needed
         // For now, just reload from local SQLite
         loadOrders(currentFilter);
     }
@@ -230,8 +260,21 @@ public class FarmerOrdersController {
                     Platform.runLater(() -> {
                         try {
                             boolean hasResults = !rows.isEmpty();
+                            int targetOrderId = App.getCurrentOrderId();
+                            
                             for (OrderRow row : rows) {
                                 HBox orderCard = createOrderCardFromRow(row);
+                                
+                                // Highlight the target order if navigating from notification
+                                if (targetOrderId > 0 && row.orderId == targetOrderId) {
+                                    orderCard.setStyle(orderCard.getStyle() + "; -fx-border-color: #4CAF50; -fx-border-width: 3px; -fx-background-color: #E8F5E9;");
+                                    // Scroll to this order after a brief delay
+                                    Platform.runLater(() -> {
+                                        orderCard.requestFocus();
+                                    });
+                                    App.setCurrentOrderId(-1); // Clear after highlighting
+                                }
+                                
                                 vboxOrdersList.getChildren().add(orderCard);
                             }
                             vboxEmptyState.setVisible(!hasResults);

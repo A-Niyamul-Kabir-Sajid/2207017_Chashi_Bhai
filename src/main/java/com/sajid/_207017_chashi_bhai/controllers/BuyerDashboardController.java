@@ -3,6 +3,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.services.NotificationService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -28,12 +29,16 @@ public class BuyerDashboardController {
     @FXML private HBox hboxPriceTicker;
     @FXML private HBox hboxFeaturedCrops;
     @FXML private ProgressIndicator progressIndicator;
+    @FXML private Button btnNotifications;
+    @FXML private Label lblNotificationBadge;
 
     private User currentUser;
+    private NotificationService notificationService;
 
     @FXML
     public void initialize() {
         currentUser = App.getCurrentUser();
+        notificationService = NotificationService.getInstance();
         
         if (currentUser == null || !"buyer".equals(currentUser.getRole())) {
             showError("অ্যাক্সেস অস্বীকার", "শুধুমাত্র ক্রেতারা এই পেজ দেখতে পারবেন।");
@@ -45,6 +50,29 @@ public class BuyerDashboardController {
         
         loadPriceTicker();
         loadFeaturedCrops();
+        loadNotificationCount();
+    }
+    
+    /**
+     * Load unread notification count and update badge
+     */
+    private void loadNotificationCount() {
+        notificationService.getUnreadCount(currentUser.getId(), count -> {
+            if (lblNotificationBadge != null) {
+                if (count > 0) {
+                    lblNotificationBadge.setText(count > 99 ? "99+" : String.valueOf(count));
+                    lblNotificationBadge.setVisible(true);
+                } else {
+                    lblNotificationBadge.setVisible(false);
+                }
+            }
+        });
+    }
+    
+    @FXML
+    private void onNotifications() {
+        App.setPreviousScene("buyer-dashboard-view.fxml");
+        App.loadScene("notifications-view.fxml", "নোটিফিকেশন");
     }
 
     private void loadPriceTicker() {

@@ -17,6 +17,18 @@
             </padding>
             <Label text="🌾 চাষী ভাই" styleClass="app-title"/>
             <Region HBox.hgrow="ALWAYS"/>
+            
+            <!-- Notification Bell -->
+            <StackPane>
+                <Button fx:id="btnNotifications" styleClass="notification-bell-button" onAction="#onNotifications">
+                    <graphic>
+                        <Label text="🔔" styleClass="notification-bell"/>
+                    </graphic>
+                </Button>
+                <Label fx:id="lblNotificationBadge" text="0" styleClass="notification-badge" visible="false" 
+                       StackPane.alignment="TOP_RIGHT" translateX="-5" translateY="3"/>
+            </StackPane>
+            
             <MenuButton text="⋮" styleClass="icon-button" fx:id="btnMenu">
                 <items>
                     <MenuItem text="🚪 Sign Out" onAction="#onSignOut"/>

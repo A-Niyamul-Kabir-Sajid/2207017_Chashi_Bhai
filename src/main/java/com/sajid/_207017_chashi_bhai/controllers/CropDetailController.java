@@ -10,6 +10,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 import java.awt.Desktop;
 import java.io.File;
@@ -47,6 +48,8 @@ public class CropDetailController {
     @FXML private Button btnChat;
     @FXML private Button btnOrder;
     @FXML private Button btnFavorite;
+    @FXML private VBox vboxFarmPhotos;
+    @FXML private Label lblNoFarmPhotos;
 
     private User currentUser;
     private int cropId;
@@ -204,6 +207,9 @@ public class CropDetailController {
                                         imgFarmerPhoto.setImage(new Image(photoFile.toURI().toString()));
                                     }
                                 }
+                                
+                                // Load farm photos for this farmer
+                                loadFarmPhotos(fId);
                             } catch (Exception e) {
                                 e.printStackTrace();
                                 showError("ত্রুটি", "ফসলের তথ্য প্রদর্শন করতে ব্যর্থ হয়েছে।");
@@ -507,6 +513,77 @@ public class CropDetailController {
             case "public-farmer-profile-view.fxml": return "কৃষকের প্রোফাইল";
             default: return "ফসলের তালিকা";
         }
+    }
+
+    private void loadFarmPhotos(int farmerId) {
+        if (vboxFarmPhotos == null) return;
+        
+        String sql = "SELECT id, photo_path, image_base64 FROM farm_photos WHERE farmer_id = ? ORDER BY id LIMIT 4";
+        
+        DatabaseService.executeQueryAsync(sql, new Object[]{farmerId},
+            rs -> {
+                java.util.List<java.util.Map<String, Object>> photos = new java.util.ArrayList<>();
+                try {
+                    while (rs.next()) {
+                        java.util.Map<String, Object> photo = new java.util.HashMap<>();
+                        photo.put("photoPath", rs.getString("photo_path"));
+                        photo.put("imageBase64", rs.getString("image_base64"));
+                        photos.add(photo);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                
+                Platform.runLater(() -> {
+                    try {
+                        vboxFarmPhotos.getChildren().clear();
+                        boolean hasPhotos = !photos.isEmpty();
+                        
+                        for (java.util.Map<String, Object> photo : photos) {
+                            ImageView imageView = new ImageView();
+                            imageView.setFitWidth(300);
+                            imageView.setFitHeight(180);
+                            imageView.setPreserveRatio(true);
+                            imageView.setStyle("-fx-background-radius: 8; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 4, 0, 0, 2);");
+                            
+                            // Try loading from Base64 first, then file path
+                            String base64 = (String) photo.get("imageBase64");
+                            String photoPath = (String) photo.get("photoPath");
+                            
+                            Image image = null;
+                            if (base64 != null && !base64.isEmpty()) {
+                                image = ImageBase64Util.base64ToImage(base64);
+                            }
+                            if (image == null && photoPath != null && !photoPath.isEmpty()) {
+                                File photoFile = new File(photoPath);
+                                if (photoFile.exists()) {
+                                    image = new Image(photoFile.toURI().toString());
+                                }
+                            }
+                            
+                            if (image != null) {
+                                imageView.setImage(image);
+                                vboxFarmPhotos.getChildren().add(imageView);
+                            }
+                        }
+                        
+                        if (lblNoFarmPhotos != null) {
+                            lblNoFarmPhotos.setVisible(!hasPhotos);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            },
+            error -> {
+                Platform.runLater(() -> {
+                    if (lblNoFarmPhotos != null) {
+                        lblNoFarmPhotos.setVisible(true);
+                    }
+                });
+                error.printStackTrace();
+            }
+        );
     }
 
     private void showError(String title, String message) {

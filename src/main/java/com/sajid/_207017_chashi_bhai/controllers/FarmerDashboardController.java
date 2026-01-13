@@ -3,6 +3,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.services.NotificationService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -34,14 +35,18 @@ public class FarmerDashboardController {
     @FXML private Button btnFeed;
     @FXML private Button btnSearchOrder;
     @FXML private Button btnAllChat;
+    @FXML private Button btnNotifications;
+    @FXML private Label lblNotificationBadge;
     
     @FXML private ProgressIndicator progressIndicator;
 
     private User currentUser;
+    private NotificationService notificationService;
 
     @FXML
     public void initialize() {
         currentUser = App.getCurrentUser();
+        notificationService = NotificationService.getInstance();
         
         if (currentUser == null || !"farmer".equals(currentUser.getRole())) {
             showError("অ্যাক্সেস অস্বীকার", "শুধুমাত্র কৃষকরা এই পেজ দেখতে পারবেন।");
@@ -73,6 +78,31 @@ public class FarmerDashboardController {
 
         // Load dashboard statistics
         loadDashboardStats();
+        
+        // Load notification count
+        loadNotificationCount();
+    }
+    
+    /**
+     * Load unread notification count and update badge
+     */
+    private void loadNotificationCount() {
+        notificationService.getUnreadCount(currentUser.getId(), count -> {
+            if (lblNotificationBadge != null) {
+                if (count > 0) {
+                    lblNotificationBadge.setText(count > 99 ? "99+" : String.valueOf(count));
+                    lblNotificationBadge.setVisible(true);
+                } else {
+                    lblNotificationBadge.setVisible(false);
+                }
+            }
+        });
+    }
+    
+    @FXML
+    private void onNotifications() {
+        App.setPreviousScene("farmer-dashboard-view.fxml");
+        App.loadScene("notifications-view.fxml", "নোটিফিকেশন");
     }
 
     /**

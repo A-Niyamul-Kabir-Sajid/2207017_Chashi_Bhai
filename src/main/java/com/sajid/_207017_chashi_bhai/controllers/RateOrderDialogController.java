@@ -3,6 +3,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.services.NotificationService;
 import com.sajid._207017_chashi_bhai.utils.StatisticsCalculator;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -188,9 +189,10 @@ public class RateOrderDialogController {
                     // Update farmer rating statistics
                     StatisticsCalculator.updateFarmerStatistics(farmerId);
                     
-                    // Create notification for farmer
-                    createNotification(farmerId, "নতুন রেটিং", 
-                        currentUser.getName() + " আপনাকে " + selectedRating + " ⭐ রেটিং দিয়েছেন।");
+                    // Create notification for farmer using NotificationService
+                    NotificationService.getInstance().notifyFarmerNewReview(
+                        farmerId, orderId, currentUser.getName(), selectedRating
+                    );
                     
                     if (dialogStage != null) {
                         dialogStage.close();
@@ -216,14 +218,6 @@ public class RateOrderDialogController {
         if (dialogStage != null) {
             dialogStage.close();
         }
-    }
-
-    private void createNotification(int userId, String title, String message) {
-        String sql = "INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, 'review')";
-        DatabaseService.executeUpdateAsync(sql, new Object[]{userId, title, message}, 
-            result -> {}, 
-            error -> error.printStackTrace()
-        );
     }
 
     private void showError(String message) {

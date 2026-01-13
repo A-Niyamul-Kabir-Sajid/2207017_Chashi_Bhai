@@ -429,6 +429,16 @@ public class PublicFarmerProfileController {
     }
 
     @FXML
+    private void onCopyUserId() {
+        String userId = String.valueOf(farmerId);
+        javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+        javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+        content.putString(userId);
+        clipboard.setContent(content);
+        showInfo("কপি সম্পন্ন", "ID " + userId + " ক্লিপবোর্ডে কপি করা হয়েছে!");
+    }
+
+    @FXML
     private void onBack() {
         App.loadScene("crop-feed-view.fxml", "সকল ফসল");
     }

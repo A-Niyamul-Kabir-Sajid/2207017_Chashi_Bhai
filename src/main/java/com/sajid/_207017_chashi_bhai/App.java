@@ -29,6 +29,7 @@ public class App extends Application {
     private static String currentOrderNumber = ""; // For searching orders by number
     private static String searchQuery = "";
     private static String previousScene = ""; // Track previous scene for back navigation
+    private static String orderFilterState = ""; // For filtering orders by state when navigating from notifications
 
     @Override
     public void start(Stage stage) {
@@ -302,6 +303,20 @@ public class App extends Application {
      */
     public static void setCurrentOrderNumber(String orderNumber) {
         currentOrderNumber = orderNumber;
+    }
+    
+    /**
+     * Get order filter state
+     */
+    public static String getOrderFilterState() {
+        return orderFilterState;
+    }
+    
+    /**
+     * Set order filter state (for navigating from notifications to orders view with specific filter)
+     */
+    public static void setOrderFilterState(String filterState) {
+        orderFilterState = filterState;
     }
 
     /**

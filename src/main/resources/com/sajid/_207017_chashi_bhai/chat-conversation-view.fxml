@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.image.ImageView?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.ChatConversationController" styleClass="root" stylesheets="@base.css,@components.css,@chat.css" minWidth="1024">
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.ChatConversationController" styleClass="root" stylesheets="@base.css,@components.css,@chat.css" minWidth="1024" minHeight="700" prefWidth="1280" prefHeight="800">
     
     <!-- Top Navigation - Chat Header -->
     <top>

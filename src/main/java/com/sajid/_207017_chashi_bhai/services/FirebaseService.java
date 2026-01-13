@@ -779,5 +779,201 @@ public class FirebaseService {
         }
         return false;
     }
+    
+    // ==================== NOTIFICATION SYNC OPERATIONS ====================
+    
+    /**
+     * Sync notification to Firebase
+     */
+    public void syncNotificationToFirebase(int notificationId, int userId, String title, String message, 
+                                           String type, Integer relatedId, boolean isRead, String createdAt) {
+        if (!isAuthenticated()) {
+            System.err.println("[Firebase] Cannot sync notification - not authenticated");
+            return;
+        }
+        
+        executor.submit(() -> {
+            try {
+                JsonObject fields = new JsonObject();
+                
+                // Add notification fields in Firestore format
+                JsonObject notifIdField = new JsonObject();
+                notifIdField.addProperty("integerValue", String.valueOf(notificationId));
+                fields.add("notification_id", notifIdField);
+                
+                JsonObject userIdField = new JsonObject();
+                userIdField.addProperty("integerValue", String.valueOf(userId));
+                fields.add("user_id", userIdField);
+                
+                JsonObject titleField = new JsonObject();
+                titleField.addProperty("stringValue", title);
+                fields.add("title", titleField);
+                
+                JsonObject messageField = new JsonObject();
+                messageField.addProperty("stringValue", message);
+                fields.add("message", messageField);
+                
+                JsonObject typeField = new JsonObject();
+                typeField.addProperty("stringValue", type);
+                fields.add("type", typeField);
+                
+                if (relatedId != null) {
+                    JsonObject relatedIdField = new JsonObject();
+                    relatedIdField.addProperty("integerValue", String.valueOf(relatedId));
+                    fields.add("related_id", relatedIdField);
+                }
+                
+                JsonObject isReadField = new JsonObject();
+                isReadField.addProperty("booleanValue", isRead);
+                fields.add("is_read", isReadField);
+                
+                JsonObject createdAtField = new JsonObject();
+                createdAtField.addProperty("stringValue", createdAt);
+                fields.add("created_at", createdAtField);
+                
+                JsonObject syncedAtField = new JsonObject();
+                syncedAtField.addProperty("stringValue", java.time.Instant.now().toString());
+                fields.add("synced_at", syncedAtField);
+                
+                JsonObject document = new JsonObject();
+                document.add("fields", fields);
+                
+                // Use notification_id as document ID
+                String url = BASE_URL + "/" + COLLECTION_NOTIFICATIONS + "/" + notificationId;
+                
+                HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url + "?key=" + FirebaseConfig.getWebApiKey()))
+                    .header("Authorization", "Bearer " + currentIdToken)
+                    .header("Content-Type", "application/json")
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString(gson.toJson(document)))
+                    .build();
+                
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                
+                if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                    System.out.println("✓ Notification #" + notificationId + " synced to Firebase");
+                } else {
+                    System.err.println("✗ Failed to sync notification #" + notificationId + ": " + response.body());
+                }
+                
+            } catch (Exception e) {
+                System.err.println("✗ Error syncing notification #" + notificationId + ": " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
+    }
+    
+    /**
+     * Sync notifications from Firebase for a specific user
+     */
+    public void syncNotificationsFromFirebase(int userId, Consumer<List<Map<String, Object>>> onSuccess, Consumer<Exception> onError) {
+        if (!isAuthenticated()) {
+            System.err.println("[Firebase] Cannot sync notifications - not authenticated");
+            if (onError != null) {
+                onError.accept(new IllegalStateException("Not authenticated"));
+            }
+            return;
+        }
+        
+        executor.submit(() -> {
+            try {
+                // Query notifications for this user
+                String url = BASE_URL + "/" + COLLECTION_NOTIFICATIONS + 
+                           "?pageSize=100&orderBy=created_at desc";
+                
+                HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url + "&key=" + FirebaseConfig.getWebApiKey()))
+                    .header("Authorization", "Bearer " + currentIdToken)
+                    .GET()
+                    .build();
+                
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                
+                if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                    JsonObject jsonResponse = JsonParser.parseString(response.body()).getAsJsonObject();
+                    
+                    List<Map<String, Object>> notifications = new ArrayList<>();
+                    
+                    if (jsonResponse.has("documents")) {
+                        JsonArray documents = jsonResponse.getAsJsonArray("documents");
+                        
+                        for (JsonElement docElement : documents) {
+                            JsonObject doc = docElement.getAsJsonObject();
+                            JsonObject fields = doc.getAsJsonObject("fields");
+                            
+                            // Filter by user_id
+                            int notifUserId = (int) getIntegerValue(fields, "user_id");
+                            if (notifUserId != userId) {
+                                continue;
+                            }
+                            
+                            Map<String, Object> notification = new HashMap<>();
+                            notification.put("id", getIntegerValue(fields, "notification_id"));
+                            notification.put("userId", notifUserId);
+                            notification.put("title", getStringValue(fields, "title"));
+                            notification.put("message", getStringValue(fields, "message"));
+                            notification.put("type", getStringValue(fields, "type"));
+                            
+                            long relatedId = getIntegerValue(fields, "related_id");
+                            notification.put("relatedId", relatedId > 0 ? (int) relatedId : null);
+                            
+                            notification.put("isRead", getBooleanValue(fields, "is_read"));
+                            notification.put("createdAt", getStringValue(fields, "created_at"));
+                            
+                            notifications.add(notification);
+                        }
+                    }
+                    
+                    System.out.println("✓ Synced " + notifications.size() + " notifications from Firebase");
+                    
+                    if (onSuccess != null) {
+                        onSuccess.accept(notifications);
+                    }
+                    
+                } else {
+                    throw new RuntimeException("HTTP " + response.statusCode() + ": " + response.body());
+                }
+                
+            } catch (Exception e) {
+                System.err.println("✗ Error syncing notifications from Firebase: " + e.getMessage());
+                if (onError != null) {
+                    onError.accept(e);
+                }
+            }
+        });
+    }
+    
+    /**
+     * Delete notification from Firebase
+     */
+    public void deleteNotificationFromFirebase(int notificationId) {
+        if (!isAuthenticated()) {
+            System.err.println("[Firebase] Cannot delete notification - not authenticated");
+            return;
+        }
+        
+        executor.submit(() -> {
+            try {
+                String url = BASE_URL + "/" + COLLECTION_NOTIFICATIONS + "/" + notificationId;
+                
+                HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url + "?key=" + FirebaseConfig.getWebApiKey()))
+                    .header("Authorization", "Bearer " + currentIdToken)
+                    .DELETE()
+                    .build();
+                
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                
+                if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                    System.out.println("✓ Notification #" + notificationId + " deleted from Firebase");
+                } else {
+                    System.err.println("✗ Failed to delete notification #" + notificationId + ": " + response.body());
+                }
+                
+            } catch (Exception e) {
+                System.err.println("✗ Error deleting notification #" + notificationId + ": " + e.getMessage());
+            }
+        });
+    }
 }
 
