@@ -324,6 +324,8 @@ public class OrderDetailController {
         buyerName = row.buyerName;
         buyerPhone = row.buyerPhone;
 
+        System.out.println("[OrderDetail] Populated: orderId=" + orderId + ", cropId=" + cropId + ", farmerId=" + farmerId);
+
         // Order info
         lblOrderNumber.setText(orderNumber != null && !orderNumber.isBlank() ? orderNumber : "N/A");
         lblOrderStatus.setText(getStatusDisplay(orderStatus));

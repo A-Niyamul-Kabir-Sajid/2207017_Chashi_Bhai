@@ -119,6 +119,31 @@
 
 .crop-image {
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 6, 0, 0, 2);
+    -fx-background-color: #161b22;
+    -fx-background-radius: 8;
+}
+
+/* Better Button Colors */
+.button-primary {
+    -fx-background-color: #238636;
+    -fx-text-fill: white;
+}
+.button-primary:hover {
+    -fx-background-color: #2ea043;
+}
+.button-secondary {
+    -fx-background-color: #1f6feb;
+    -fx-text-fill: white;
+}
+.button-secondary:hover {
+    -fx-background-color: #388bfd;
+}
+.button-danger {
+    -fx-background-color: #da3633;
+    -fx-text-fill: white;
+}
+.button-danger:hover {
+    -fx-background-color: #f85149;
 }
 
 /* Crop Feed Specific */

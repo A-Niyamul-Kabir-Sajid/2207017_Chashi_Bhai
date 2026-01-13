@@ -84,6 +84,7 @@ public class CropFeedController {
         String district;
         String availableDate; // created_at or date string
         String photoPath;
+        String photoBase64;
     }
 
     private final List<CropItem> loadedCrops = new ArrayList<>();
@@ -463,7 +464,8 @@ public class CropFeedController {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT c.*, u.name as farmer_name, u.phone as farmer_phone, u.is_verified, ")
            .append("c.price_per_kg as price, c.available_quantity_kg as quantity, 'কেজি' as unit, ")
-           .append(" (SELECT photo_path FROM crop_photos WHERE crop_id = c.id ORDER BY photo_order LIMIT 1) as photo")
+           .append(" (SELECT photo_path FROM crop_photos WHERE crop_id = c.id ORDER BY photo_order LIMIT 1) as photo,")
+           .append(" (SELECT image_base64 FROM crop_photos WHERE crop_id = c.id ORDER BY photo_order LIMIT 1) as photo_base64")
            .append(" FROM crops c JOIN users u ON c.farmer_id = u.id WHERE c.status = 'active'");
 
         List<Object> params = new ArrayList<>();
@@ -611,6 +613,7 @@ public class CropFeedController {
         item.district = safeString(rs, "district");
         item.availableDate = safeString(rs, "created_at");
         item.photoPath = safeString(rs, "photo");
+        item.photoBase64 = safeString(rs, "photo_base64");
         return item;
     }
 
@@ -643,7 +646,8 @@ public class CropFeedController {
                 item.quantity,
                 item.unit,
                 item.price,
-                item.photoPath
+                item.photoPath,
+                item.photoBase64
             );
             
             return cardRoot;

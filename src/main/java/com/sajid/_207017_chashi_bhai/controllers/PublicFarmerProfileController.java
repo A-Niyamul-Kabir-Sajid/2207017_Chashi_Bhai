@@ -41,6 +41,8 @@ public class PublicFarmerProfileController {
     @FXML private HBox hboxContactActions;
     @FXML private Button btnChat;
     @FXML private Button btnWhatsApp;
+    @FXML private GridPane gridFarmPhotos;
+    @FXML private Label lblNoFarmPhotos;
 
     private User currentUser;
     private int farmerId;
@@ -83,6 +85,7 @@ public class PublicFarmerProfileController {
         loadFarmerProducts();
         loadSalesHistory();
         loadReviews();
+        loadFarmPhotos();
     }
 
     private void loadFarmerProfile() {
@@ -349,6 +352,80 @@ public class PublicFarmerProfileController {
             showInfo("WhatsApp", "WhatsApp: " + farmerPhone);
             e.printStackTrace();
         }
+    }
+
+    private void loadFarmPhotos() {
+        String sql = "SELECT id, photo_path, image_base64 FROM farm_photos WHERE farmer_id = ? ORDER BY id LIMIT 12";
+        
+        DatabaseService.executeQueryAsync(sql, new Object[]{farmerId},
+            rs -> {
+                java.util.List<java.util.Map<String, Object>> photos = new java.util.ArrayList<>();
+                try {
+                    while (rs.next()) {
+                        java.util.Map<String, Object> photo = new java.util.HashMap<>();
+                        photo.put("id", rs.getInt("id"));
+                        photo.put("photoPath", rs.getString("photo_path"));
+                        photo.put("imageBase64", rs.getString("image_base64"));
+                        photos.add(photo);
+                        if (photos.size() >= 12) break;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                
+                Platform.runLater(() -> {
+                    try {
+                        if (gridFarmPhotos != null) {
+                            gridFarmPhotos.getChildren().clear();
+                            boolean hasPhotos = !photos.isEmpty();
+                            
+                            for (int i = 0; i < photos.size(); i++) {
+                                java.util.Map<String, Object> photo = photos.get(i);
+                                ImageView imageView = new ImageView();
+                                imageView.setFitWidth(200);
+                                imageView.setFitHeight(150);
+                                imageView.setPreserveRatio(false);
+                                imageView.setStyle("-fx-background-radius: 8; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 6, 0, 0, 2);");
+                                
+                                // Try loading from Base64 first, then file path
+                                String base64 = (String) photo.get("imageBase64");
+                                String photoPath = (String) photo.get("photoPath");
+                                
+                                Image image = null;
+                                if (base64 != null && !base64.isEmpty()) {
+                                    image = com.sajid._207017_chashi_bhai.utils.ImageBase64Util.base64ToImage(base64);
+                                }
+                                if (image == null && photoPath != null && !photoPath.isEmpty()) {
+                                    File photoFile = new File(photoPath);
+                                    if (photoFile.exists()) {
+                                        image = new Image(photoFile.toURI().toString());
+                                    }
+                                }
+                                
+                                if (image != null) {
+                                    imageView.setImage(image);
+                                    gridFarmPhotos.add(imageView, i % 4, i / 4);
+                                }
+                            }
+                            
+                            if (lblNoFarmPhotos != null) {
+                                lblNoFarmPhotos.setVisible(!hasPhotos);
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            },
+            error -> {
+                Platform.runLater(() -> {
+                    if (lblNoFarmPhotos != null) {
+                        lblNoFarmPhotos.setVisible(true);
+                    }
+                });
+                error.printStackTrace();
+            }
+        );
     }
 
     @FXML

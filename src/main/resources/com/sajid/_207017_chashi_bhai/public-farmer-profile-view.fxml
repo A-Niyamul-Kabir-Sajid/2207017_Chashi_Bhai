@@ -148,6 +148,15 @@
                     <Label fx:id="lblNoReviews" text="কোনো রিভিউ নেই" styleClass="empty-text" visible="false"/>
                 </VBox>
 
+                <!-- Farm Photos Section -->
+                <VBox spacing="15" styleClass="section-container">
+                    <Label text="🖼️ খামারের ছবি / Farm Photos" styleClass="section-title"/>
+                    <GridPane fx:id="gridFarmPhotos" hgap="15" vgap="15" alignment="CENTER">
+                        <!-- Farm photos will be added dynamically -->
+                    </GridPane>
+                    <Label fx:id="lblNoFarmPhotos" text="কোনো খামারের ছবি নেই" styleClass="empty-text" visible="false"/>
+                </VBox>
+
             </VBox>
         </ScrollPane>
     </center>

@@ -24,6 +24,8 @@ public class CropDetailController {
 
     @FXML private ImageView imgMainPhoto;
     @FXML private HBox hboxThumbnails;
+    @FXML private Button btnPrevPhoto;
+    @FXML private Button btnNextPhoto;
     @FXML private Label lblCropName;
     @FXML private Label lblCropPrice;
     @FXML private Label lblProductCode;
@@ -256,8 +258,11 @@ public class CropDetailController {
                         if (!cropPhotos.isEmpty()) {
                             loadPhoto(0);
                             loadThumbnails();
+                            updateNavigationButtons();
                         } else {
                             System.out.println("⚠️ No photos found for crop " + cropId);
+                            if (btnPrevPhoto != null) btnPrevPhoto.setVisible(false);
+                            if (btnNextPhoto != null) btnNextPhoto.setVisible(false);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -276,6 +281,34 @@ public class CropDetailController {
             if (image != null) {
                 imgMainPhoto.setImage(image);
             }
+            updateNavigationButtons();
+        }
+    }
+
+    @FXML
+    private void onPreviousPhoto() {
+        if (currentPhotoIndex > 0) {
+            loadPhoto(currentPhotoIndex - 1);
+            loadThumbnails();
+        }
+    }
+
+    @FXML
+    private void onNextPhoto() {
+        if (currentPhotoIndex < cropPhotos.size() - 1) {
+            loadPhoto(currentPhotoIndex + 1);
+            loadThumbnails();
+        }
+    }
+
+    private void updateNavigationButtons() {
+        if (btnPrevPhoto != null) {
+            btnPrevPhoto.setDisable(currentPhotoIndex == 0);
+            btnPrevPhoto.setVisible(cropPhotos.size() > 1);
+        }
+        if (btnNextPhoto != null) {
+            btnNextPhoto.setDisable(currentPhotoIndex >= cropPhotos.size() - 1);
+            btnNextPhoto.setVisible(cropPhotos.size() > 1);
         }
     }
 
@@ -294,20 +327,6 @@ public class CropDetailController {
                 thumbnail.setOnMouseClicked(e -> loadPhoto(photoIndex));
                 hboxThumbnails.getChildren().add(thumbnail);
             }
-        }
-    }
-
-    @FXML
-    private void onPrevPhoto() {
-        if (currentPhotoIndex > 0) {
-            loadPhoto(currentPhotoIndex - 1);
-        }
-    }
-
-    @FXML
-    private void onNextPhoto() {
-        if (cropPhotos != null && currentPhotoIndex < cropPhotos.size() - 1) {
-            loadPhoto(currentPhotoIndex + 1);
         }
     }
 
@@ -460,15 +479,19 @@ public class CropDetailController {
 
     @FXML
     private void onBack() {
-        // Clear order context when going back
-        App.setCurrentOrderId(-1);
-        
         // Navigate back to previous scene
         String previousScene = App.getPreviousScene();
         if (previousScene != null && !previousScene.isEmpty()) {
+            // Only clear order context if NOT going back to order detail view
+            if (!"order-detail-view.fxml".equals(previousScene)) {
+                App.setCurrentOrderId(-1);
+            }
+            
             String title = getSceneTitle(previousScene);
             App.loadScene(previousScene, title);
         } else {
+            // Clear order context when going to default fallback
+            App.setCurrentOrderId(-1);
             // Default fallback to crop feed
             App.loadScene("crop-feed-view.fxml", "সকল ফসল");
         }

@@ -862,6 +862,7 @@ public class BuyerHistoryController {
                 }
 
                 final int finalCropId = cropId;
+                final int finalOrderId = orderId;
                 final boolean finalFound = found;
                 Platform.runLater(() -> {
                     if (!finalFound) {
@@ -869,6 +870,7 @@ public class BuyerHistoryController {
                         return;
                     }
                     App.setCurrentCropId(finalCropId);
+                    App.setCurrentOrderId(finalOrderId); // Pass order context to show ordered quantity
                     App.setPreviousScene("buyer-history-view.fxml");
                     App.loadScene("crop-detail-view.fxml", "ফসলের বিস্তারিত");
                 });

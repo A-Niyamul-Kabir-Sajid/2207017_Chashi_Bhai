@@ -13,9 +13,10 @@
 <ScrollPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.sajid._207017_chashi_bhai.controllers.LoginController"
             fitToWidth="true"
+            fitToHeight="true"
             styleClass="scroll-pane">
 
-<VBox alignment="TOP_CENTER" spacing="30.0" styleClass="root">
+<VBox alignment="TOP_CENTER" spacing="30.0" styleClass="root" VBox.vgrow="ALWAYS">
     <padding>
         <Insets bottom="40.0" left="40.0" right="40.0" top="30.0"/>
     </padding>

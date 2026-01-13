@@ -44,7 +44,22 @@
                         <ImageView fx:id="imgMainPhoto" fitHeight="450" fitWidth="700" preserveRatio="true" styleClass="main-crop-photo" />
                         
                         <!-- Navigation Arrows -->
-                        <HBox alignment="CENTER" spacing="600" />
+                        <HBox alignment="CENTER_LEFT" StackPane.alignment="CENTER_LEFT">
+                            <Button fx:id="btnPrevPhoto" text="◀" onAction="#onPreviousPhoto" styleClass="nav-arrow-button" 
+                                    style="-fx-font-size: 24px; -fx-background-color: rgba(0,0,0,0.5); -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 50; -fx-min-width: 50; -fx-min-height: 50;">
+                                <StackPane.margin>
+                                    <Insets left="20"/>
+                                </StackPane.margin>
+                            </Button>
+                        </HBox>
+                        <HBox alignment="CENTER_RIGHT" StackPane.alignment="CENTER_RIGHT">
+                            <Button fx:id="btnNextPhoto" text="▶" onAction="#onNextPhoto" styleClass="nav-arrow-button"
+                                    style="-fx-font-size: 24px; -fx-background-color: rgba(0,0,0,0.5); -fx-text-fill: white; -fx-cursor: hand; -fx-background-radius: 50; -fx-min-width: 50; -fx-min-height: 50;">
+                                <StackPane.margin>
+                                    <Insets right="20"/>
+                                </StackPane.margin>
+                            </Button>
+                        </HBox>
                     </StackPane>
                     
                     <!-- Thumbnail Gallery -->

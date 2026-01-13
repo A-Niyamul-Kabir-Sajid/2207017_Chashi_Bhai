@@ -17,11 +17,7 @@
 
     <children>
         <!-- Image at the top -->
-        <ImageView fx:id="imageView" fitHeight="180" fitWidth="256" preserveRatio="true" styleClass="crop-image">
-            <viewport>
-                <javafx.geometry.Rectangle2D width="256" height="180"/>
-            </viewport>
-        </ImageView>
+        <ImageView fx:id="imageView" fitHeight="180" fitWidth="256" preserveRatio="false" styleClass="crop-image" />
 
         <!-- Details below -->
         <VBox alignment="CENTER_LEFT" spacing="4" VBox.vgrow="ALWAYS">
