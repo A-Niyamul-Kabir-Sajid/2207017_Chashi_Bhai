@@ -5,11 +5,15 @@ import com.sajid._207017_chashi_bhai.utils.SessionManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 
 public class ResetPinController {
 
     @FXML
     private Label phoneLabel;
+    
+    @FXML
+    private TextField otpField;
 
     @FXML
     private PasswordField newPinField;
@@ -19,6 +23,8 @@ public class ResetPinController {
 
     @FXML
     private Label errorLabel;
+
+    private boolean otpVerified = false;
 
     @FXML
     public void initialize() {
@@ -41,11 +47,75 @@ public class ResetPinController {
         }
         
         phoneLabel.setText(info.toString());
-        newPinField.requestFocus();
+        
+        // Disable PIN fields until OTP is verified
+        newPinField.setDisable(true);
+        confirmPinField.setDisable(true);
+        
+        otpField.requestFocus();
+    }
+
+    @FXML
+    protected void onVerifyOTPClick() {
+        final String otp = otpField.getText().trim();
+        final String phone = SessionManager.getTempPhone();
+        String tempRole = SessionManager.getTempRole();
+        
+        // Validate OTP format
+        if (!otp.matches("^[0-9]{6}$")) {
+            showError("OTP must be 6 digits");
+            return;
+        }
+        
+        // Extract role
+        String role = "buyer";
+        if (tempRole != null && tempRole.startsWith("RESET_PIN_")) {
+            role = tempRole.replace("RESET_PIN_", "").toLowerCase();
+        }
+        final String finalRole = role;
+        
+        // Verify OTP from Firestore
+        new Thread(() -> {
+            try {
+                com.sajid._207017_chashi_bhai.services.FirebaseService firebaseService = 
+                    com.sajid._207017_chashi_bhai.services.FirebaseService.getInstance();
+                
+                boolean isValid = firebaseService.verifyPinResetOTP(phone, finalRole, otp);
+                
+                javafx.application.Platform.runLater(() -> {
+                    if (isValid) {
+                        otpVerified = true;
+                        showSuccess("✅ OTP verified! Now set your new PIN.");
+                        
+                        // Enable PIN fields
+                        newPinField.setDisable(false);
+                        confirmPinField.setDisable(false);
+                        
+                        // Disable OTP field
+                        otpField.setDisable(true);
+                        
+                        newPinField.requestFocus();
+                    } else {
+                        showError("❌ Invalid or expired OTP. Please contact admin.");
+                    }
+                });
+                
+            } catch (Exception e) {
+                javafx.application.Platform.runLater(() -> {
+                    showError("Failed to verify OTP: " + e.getMessage());
+                });
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     @FXML
     protected void onResetPinClick() {
+        if (!otpVerified) {
+            showError("Please verify OTP first");
+            return;
+        }
+        
         String newPin = newPinField.getText().trim();
         String confirmPin = confirmPinField.getText().trim();
 
@@ -69,64 +139,90 @@ public class ResetPinController {
             return;
         }
 
-        // Update PIN in database for user with phone number
-        String phone = SessionManager.getTempPhone();
+        final String phone = SessionManager.getTempPhone();
         String tempRole = SessionManager.getTempRole();
         
         // Extract role from RESET_PIN_FARMER or RESET_PIN_BUYER
-        String role = "buyer"; // default
+        String role = "buyer";
         if (tempRole != null && tempRole.startsWith("RESET_PIN_")) {
             role = tempRole.replace("RESET_PIN_", "").toLowerCase();
         }
+        final String finalRole = role;
+        final String finalNewPin = newPin;
         
         System.out.println("================================");
         System.out.println("Resetting PIN for:");
         System.out.println("Phone: " + phone);
-        System.out.println("Role: " + role);
+        System.out.println("Role: " + finalRole);
         System.out.println("================================");
         
-        // Update PIN in database
+        // Update PIN in BOTH SQLite (backup) AND Firebase Auth (primary)
         String updateSql = "UPDATE users SET pin = ? WHERE phone = ? AND role = ?";
-        Object[] params = {newPin, phone, role};
+        Object[] params = {finalNewPin, phone, finalRole};
         
         com.sajid._207017_chashi_bhai.services.DatabaseService.executeUpdateAsync(updateSql, params,
             rowsAffected -> {
                 if (rowsAffected > 0) {
-                    System.out.println("✅ PIN updated successfully in database");
-                    
-                    javafx.application.Platform.runLater(() -> {
-                        showSuccess("✅ PIN reset successfully! Redirecting to login...");
-                        
-                        // Clear fields
-                        newPinField.clear();
-                        confirmPinField.clear();
-                        
-                        // Redirect to login after 2 seconds
-                        new Thread(() -> {
-                            try {
-                                Thread.sleep(2000);
-                                javafx.application.Platform.runLater(() -> {
-                                    App.loadScene("login-view.fxml", "Login - Chashi Bhai");
-                                    SessionManager.clearTempData();
-                                });
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }).start();
-                    });
+                    System.out.println("✅ PIN updated in SQLite (backup)");
                 } else {
-                    javafx.application.Platform.runLater(() -> {
-                        showError("❌ User not found. Please check phone number and role.");
-                    });
+                    System.out.println("⚠️ SQLite PIN update: No matching user found");
                 }
             },
             error -> {
-                javafx.application.Platform.runLater(() -> {
-                    showError("❌ Failed to update PIN. Please try again.");
-                    error.printStackTrace();
-                });
+                System.err.println("⚠️ SQLite PIN update failed: " + error.getMessage());
             }
         );
+        
+        // Update password in Firebase Auth (primary)
+        new Thread(() -> {
+            try {
+                com.sajid._207017_chashi_bhai.services.FirebaseAuthService authService = 
+                    new com.sajid._207017_chashi_bhai.services.FirebaseAuthService();
+                
+                // Default display name
+                String displayName = "User";
+                
+                // Update Firebase Auth password via account recreation
+                authService.updatePasswordViaRecreate(phone, finalNewPin, displayName);
+                
+                // Mark OTP as used
+                com.sajid._207017_chashi_bhai.services.FirebaseService firebaseService = 
+                    com.sajid._207017_chashi_bhai.services.FirebaseService.getInstance();
+                firebaseService.markOTPAsUsed(phone, finalRole);
+                
+                System.out.println("✅ PIN reset completed successfully");
+                
+                javafx.application.Platform.runLater(() -> {
+                    showSuccess("✅ PIN reset successfully! You can now login with your new PIN.");
+                    
+                    // Clear fields
+                    otpField.clear();
+                    newPinField.clear();
+                    confirmPinField.clear();
+                    
+                    // Redirect to login after 3 seconds
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(3000);
+                            javafx.application.Platform.runLater(() -> {
+                                App.loadScene("login-view.fxml", "Login - Chashi Bhai");
+                                SessionManager.clearTempData();
+                            });
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }).start();
+                });
+                
+            } catch (Exception e) {
+                System.err.println("⚠️ PIN reset failed: " + e.getMessage());
+                e.printStackTrace();
+                
+                javafx.application.Platform.runLater(() -> {
+                    showError("Failed to reset PIN. Please try again or contact admin.");
+                });
+            }
+        }).start();
     }
 
     @FXML

@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane minHeight="600" minWidth="1024" prefHeight="600" styleClass="root" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25" fx:controller="com.sajid._207017_chashi_bhai.controllers.BuyerHistoryController">
+<BorderPane minWidth="1024" styleClass="root" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25" fx:controller="com.sajid._207017_chashi_bhai.controllers.BuyerHistoryController">
     
     <!-- Top Navigation -->
     <top>
@@ -40,7 +40,7 @@
                         <Insets bottom="20" left="35" right="35" top="20" />
                     </padding>
                     <Label styleClass="summary-icon" text="💰" />
-                    <Label fx:id="lblTotalExpense" styleClass="summary-value" text="৳ 50,000" />
+                    <Label fx:id="lblTotalExpense" styleClass="summary-value" text="৳0.00" />
                     <Label styleClass="summary-label" text="মোট খরচ" />
                     <Label styleClass="summary-sublabel" text="Total Expense" />
                 </VBox>
@@ -60,7 +60,7 @@
                         <Insets bottom="20" left="35" right="35" top="20" />
                     </padding>
                     <Label styleClass="summary-icon" text="📦" />
-                    <Label fx:id="lblTotalAcceptedOrders" styleClass="summary-value" text="32" />
+                    <Label fx:id="lblTotalAcceptedOrders" styleClass="summary-value" text="0" />
                     <Label styleClass="summary-label" text="মোট অর্ডার" />
                     <Label styleClass="summary-sublabel" text="Total Accepted Orders" />
                 </VBox>

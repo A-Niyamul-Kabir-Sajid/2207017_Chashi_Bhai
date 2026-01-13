@@ -3,10 +3,11 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.shape.Circle?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.BuyerProfileController" styleClass="root" minHeight="600" minWidth="1024" prefHeight="600">
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.BuyerProfileController" styleClass="root" minWidth="1024">
     
     <!-- Top Navigation -->
     <top>
@@ -40,9 +41,12 @@
                     </padding>
                     
                     <!-- Profile Photo -->
-                    <StackPane>
+                    <StackPane alignment="CENTER">
                         <Circle radius="70" styleClass="profile-photo-border"/>
-                        <ImageView fx:id="imgProfilePhoto" fitWidth="130" fitHeight="130" preserveRatio="true">
+                        <ImageView fx:id="imgProfilePhoto" fitWidth="140" fitHeight="140" preserveRatio="false">
+                            <clip>
+                                <Circle radius="70" centerX="70" centerY="70"/>
+                            </clip>
                             <image>
                                 <!-- Placeholder will be set in controller -->
                             </image>
@@ -85,34 +89,34 @@
                 </VBox>
 
                 <!-- Stats Cards -->
-                <HBox spacing="20" alignment="CENTER">
-                    <VBox alignment="CENTER" spacing="8" styleClass="stat-card">
+                <FlowPane hgap="20" vgap="20" alignment="CENTER" maxWidth="920">
+                    <VBox alignment="CENTER" spacing="8" styleClass="stat-card" prefWidth="280" prefHeight="140">
                         <padding>
                             <Insets top="20" bottom="20" left="30" right="30"/>
                         </padding>
-                        <Label fx:id="lblTotalOrders" text="12" styleClass="stat-value"/>
+                        <Label fx:id="lblTotalOrders" text="0" styleClass="stat-value"/>
                         <Label text="মোট অর্ডার" styleClass="stat-label"/>
                         <Label text="Total Orders" styleClass="stat-sublabel"/>
                     </VBox>
 
-                    <VBox alignment="CENTER" spacing="8" styleClass="stat-card">
+                    <VBox alignment="CENTER" spacing="8" styleClass="stat-card" prefWidth="280" prefHeight="140">
                         <padding>
                             <Insets top="20" bottom="20" left="30" right="30"/>
                         </padding>
-                        <Label fx:id="lblTotalSpent" text="৳ 25,000" styleClass="stat-value"/>
+                        <Label fx:id="lblTotalSpent" text="৳0.00" styleClass="stat-value"/>
                         <Label text="মোট ব্যয়" styleClass="stat-label"/>
                         <Label text="Total Spent" styleClass="stat-sublabel"/>
                     </VBox>
 
-                    <VBox alignment="CENTER" spacing="8" styleClass="stat-card">
+                    <VBox alignment="CENTER" spacing="8" styleClass="stat-card" prefWidth="280" prefHeight="140">
                         <padding>
                             <Insets top="20" bottom="20" left="30" right="30"/>
                         </padding>
-                        <Label fx:id="lblMemberSince" text="2024" styleClass="stat-value"/>
+                        <Label fx:id="lblMemberSince" text="--" styleClass="stat-value"/>
                         <Label text="সদস্য হয়েছেন" styleClass="stat-label"/>
                         <Label text="Member Since" styleClass="stat-sublabel"/>
                     </VBox>
-                </HBox>
+                </FlowPane>
 
                 <!-- Preferred Crops Section -->
                 <VBox spacing="15" styleClass="section-container" fx:id="vboxPreferredCrops" managed="false" visible="false">

@@ -165,7 +165,8 @@ public class SignupController {
                 // Continue with local registration even if Firebase fails
             }
             
-            // Create user in local SQLite database
+            // Create user in local SQLite database (PIN stored as backup for fallback auth)
+            // Primary auth is Firebase, SQLite is fallback if Firebase fails
             int userId = DatabaseService.createUser(finalPhone, finalPin, finalName, selectedRole.toLowerCase(), finalDistrict);
             
             final String finalFirebaseUid = firebaseUid;

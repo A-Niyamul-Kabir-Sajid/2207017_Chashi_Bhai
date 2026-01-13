@@ -132,9 +132,11 @@ public class PublicBuyerProfileController {
                             lblTotalSpent.setText(String.format("৳%.0f", totalSpent));
                             lblRating.setText(avgRating > 0 ? String.format("%.1f", avgRating) : "N/A");
 
-                            // Member since
+                            // Member since - show year only
                             if (createdAt != null && createdAt.length() >= 4) {
                                 lblMemberSince.setText(createdAt.substring(0, 4));
+                            } else {
+                                lblMemberSince.setText("--");
                             }
 
                             if (isVerified) {

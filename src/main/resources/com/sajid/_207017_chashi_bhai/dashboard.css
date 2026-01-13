@@ -94,9 +94,9 @@
 }
 
 .profile-photo-border {
-    -fx-border-color: #4CAF50;
-    -fx-border-width: 3;
-    -fx-border-radius: 50;
+    -fx-fill: transparent;
+    -fx-stroke: #4CAF50;
+    -fx-stroke-width: 3;
 }
 
 .info-icon {

@@ -2,6 +2,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
+import com.sajid._207017_chashi_bhai.services.AuthSessionManager;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import com.sajid._207017_chashi_bhai.services.FirebaseService;
 import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
@@ -57,8 +58,10 @@ public class FarmerProfileController {
         syncManager = DataSyncManager.getInstance();
         
         if (currentUser == null || !"farmer".equals(currentUser.getRole())) {
-            showError("অ্যাক্সেস অস্বীকার", "শুধুমাত্র কৃষকরা এই পেজ দেখতে পারবেন।");
-            App.loadScene("login-view.fxml", "Login");
+            Platform.runLater(() -> {
+                showError("অ্যাক্সেস অস্বীকার", "শুধুমাত্র কৃষকরা এই পেজ দেখতে পারবেন।");
+                App.loadScene("login-view.fxml", "Login");
+            });
             return;
         }
 
@@ -453,8 +456,8 @@ public class FarmerProfileController {
         confirm.setHeaderText("আপনি কি লগআউট করতে চান?");
         confirm.setContentText("আপনাকে পুনরায় লগইন করতে হবে।");
         confirm.showAndWait().ifPresent(response -> {
-            if (response == javafx.scene.control.ButtonType.OK) {
-                // Clear current user
+            if (response == javafx.scene.control.ButtonType.OK) {                // Clear auth session cache
+                AuthSessionManager.getInstance().logout();                // Clear current user
                 App.setCurrentUser(null);
                 // Navigate to login screen
                 App.loadScene("login-view.fxml", "Login");

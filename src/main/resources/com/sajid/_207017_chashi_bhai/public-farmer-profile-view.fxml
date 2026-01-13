@@ -3,10 +3,11 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.shape.Circle?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.PublicFarmerProfileController" styleClass="root" minHeight="600" minWidth="1024" prefHeight="600">
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.PublicFarmerProfileController" styleClass="root" minWidth="1024">
     
     <!-- Top Navigation -->
     <top>
@@ -34,9 +35,13 @@
                     </padding>
                     
                     <!-- Profile Photo -->
-                    <StackPane>
+                    <StackPane alignment="CENTER">
                         <Circle radius="70" styleClass="profile-photo-border"/>
-                        <ImageView fx:id="imgProfilePhoto" fitWidth="130" fitHeight="130" preserveRatio="true"/>
+                        <ImageView fx:id="imgProfilePhoto" fitWidth="140" fitHeight="140" preserveRatio="false">
+                            <clip>
+                                <Circle radius="70" centerX="70" centerY="70"/>
+                            </clip>
+                        </ImageView>
                     </StackPane>
 
                     <!-- Name & Verified Badge -->
@@ -66,7 +71,7 @@
                 </VBox>
 
                 <!-- Stats Cards -->
-                <HBox spacing="20" alignment="CENTER">
+                <FlowPane hgap="20" vgap="20" alignment="CENTER" maxWidth="920">
                     <VBox alignment="CENTER" spacing="8" styleClass="stat-card">
                         <padding>
                             <Insets top="20" bottom="20" left="30" right="30"/>
@@ -79,7 +84,7 @@
                         <padding>
                             <Insets top="20" bottom="20" left="30" right="30"/>
                         </padding>
-                        <Label fx:id="lblTotalProducts" text="12" styleClass="stat-value"/>
+                        <Label fx:id="lblTotalProducts" text="0" styleClass="stat-value"/>
                         <Label text="মোট পণ্য" styleClass="stat-label"/>
                     </VBox>
 
@@ -87,7 +92,7 @@
                         <padding>
                             <Insets top="20" bottom="20" left="30" right="30"/>
                         </padding>
-                        <Label fx:id="lblTotalSales" text="45" styleClass="stat-value"/>
+                        <Label fx:id="lblTotalSales" text="0" styleClass="stat-value"/>
                         <Label text="মোট বিক্রয়" styleClass="stat-label"/>
                     </VBox>
 
@@ -100,8 +105,9 @@
                             <Label text="⭐" styleClass="stat-icon-small"/>
                         </HBox>
                         <Label text="রেটিং" styleClass="stat-label"/>
+                        <Label text="Rating" styleClass="stat-sublabel"/>
                     </VBox>
-                </HBox>
+                </FlowPane>
 
                 <!-- Contact Actions -->
                 <HBox fx:id="hboxContactActions" spacing="15" alignment="CENTER">

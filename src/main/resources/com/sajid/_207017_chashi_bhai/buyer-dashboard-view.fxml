@@ -7,7 +7,7 @@
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.BuyerDashboardController" styleClass="root" minHeight="600" minWidth="1024" prefHeight="600">
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.BuyerDashboardController" styleClass="root" minWidth="1024">
     
     <!-- Top Navigation Bar -->
     <top>
@@ -44,68 +44,67 @@
                     <Label text="সেরা ফসল খুঁজুন" styleClass="welcome-subtitle"/>
                 </VBox>
 
-                <!-- Quick Action Buttons -->
-                <HBox spacing="20" alignment="CENTER">
-                    <Button fx:id="btnBrowseAll" styleClass="action-button-large, card-green" onAction="#onBrowseAll" prefWidth="280" prefHeight="100">
+                <!-- Main Action Cards -->
+                <GridPane hgap="20" vgap="20" alignment="CENTER">
+                    <!-- Row 1 -->
+                    <Button fx:id="btnBrowseAll" styleClass="dashboard-card, card-green" onAction="#onBrowseAll"
+                            GridPane.rowIndex="0" GridPane.columnIndex="0" prefWidth="280" prefHeight="160">
                         <graphic>
-                            <HBox spacing="15" alignment="CENTER">
-                                <Label text="🛒" styleClass="action-icon"/>
-                                <VBox alignment="CENTER_LEFT">
-                                    <Label text="সকল ফসল" styleClass="action-title"/>
-                                    <Label text="Browse All Crops" styleClass="action-subtitle"/>
-                                </VBox>
-                            </HBox>
+                            <VBox alignment="CENTER" spacing="12">
+                                <Label text="🛒" styleClass="card-icon"/>
+                                <Label text="সকল ফসল" styleClass="card-title" wrapText="true"/>
+                                <Label text="Browse All Crops" styleClass="card-subtitle"/>
+                            </VBox>
                         </graphic>
                     </Button>
 
-                    <Button fx:id="btnMyOrders" styleClass="action-button-large, card-blue" onAction="#onMyOrders" prefWidth="280" prefHeight="100">
+                    <Button fx:id="btnMyOrders" styleClass="dashboard-card, card-blue" onAction="#onMyOrders"
+                            GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="280" prefHeight="160">
                         <graphic>
-                            <HBox spacing="15" alignment="CENTER">
-                                <Label text="📦" styleClass="action-icon"/>
-                                <VBox alignment="CENTER_LEFT">
-                                    <Label text="আমার অর্ডারসমূহ" styleClass="action-title"/>
-                                    <Label text="My Orders" styleClass="action-subtitle"/>
-                                </VBox>
-                            </HBox>
+                            <VBox alignment="CENTER" spacing="12">
+                                <Label text="📦" styleClass="card-icon"/>
+                                <Label text="আমার অর্ডারসমূহ" styleClass="card-title" wrapText="true"/>
+                                <Label text="My Orders" styleClass="card-subtitle"/>
+                            </VBox>
                         </graphic>
                     </Button>
 
-                    <Button fx:id="btnHistory" styleClass="action-button-large, card-purple" onAction="#onHistory" prefWidth="280" prefHeight="100">
+                    <!-- Row 2 -->
+                    <Button fx:id="btnHistory" styleClass="dashboard-card, card-purple" onAction="#onHistory"
+                            GridPane.rowIndex="1" GridPane.columnIndex="0" prefWidth="280" prefHeight="160">
                         <graphic>
-                            <HBox spacing="15" alignment="CENTER">
-                                <Label text="📊" styleClass="action-icon"/>
-                                <VBox alignment="CENTER_LEFT">
-                                    <Label text="ক্রয় ইতিহাস" styleClass="action-title"/>
-                                    <Label text="Purchase History" styleClass="action-subtitle"/>
-                                </VBox>
-                            </HBox>
+                            <VBox alignment="CENTER" spacing="12">
+                                <Label text="📊" styleClass="card-icon"/>
+                                <Label text="ক্রয় ইতিহাস" styleClass="card-title" wrapText="true"/>
+                                <Label text="Purchase History" styleClass="card-subtitle"/>
+                            </VBox>
                         </graphic>
                     </Button>
 
-                    <Button fx:id="btnSearchOrder" styleClass="action-button-large, card-orange" onAction="#onSearchOrder" prefWidth="280" prefHeight="100">
+                    <Button fx:id="btnSearchOrder" styleClass="dashboard-card, card-orange" onAction="#onSearchOrder"
+                            GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="280" prefHeight="160">
                         <graphic>
-                            <HBox spacing="15" alignment="CENTER">
-                                <Label text="🔍" styleClass="action-icon"/>
-                                <VBox alignment="CENTER_LEFT">
-                                    <Label text="অর্ডার সার্চ" styleClass="action-title"/>
-                                    <Label text="Search Orders" styleClass="action-subtitle"/>
-                                </VBox>
-                            </HBox>
+                            <VBox alignment="CENTER" spacing="12">
+                                <Label text="🔍" styleClass="card-icon"/>
+                                <Label text="অর্ডার সার্চ" styleClass="card-title" wrapText="true"/>
+                                <Label text="Search Orders" styleClass="card-subtitle"/>
+                            </VBox>
                         </graphic>
                     </Button>
 
-                    <Button fx:id="btnAllChat" styleClass="action-button-large, card-blue" onAction="#onAllChat" prefWidth="280" prefHeight="100">
+                    <!-- Row 3 - Single element centered -->
+                    <Button fx:id="btnAllChat" styleClass="dashboard-card, card-blue" onAction="#onAllChat"
+                            GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.halignment="CENTER"
+                            prefWidth="280" prefHeight="160">
                         <graphic>
-                            <HBox spacing="15" alignment="CENTER">
-                                <Label text="💬" styleClass="action-icon"/>
-                                <VBox alignment="CENTER_LEFT">
-                                    <Label text="সব চ্যাট" styleClass="action-title"/>
-                                    <Label text="All Chats" styleClass="action-subtitle"/>
-                                </VBox>
-                            </HBox>
+                            <VBox alignment="CENTER" spacing="12">
+                                <Label text="💬" styleClass="card-icon"/>
+                                <Label text="সব চ্যাট" styleClass="card-title" wrapText="true"/>
+                                <Label text="All Chats" styleClass="card-subtitle"/>
+                            </VBox>
                         </graphic>
                     </Button>
-                </HBox>
+                </GridPane>
 
                 <!-- Live Price Ticker -->
                 <VBox spacing="12" styleClass="price-ticker-container">

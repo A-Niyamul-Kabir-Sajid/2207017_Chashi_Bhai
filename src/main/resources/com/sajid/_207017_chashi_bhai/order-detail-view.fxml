@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.image.ImageView?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.OrderDetailController" styleClass="root" minHeight="600" minWidth="1024" prefHeight="600">
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.OrderDetailController" styleClass="root" minWidth="1024">
     
     <!-- Top Navigation -->
     <top>
@@ -54,7 +54,7 @@
                         <Label fx:id="lblPaymentStatus" text="বকেয়া" GridPane.rowIndex="2" GridPane.columnIndex="1" styleClass="detail-value"/>
                         
                         <Label text="মোট মূল্য:" GridPane.rowIndex="3" GridPane.columnIndex="0" styleClass="detail-label"/>
-                        <Label fx:id="lblTotalAmount" text="৳ 5,000.00" GridPane.rowIndex="3" GridPane.columnIndex="1" styleClass="detail-value" style="-fx-font-weight: bold; -fx-text-fill: #4CAF50;"/>
+                        <Label fx:id="lblTotalAmount" text="৳0.00" GridPane.rowIndex="3" GridPane.columnIndex="1" styleClass="detail-value" style="-fx-font-weight: bold; -fx-text-fill: #4CAF50;"/>
                     </GridPane>
                 </VBox>
 
@@ -106,7 +106,7 @@
                                 </VBox>
                                 <VBox spacing="3">
                                     <Label text="দাম/কেজি:" styleClass="detail-label"/>
-                                    <Label fx:id="lblPricePerKg" text="৳ 45.00" styleClass="detail-value"/>
+                                    <Label fx:id="lblPricePerKg" text="৳0.00" styleClass="detail-value"/>
                                 </VBox>
                             </HBox>
                         </VBox>
@@ -157,7 +157,7 @@
                         <Label fx:id="lblBuyerName" text="মোঃ রফিকুল ইসলাম" GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="detail-value"/>
                         
                         <Label text="ID:" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="detail-label"/>
-                        <Label fx:id="lblBuyerId" text="2002" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="detail-value"/>
+                        <Label fx:id="lblBuyerId" text="0" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="detail-value"/>
                         
                         <Label text="ফোন:" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="detail-label"/>
                         <Label fx:id="lblBuyerPhone" text="01812345678" GridPane.rowIndex="2" GridPane.columnIndex="1" styleClass="detail-value"/>

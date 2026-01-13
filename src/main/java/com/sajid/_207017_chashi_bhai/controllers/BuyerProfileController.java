@@ -2,6 +2,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
+import com.sajid._207017_chashi_bhai.services.AuthSessionManager;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
 import javafx.application.Platform;
@@ -32,7 +33,7 @@ public class BuyerProfileController {
     @FXML private Label lblPhone;
     @FXML private Label lblDistrict;
     @FXML private Label lblUpazila;
-    @FXML private Label lblTotalPurchases;
+    @FXML private Label lblTotalOrders;
     @FXML private Label lblTotalSpent;
     @FXML private Label lblMemberSince;
     @FXML private Button btnEditProfile;
@@ -48,8 +49,10 @@ public class BuyerProfileController {
         syncManager = DataSyncManager.getInstance();
         
         if (currentUser == null || !"buyer".equals(currentUser.getRole())) {
-            showError("অ্যাক্সেস অস্বীকার", "শুধুমাত্র ক্রেতারা এই পেজ দেখতে পারবেন।");
-            App.loadScene("login-view.fxml", "Login");
+            Platform.runLater(() -> {
+                showError("অ্যাক্সেস অস্বীকার", "শুধুমাত্র ক্রেতারা এই পেজ দেখতে পারবেন।");
+                App.loadScene("login-view.fxml", "Login");
+            });
             return;
         }
 
@@ -158,14 +161,16 @@ public class BuyerProfileController {
                             lblBuyerName.setText(name);
                             lblUserId.setText("ID: " + currentUser.getId());
                             lblPhone.setText(phone != null ? phone : "N/A");
-                            lblDistrict.setText(district != null ? district : "N/A");
-                            lblUpazila.setText(upazila != null ? upazila : "N/A");
-                            lblTotalPurchases.setText(String.valueOf(totalPurchases));
+                            if (lblDistrict != null) lblDistrict.setText(district != null ? district : "N/A");
+                            if (lblUpazila != null) lblUpazila.setText(upazila != null ? upazila : "N/A");
+                            lblTotalOrders.setText(String.valueOf(totalPurchases));
                             lblTotalSpent.setText(String.format("৳%.2f", totalSpent));
                             
-                            // Member since
-                            if (createdAt != null) {
-                                lblMemberSince.setText(createdAt.substring(0, 10));
+                            // Member since - show year only
+                            if (createdAt != null && createdAt.length() >= 4) {
+                                lblMemberSince.setText(createdAt.substring(0, 4));
+                            } else {
+                                lblMemberSince.setText("--");
                             }
 
                             // Load profile photo
@@ -231,6 +236,8 @@ public class BuyerProfileController {
         confirm.setContentText("আপনাকে পুনরায় লগইন করতে হবে।");
         confirm.showAndWait().ifPresent(response -> {
             if (response == javafx.scene.control.ButtonType.OK) {
+                // Clear auth session cache
+                AuthSessionManager.getInstance().logout();
                 // Clear current user
                 App.setCurrentUser(null);
                 // Navigate to login screen

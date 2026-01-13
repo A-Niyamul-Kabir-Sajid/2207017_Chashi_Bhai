@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.*?>
 <?import java.lang.String?>
 
-<BorderPane minHeight="600" minWidth="1024" prefHeight="600" styleClass="root"
+<BorderPane minWidth="1024" styleClass="root"
             xmlns="http://javafx.com/javafx/17.0.12"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.sajid._207017_chashi_bhai.controllers.CropFeedController">

@@ -7,13 +7,14 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 
-<BorderPane minHeight="600" minWidth="1024" prefHeight="600" styleClass="root" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25" fx:controller="com.sajid._207017_chashi_bhai.controllers.FarmerProfileController">
+<BorderPane minWidth="1024" styleClass="root" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25" fx:controller="com.sajid._207017_chashi_bhai.controllers.FarmerProfileController">
     
     <!-- Top Navigation -->
     <top>
@@ -47,9 +48,12 @@
                     </padding>
                     
                     <!-- Profile Photo -->
-                    <StackPane>
+                    <StackPane alignment="CENTER">
                         <Circle radius="70" styleClass="profile-photo-border" />
-                        <ImageView fx:id="imgProfilePhoto" fitHeight="130" fitWidth="130" preserveRatio="true">
+                        <ImageView fx:id="imgProfilePhoto" fitHeight="140" fitWidth="140" preserveRatio="false">
+                            <clip>
+                                <Circle radius="70" centerX="70" centerY="70"/>
+                            </clip>
                             <image>
                                 <!-- Placeholder will be set in controller -->
                             </image>
@@ -91,37 +95,37 @@
                 </VBox>
 
                 <!-- Stats Cards -->
-                <HBox alignment="CENTER" spacing="20">
-                    <VBox alignment="CENTER" spacing="8" styleClass="stat-card">
+                <FlowPane hgap="20" vgap="20" alignment="CENTER" maxWidth="920">
+                    <VBox alignment="CENTER" spacing="8" styleClass="stat-card" prefWidth="280" prefHeight="140">
                         <padding>
                             <Insets bottom="20" left="30" right="30" top="20" />
                         </padding>
-                        <Label fx:id="lblYearsFarming" styleClass="stat-value" text="5" />
+                        <Label fx:id="lblYearsFarming" styleClass="stat-value" text="0" />
                         <Label styleClass="stat-label" text="বছর চাষাবাদ" />
                         <Label styleClass="stat-sublabel" text="Years Farming" />
                     </VBox>
 
-                    <VBox alignment="CENTER" spacing="8" styleClass="stat-card">
+                    <VBox alignment="CENTER" spacing="8" styleClass="stat-card" prefWidth="280" prefHeight="140">
                         <padding>
                             <Insets bottom="20" left="30" right="30" top="20" />
                         </padding>
-                        <Label fx:id="lblTotalSales" styleClass="stat-value" text="৳ 50,000" />
+                        <Label fx:id="lblTotalSales" styleClass="stat-value" text="৳0.00" />
                         <Label styleClass="stat-label" text="মোট বিক্রয়" />
                         <Label styleClass="stat-sublabel" text="Total Sales" />
                     </VBox>
 
-                    <VBox alignment="CENTER" spacing="8" styleClass="stat-card">
+                    <VBox alignment="CENTER" spacing="8" styleClass="stat-card" prefWidth="280" prefHeight="140">
                         <padding>
                             <Insets bottom="20" left="30" right="30" top="20" />
                         </padding>
                         <HBox alignment="CENTER" spacing="5">
-                            <Label fx:id="lblRating" styleClass="stat-value" text="4.8" />
+                            <Label fx:id="lblRating" styleClass="stat-value" text="0.0" />
                             <Label styleClass="stat-icon-small" />
                         </HBox>
                         <Label styleClass="stat-label" text="রেটিং" />
                         <Label styleClass="stat-sublabel" text="Rating" />
                     </VBox>
-                </HBox>
+                </FlowPane>
 
                 <!-- Farm Photos Section -->
                 <VBox spacing="15" styleClass="section-container">

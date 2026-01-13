@@ -202,9 +202,10 @@ public class LoginController {
     
     /**
      * Perform local SQLite login and optionally save Firebase session
+     * Primary auth is Firebase, SQLite is fallback if Firebase fails
      */
     private void performLocalLogin(String phone, String pin, FirebaseAuthService.AuthResult firebaseAuth, Button loginBtn) {
-        // Check credentials in database
+        // Get user profile from database
         String sql = "SELECT * FROM users WHERE phone = ? AND role = ?";
         Object[] params = {phone, selectedRole.toLowerCase()};
 
@@ -212,11 +213,27 @@ public class LoginController {
             rs -> {
                 try {
                     if (rs.next()) {
-                        String storedPin = rs.getString("pin");
+                        // If Firebase auth succeeded, no need to check SQLite PIN
+                        // If Firebase auth failed (firebaseAuth is null), verify SQLite PIN as fallback
+                        boolean authSuccess = false;
                         
-                        // Compare PIN
-                        if (pin.equals(storedPin)) {
-                            // Create User object
+                        if (firebaseAuth != null) {
+                            // Firebase auth succeeded
+                            authSuccess = true;
+                            System.out.println("✅ Using Firebase authentication (primary)");
+                        } else {
+                            // Firebase failed, try SQLite fallback
+                            String storedPin = rs.getString("pin");
+                            if (storedPin != null && pin.equals(storedPin)) {
+                                authSuccess = true;
+                                System.out.println("✅ Using SQLite authentication (fallback - Firebase unavailable)");
+                            } else {
+                                System.out.println("❌ SQLite PIN verification failed");
+                            }
+                        }
+                        
+                        if (authSuccess) {
+                            // Create User object (profile data)
                             User user = new User();
                             user.setId(rs.getInt("id"));
                             user.setName(rs.getString("name"));

@@ -65,6 +65,7 @@ public class FirebaseService {
     public static final String COLLECTION_CONVERSATIONS = "conversations";
     public static final String COLLECTION_MESSAGES = "messages";
     public static final String COLLECTION_NOTIFICATIONS = "notifications";
+    public static final String COLLECTION_PASSWORD_RESET_OTPS = "password_reset_otps";
 
     private FirebaseService() {
         this.httpClient = HttpClient.newBuilder()
@@ -564,4 +565,219 @@ public class FirebaseService {
         System.out.println("🔄 Syncing local data to Firestore...");
         // Sync is handled by individual save operations
     }
+
+    // ==================== PASSWORD RESET OTP OPERATIONS ====================
+
+    /**
+     * Generate a 6-digit OTP
+     */
+    private String generateOTP() {
+        Random random = new Random();
+        int otp = 100000 + random.nextInt(900000); // 6 digits
+        return String.valueOf(otp);
+    }
+
+    /**
+     * Request PIN reset - Generate and store OTP in Firestore
+     * Admin can view OTP in Firebase Console and manually provide to user
+     * 
+     * @param phone User's phone number
+     * @param role User's role (farmer/buyer)
+     * @return Generated OTP (for testing/logging - in production, admin views in Firebase Console)
+     */
+    public String requestPinReset(String phone, String role) throws Exception {
+        String otp = generateOTP();
+        long now = System.currentTimeMillis();
+        long expiresAt = now + (15 * 60 * 1000); // 15 minutes
+        
+        // Create OTP document
+        Map<String, Object> fields = new HashMap<>();
+        fields.put("phone", createStringValue(phone));
+        fields.put("role", createStringValue(role));
+        fields.put("otp", createStringValue(otp));
+        fields.put("createdAt", createIntegerValue(now));
+        fields.put("expiresAt", createIntegerValue(expiresAt));
+        fields.put("used", createBooleanValue(false));
+        
+        Map<String, Object> document = new HashMap<>();
+        document.put("fields", fields);
+        
+        // Use phone+role as document ID for easy lookup
+        String documentId = phone + "_" + role;
+        String url = BASE_URL + "/" + COLLECTION_PASSWORD_RESET_OTPS + "?documentId=" + documentId;
+        
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(document)))
+            .build();
+        
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        
+        if (response.statusCode() >= 200 && response.statusCode() < 300) {
+            System.out.println("✅ OTP stored in Firestore for " + phone + " (" + role + ")");
+            System.out.println("🔑 OTP: " + otp + " (expires in 15 minutes)");
+            System.out.println("📋 View in Firebase Console: Firestore > password_reset_otps > " + documentId);
+            return otp;
+        } else {
+            System.err.println("❌ Failed to store OTP: " + response.body());
+            throw new Exception("Failed to store OTP in Firestore");
+        }
+    }
+
+    /**
+     * Verify OTP from Firestore for PIN reset
+     * 
+     * @param phone User's phone number
+     * @param role User's role (farmer/buyer)
+     * @param otp OTP entered by user
+     * @return true if OTP is valid and not expired
+     */
+    public boolean verifyPinResetOTP(String phone, String role, String otp) throws Exception {
+        String documentId = phone + "_" + role;
+        String url = BASE_URL + "/" + COLLECTION_PASSWORD_RESET_OTPS + "/" + documentId;
+        
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .GET()
+            .build();
+        
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        
+        if (response.statusCode() == 404) {
+            System.out.println("❌ No OTP request found for " + phone + " (" + role + ")");
+            return false;
+        }
+        
+        if (response.statusCode() >= 200 && response.statusCode() < 300) {
+            JsonObject doc = JsonParser.parseString(response.body()).getAsJsonObject();
+            JsonObject fields = doc.getAsJsonObject("fields");
+            
+            String storedOtp = getStringValue(fields, "otp");
+            long expiresAt = getIntegerValue(fields, "expiresAt");
+            boolean used = getBooleanValue(fields, "used");
+            
+            long now = System.currentTimeMillis();
+            
+            // Validate OTP
+            if (used) {
+                System.out.println("❌ OTP already used");
+                return false;
+            }
+            
+            if (now > expiresAt) {
+                System.out.println("❌ OTP expired");
+                return false;
+            }
+            
+            if (!otp.equals(storedOtp)) {
+                System.out.println("❌ Invalid OTP");
+                return false;
+            }
+            
+            System.out.println("✅ OTP verified successfully");
+            return true;
+        } else {
+            System.err.println("❌ Failed to verify OTP: " + response.body());
+            throw new Exception("Failed to verify OTP");
+        }
+    }
+
+    /**
+     * Mark OTP as used after successful PIN reset
+     * 
+     * @param phone User's phone number
+     * @param role User's role (farmer/buyer)
+     */
+    public void markOTPAsUsed(String phone, String role) throws Exception {
+        String documentId = phone + "_" + role;
+        String url = BASE_URL + "/" + COLLECTION_PASSWORD_RESET_OTPS + "/" + documentId + "?updateMask.fieldPaths=used";
+        
+        Map<String, Object> fields = new HashMap<>();
+        fields.put("used", createBooleanValue(true));
+        
+        Map<String, Object> document = new HashMap<>();
+        document.put("fields", fields);
+        
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .header("Content-Type", "application/json")
+            .method("PATCH", HttpRequest.BodyPublishers.ofString(gson.toJson(document)))
+            .build();
+        
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        
+        if (response.statusCode() >= 200 && response.statusCode() < 300) {
+            System.out.println("✅ OTP marked as used");
+        } else {
+            System.err.println("⚠️ Failed to mark OTP as used: " + response.body());
+        }
+    }
+
+    /**
+     * Helper method to create string value for Firestore
+     */
+    private Map<String, Object> createStringValue(String value) {
+        Map<String, Object> valueMap = new HashMap<>();
+        valueMap.put("stringValue", value);
+        return valueMap;
+    }
+
+    /**
+     * Helper method to create integer value for Firestore
+     */
+    private Map<String, Object> createIntegerValue(long value) {
+        Map<String, Object> valueMap = new HashMap<>();
+        valueMap.put("integerValue", String.valueOf(value));
+        return valueMap;
+    }
+
+    /**
+     * Helper method to create boolean value for Firestore
+     */
+    private Map<String, Object> createBooleanValue(boolean value) {
+        Map<String, Object> valueMap = new HashMap<>();
+        valueMap.put("booleanValue", value);
+        return valueMap;
+    }
+
+    /**
+     * Helper method to get string value from Firestore field
+     */
+    private String getStringValue(JsonObject fields, String fieldName) {
+        if (fields.has(fieldName)) {
+            JsonObject field = fields.getAsJsonObject(fieldName);
+            if (field.has("stringValue")) {
+                return field.get("stringValue").getAsString();
+            }
+        }
+        return "";
+    }
+
+    /**
+     * Helper method to get integer value from Firestore field
+     */
+    private long getIntegerValue(JsonObject fields, String fieldName) {
+        if (fields.has(fieldName)) {
+            JsonObject field = fields.getAsJsonObject(fieldName);
+            if (field.has("integerValue")) {
+                return Long.parseLong(field.get("integerValue").getAsString());
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Helper method to get boolean value from Firestore field
+     */
+    private boolean getBooleanValue(JsonObject fields, String fieldName) {
+        if (fields.has(fieldName)) {
+            JsonObject field = fields.getAsJsonObject(fieldName);
+            if (field.has("booleanValue")) {
+                return field.get("booleanValue").getAsBoolean();
+            }
+        }
+        return false;
+    }
 }
+

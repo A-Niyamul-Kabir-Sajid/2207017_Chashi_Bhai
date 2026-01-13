@@ -8,6 +8,7 @@ public class SessionManager {
     private static String tempName;
     private static String tempDistrict;
     private static String tempRole;
+    private static String tempFirebaseUid;
     private static boolean isLoginMode;
 
     // Logged in user data
@@ -47,6 +48,14 @@ public class SessionManager {
 
     public static void setTempRole(String role) {
         tempRole = role;
+    }
+
+    public static String getTempFirebaseUid() {
+        return tempFirebaseUid;
+    }
+
+    public static void setTempFirebaseUid(String firebaseUid) {
+        tempFirebaseUid = firebaseUid;
     }
 
     public static boolean isLoginMode() {
@@ -100,6 +109,7 @@ public class SessionManager {
         tempName = null;
         tempDistrict = null;
         tempRole = null;
+        tempFirebaseUid = null;
         isLoginMode = false;
         currentUserId = null;
         currentUserName = null;
@@ -113,6 +123,7 @@ public class SessionManager {
         tempName = null;
         tempDistrict = null;
         tempRole = null;
+        tempFirebaseUid = null;
         isLoginMode = false;
     }
 

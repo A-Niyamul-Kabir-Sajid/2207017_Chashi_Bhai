@@ -569,6 +569,8 @@ public class DatabaseService {
      * @param phone User phone number (unique)
      * @param pin User PIN (should be hashed with BCrypt in production)
      * @param name User full name
+     * @param pin User PIN (stored as backup for offline/fallback auth)
+     * @param name User name
      * @param role User role (farmer/buyer)
      * @param district User district
      * @return userId if successful, -1 if failed, -2 if phone already exists
@@ -591,14 +593,14 @@ public class DatabaseService {
             return -1;
         }
         
-        // Insert new user
+        // Insert new user (PIN stored as backup for fallback auth if Firebase fails)
         String sql = "INSERT INTO users (phone, pin, name, role, district) VALUES (?, ?, ?, ?, ?)";
         
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             stmt.setString(1, phone);
-            stmt.setString(2, pin); // TODO: Hash with BCrypt before storing
+            stmt.setString(2, pin); // Backup for offline/fallback auth
             stmt.setString(3, name);
             stmt.setString(4, role.toLowerCase());
             stmt.setString(5, district);
@@ -610,7 +612,7 @@ public class DatabaseService {
                 ResultSet keys = stmt.getGeneratedKeys();
                 if (keys.next()) {
                     int userId = keys.getInt(1);
-                    System.out.println("User created successfully with ID: " + userId);
+                    System.out.println("User created successfully with ID: " + userId + " (Firebase primary + SQLite backup)");
                     return userId;
                 }
             }

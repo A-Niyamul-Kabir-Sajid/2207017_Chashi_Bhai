@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 
-<BorderPane minHeight="600" minWidth="1024" prefHeight="600" styleClass="root" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.sajid._207017_chashi_bhai.controllers.CropDetailController">
+<BorderPane minWidth="1024" styleClass="root" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.sajid._207017_chashi_bhai.controllers.CropDetailController">
     
     <!-- Top Navigation -->
     <top>
@@ -67,7 +67,7 @@
                         <VBox spacing="12">
                             <Label fx:id="lblCropName" styleClass="detail-crop-name" text="ধান (Rice)" />
                             <HBox alignment="CENTER_LEFT" spacing="15">
-                                <Label fx:id="lblCropPrice" styleClass="detail-price" text="৳ 45" />
+                                <Label fx:id="lblCropPrice" styleClass="detail-price" text="৳0.00" />
                                 <Label fx:id="lblUnit" styleClass="detail-unit" text="প্রতি কেজি" />
                                 <Region HBox.hgrow="ALWAYS" />
                                 <Label styleClass="status-active" text="✓ সক্রিয়" />
@@ -162,7 +162,7 @@
                                 </VBox>
                                 <Separator orientation="VERTICAL" />
                                 <VBox alignment="CENTER" spacing="5">
-                                    <Label fx:id="lblFarmerSales" styleClass="farmer-stat-value" text="120" />
+                                    <Label fx:id="lblFarmerSales" styleClass="farmer-stat-value" text="0" />
                                     <Label styleClass="farmer-stat-label" text="বিক্রয়" />
                                 </VBox>
                                 <Separator orientation="VERTICAL" />

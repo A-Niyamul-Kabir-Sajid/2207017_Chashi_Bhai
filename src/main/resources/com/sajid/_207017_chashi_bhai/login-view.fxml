@@ -15,7 +15,7 @@
             fitToWidth="true"
             styleClass="scroll-pane">
 
-<VBox alignment="TOP_CENTER" spacing="30.0" styleClass="root" minHeight="600" prefHeight="600">
+<VBox alignment="TOP_CENTER" spacing="30.0" styleClass="root">
     <padding>
         <Insets bottom="40.0" left="40.0" right="40.0" top="30.0"/>
     </padding>
