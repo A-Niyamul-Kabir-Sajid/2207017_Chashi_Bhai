@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.ScrollPane?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.FarmerDashboardController" styleClass="root" minHeight="700" minWidth="1024">
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.FarmerDashboardController" styleClass="root" minHeight="600" minWidth="1024" prefHeight="600">
     
     <!-- Top Navigation Bar -->
     <top>

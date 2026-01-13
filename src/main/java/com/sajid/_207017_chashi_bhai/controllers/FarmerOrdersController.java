@@ -3,7 +3,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
-import com.sajid._207017_chashi_bhai.services.FirebaseSyncService;
+// import com.sajid._207017_chashi_bhai.services.FirebaseSyncService; // Removed - using REST API now
 import com.sajid._207017_chashi_bhai.services.OrderService;
 import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
 import javafx.application.Platform;
@@ -103,10 +103,10 @@ public class FarmerOrdersController {
     }
 
     private void refreshOrders() {
-        FirebaseSyncService.getInstance().syncFarmerOrdersFromFirebase(
-            currentUser.getId(),
-            () -> loadOrders(currentFilter)
-        );
+        // TODO: Implement REST API sync for farmer orders
+        // FirebaseSyncService has been removed - using REST API now
+        // For now, just reload from local SQLite
+        loadOrders(currentFilter);
     }
 
     @FXML
@@ -426,7 +426,8 @@ public class FarmerOrdersController {
                     if (r.ok) {
                         showSuccess("সফল", r.message);
                         refreshOrders();
-                        FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "accepted", null);
+                        // TODO: Implement REST API sync for order status
+                        // FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "accepted", null);
                     } else {
                         showError("ত্রুটি", r.message);
                     }
@@ -454,7 +455,8 @@ public class FarmerOrdersController {
                     if (r.ok) {
                         showSuccess("সফল", r.message);
                         refreshOrders();
-                        FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "rejected", null);
+                        // TODO: Implement REST API sync for order status
+                        // FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "rejected", null);
                     } else {
                         showError("ত্রুটি", r.message);
                     }
@@ -482,7 +484,8 @@ public class FarmerOrdersController {
                     if (r.ok) {
                         showSuccess("সফল", r.message);
                         refreshOrders();
-                        FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "in_transit", null);
+                        // TODO: Implement REST API sync for order status
+                        // FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "in_transit", null);
                     } else {
                         showError("ত্রুটি", r.message);
                     }

@@ -3,7 +3,9 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.services.FirebaseService;
 import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
+import com.sajid._207017_chashi_bhai.utils.ImageBase64Util;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -94,6 +96,9 @@ public class FarmerProfileController {
         }
 
         try {
+            // Convert image to Base64
+            String imageBase64 = ImageBase64Util.fileToBase64(file);
+            
             Path photosDir = Paths.get("data/profile_photos/" + currentUser.getId());
             Files.createDirectories(photosDir);
 
@@ -105,9 +110,10 @@ public class FarmerProfileController {
                 progressIndicator.setVisible(true);
             }
 
+            // Save to SQLite with both path and Base64
             DatabaseService.executeUpdateAsync(
-                "UPDATE users SET profile_photo = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-                new Object[]{destination.toString(), currentUser.getId()},
+                "UPDATE users SET profile_photo = ?, profile_photo_base64 = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                new Object[]{destination.toString(), imageBase64, currentUser.getId()},
                 rows -> Platform.runLater(() -> {
                     if (progressIndicator != null) {
                         progressIndicator.setVisible(false);
@@ -115,6 +121,15 @@ public class FarmerProfileController {
                     if (rows > 0) {
                         currentUser.setProfilePhoto(destination.toString());
                         imgProfilePhoto.setImage(new Image(destination.toUri().toString()));
+                        
+                        // Also sync to Firebase
+                        FirebaseService.getInstance().saveProfilePhoto(
+                            String.valueOf(currentUser.getId()),
+                            imageBase64,
+                            () -> System.out.println("✓ Profile photo synced to Firebase"),
+                            err -> System.err.println("❌ Firebase sync error: " + err.getMessage())
+                        );
+                        
                         showSuccess("সফল!", "প্রোফাইল ছবি আপডেট হয়েছে।");
                     } else {
                         showError("ত্রুটি", "প্রোফাইল ছবি আপডেট করা যায়নি।");

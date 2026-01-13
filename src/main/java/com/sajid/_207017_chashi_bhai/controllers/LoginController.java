@@ -2,7 +2,10 @@ package com.sajid._207017_chashi_bhai.controllers;
 
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
+import com.sajid._207017_chashi_bhai.services.AuthSessionManager;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.services.FirebaseAuthService;
+import com.sajid._207017_chashi_bhai.services.FirebaseService;
 import com.sajid._207017_chashi_bhai.utils.SessionManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -29,10 +32,62 @@ public class LoginController {
     private Button buyerButton;
 
     private String selectedRole = null;
+    private FirebaseAuthService firebaseAuth;
 
     @FXML
     protected void onBackClick() {
         App.loadScene("welcome-view.fxml", "Welcome - Chashi Bhai");
+    }
+
+    @FXML
+    public void initialize() {
+        firebaseAuth = new FirebaseAuthService();
+        
+        // Check for existing session (one-time login)
+        AuthSessionManager sessionManager = AuthSessionManager.getInstance();
+        AuthSessionManager.CachedSession cachedSession = sessionManager.getActiveSession();
+        
+        if (cachedSession != null) {
+            System.out.println("✓ Found cached session, auto-logging in...");
+            autoLoginWithCachedSession(cachedSession);
+        }
+    }
+    
+    /**
+     * Auto-login using cached session (one-time login feature)
+     */
+    private void autoLoginWithCachedSession(AuthSessionManager.CachedSession session) {
+        // Create User object from cached session
+        User user = new User();
+        user.setId(session.userId);
+        user.setName(session.name);
+        user.setPhone(session.phone);
+        user.setRole(session.role);
+        user.setDistrict(session.district);
+        user.setUpazila(session.upazila);
+        user.setVerified(session.isVerified);
+        user.setProfilePhoto(session.profilePhoto);
+        
+        // Set Firebase token
+        if (session.idToken != null) {
+            FirebaseService.getInstance().setIdToken(session.idToken);
+        }
+        
+        // Set current user in App
+        App.setCurrentUser(user);
+        
+        // Set session data (for backward compatibility)
+        SessionManager.setCurrentUserId(user.getId());
+        SessionManager.setCurrentUserName(user.getName());
+        SessionManager.setCurrentUserRole(user.getRole().toUpperCase());
+        SessionManager.setCurrentUserPhone(user.getPhone());
+        
+        System.out.println("✅ Auto-login successful - User: " + user.getName() + ", Role: " + user.getRole());
+        
+        // Navigate to crop feed
+        Platform.runLater(() -> {
+            App.loadScene("crop-feed-view.fxml", "সকল ফসল / Browse Crops - Chashi Bhai");
+        });
     }
 
     @FXML
@@ -92,6 +147,63 @@ public class LoginController {
         Button loginBtn = (Button) phoneField.getScene().lookup(".button-primary");
         if (loginBtn != null) loginBtn.setDisable(true);
 
+        // First, authenticate with Firebase in background
+        new Thread(() -> {
+            try {
+                // Try Firebase authentication (for users registered in Firebase)
+                FirebaseAuthService.AuthResult authResult = firebaseAuth.signIn(phone, pin);
+                System.out.println("✅ Firebase auth successful for: " + phone);
+                
+                // Set Firebase token for subsequent API calls
+                FirebaseService.getInstance().setIdToken(authResult.getIdToken());
+                
+                // Now check local SQLite database for user details
+                Platform.runLater(() -> {
+                    performLocalLogin(phone, pin, authResult, loginBtn);
+                });
+                
+            } catch (Exception firebaseError) {
+                // Firebase auth failed - NO FALLBACK for new logins
+                System.err.println("❌ Firebase auth failed: " + firebaseError.getMessage());
+                
+                Platform.runLater(() -> {
+                    if (loginBtn != null) loginBtn.setDisable(false);
+                    
+                    String errorMsg = "❌ Login failed. Please check:\n\n";
+                    
+                    if (firebaseError.getMessage().contains("PASSWORD_LOGIN_DISABLED")) {
+                        errorMsg += "• Firebase authentication is not enabled\n";
+                        errorMsg += "• Contact admin to enable Email/Password\n";
+                        errorMsg += "  in Firebase Console\n\n";
+                        errorMsg += "Firebase Console:\n";
+                        errorMsg += "Authentication → Sign-in method → Email/Password";
+                    } else if (firebaseError.getMessage().contains("INVALID_PASSWORD") ||
+                               firebaseError.getMessage().contains("INVALID_LOGIN_CREDENTIALS")) {
+                        errorMsg += "• Invalid phone number or PIN\n";
+                        errorMsg += "• Make sure you entered correct credentials\n";
+                        errorMsg += "• Try 'Forgot PIN?' if you forgot your PIN";
+                    } else if (firebaseError.getMessage().contains("USER_NOT_FOUND") ||
+                               firebaseError.getMessage().contains("EMAIL_NOT_FOUND")) {
+                        errorMsg += "• Account not found in Firebase\n";
+                        errorMsg += "• Please sign up first if you're a new user\n";
+                        errorMsg += "• Or contact support if you have an account";
+                    } else {
+                        errorMsg += "• Check your internet connection\n";
+                        errorMsg += "• Make sure Firebase is configured\n";
+                        errorMsg += "• Try again in a moment\n\n";
+                        errorMsg += "Error: " + firebaseError.getMessage();
+                    }
+                    
+                    showError(errorMsg);
+                });
+            }
+        }).start();
+    }
+    
+    /**
+     * Perform local SQLite login and optionally save Firebase session
+     */
+    private void performLocalLogin(String phone, String pin, FirebaseAuthService.AuthResult firebaseAuth, Button loginBtn) {
         // Check credentials in database
         String sql = "SELECT * FROM users WHERE phone = ? AND role = ?";
         Object[] params = {phone, selectedRole.toLowerCase()};
@@ -102,7 +214,7 @@ public class LoginController {
                     if (rs.next()) {
                         String storedPin = rs.getString("pin");
                         
-                        // TODO: Use BCrypt for hashing - for now comparing plain text
+                        // Compare PIN
                         if (pin.equals(storedPin)) {
                             // Create User object
                             User user = new User();
@@ -117,6 +229,18 @@ public class LoginController {
                             user.setCreatedAt(rs.getString("created_at"));
                             
                             Platform.runLater(() -> {
+                                // Save session for one-time login
+                                if (firebaseAuth != null) {
+                                    AuthSessionManager.getInstance().saveSession(
+                                        user.getId(),
+                                        firebaseAuth.getFirebaseUserId(),
+                                        firebaseAuth.getIdToken(),
+                                        firebaseAuth.getRefreshToken(),
+                                        phone,
+                                        user.getRole()
+                                    );
+                                }
+                                
                                 // Set current user in App
                                 App.setCurrentUser(user);
                                 
@@ -128,7 +252,7 @@ public class LoginController {
                                 
                                 System.out.println("✅ Login successful - User: " + user.getName() + ", Role: " + user.getRole());
                                 
-                                // Navigate to crop feed (marketplace) - default landing page
+                                // Navigate to crop feed (marketplace)
                                 App.loadScene("crop-feed-view.fxml", "সকল ফসল / Browse Crops - Chashi Bhai");
                                 
                                 if (loginBtn != null) loginBtn.setDisable(false);

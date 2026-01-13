@@ -3,6 +3,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.utils.ImageBase64Util;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -52,9 +53,36 @@ public class CropDetailController {
     private String farmerPhone;
     private double cropPrice;
     private String cropUnit;
-    private String[] photoPaths;
+    private List<CropPhoto> cropPhotos = new ArrayList<>(); // Store photo data
     private int currentPhotoIndex = 0;
     private Double orderedQuantity = null; // Set when viewing from order context
+    
+    // Inner class to hold photo data
+    private static class CropPhoto {
+        String path;
+        String base64;
+        
+        CropPhoto(String path, String base64) {
+            this.path = path;
+            this.base64 = base64;
+        }
+        
+        Image toImage() {
+            // Try Base64 first
+            if (base64 != null && !base64.isEmpty()) {
+                Image img = ImageBase64Util.base64ToImage(base64);
+                if (img != null) return img;
+            }
+            // Fall back to file path
+            if (path != null && !path.isEmpty()) {
+                File file = new File(path);
+                if (file.exists()) {
+                    return new Image(file.toURI().toString());
+                }
+            }
+            return null;
+        }
+    }
 
     @FXML
     public void initialize() {
@@ -195,18 +223,26 @@ public class CropDetailController {
     }
 
     private void loadCropPhotos() {
-        String sql = "SELECT photo_path FROM crop_photos WHERE crop_id = ? ORDER BY photo_order";
+        // Updated query to include image_base64 and order by photo_order
+        String sql = "SELECT id, crop_id, photo_path, image_base64, photo_order FROM crop_photos WHERE crop_id = ? ORDER BY photo_order ASC";
         
         DatabaseService.executeQueryAsync(sql, new Object[]{cropId},
             rs -> {
                 // CRITICAL: Read ResultSet data BEFORE Platform.runLater to avoid closed ResultSet
-                List<String> paths = new ArrayList<>();
+                List<CropPhoto> photos = new ArrayList<>();
                 try {
                     while (rs.next()) {
                         String path = rs.getString("photo_path");
-                        if (path != null && new File(path).exists()) {
-                            paths.add(path);
-                        }
+                        String base64 = rs.getString("image_base64");
+                        int photoOrder = rs.getInt("photo_order");
+                        
+                        // Create photo object with both path and base64
+                        CropPhoto photo = new CropPhoto(path, base64);
+                        photos.add(photo);
+                        
+                        System.out.println("✓ Loaded photo " + photoOrder + " for crop " + cropId + 
+                                         " (Base64: " + (base64 != null && !base64.isEmpty() ? "yes" : "no") + 
+                                         ", Path: " + (path != null ? path : "none") + ")");
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -215,11 +251,13 @@ public class CropDetailController {
                 // Now update UI on JavaFX thread with pre-loaded data
                 Platform.runLater(() -> {
                     try {
-                        photoPaths = paths.toArray(new String[0]);
+                        cropPhotos = photos;
                         
-                        if (photoPaths.length > 0) {
+                        if (!cropPhotos.isEmpty()) {
                             loadPhoto(0);
                             loadThumbnails();
+                        } else {
+                            System.out.println("⚠️ No photos found for crop " + cropId);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -231,22 +269,24 @@ public class CropDetailController {
     }
 
     private void loadPhoto(int index) {
-        if (photoPaths != null && index >= 0 && index < photoPaths.length) {
+        if (cropPhotos != null && index >= 0 && index < cropPhotos.size()) {
             currentPhotoIndex = index;
-            File photoFile = new File(photoPaths[index]);
-            if (photoFile.exists()) {
-                imgMainPhoto.setImage(new Image(photoFile.toURI().toString()));
+            CropPhoto photo = cropPhotos.get(index);
+            Image image = photo.toImage();
+            if (image != null) {
+                imgMainPhoto.setImage(image);
             }
         }
     }
 
     private void loadThumbnails() {
         hboxThumbnails.getChildren().clear();
-        for (int i = 0; i < photoPaths.length; i++) {
+        for (int i = 0; i < cropPhotos.size(); i++) {
             final int photoIndex = i;
-            File photoFile = new File(photoPaths[i]);
-            if (photoFile.exists()) {
-                ImageView thumbnail = new ImageView(new Image(photoFile.toURI().toString()));
+            CropPhoto photo = cropPhotos.get(i);
+            Image image = photo.toImage();
+            if (image != null) {
+                ImageView thumbnail = new ImageView(image);
                 thumbnail.setFitWidth(80);
                 thumbnail.setFitHeight(80);
                 thumbnail.setPreserveRatio(true);
@@ -266,7 +306,7 @@ public class CropDetailController {
 
     @FXML
     private void onNextPhoto() {
-        if (photoPaths != null && currentPhotoIndex < photoPaths.length - 1) {
+        if (cropPhotos != null && currentPhotoIndex < cropPhotos.size() - 1) {
             loadPhoto(currentPhotoIndex + 1);
         }
     }

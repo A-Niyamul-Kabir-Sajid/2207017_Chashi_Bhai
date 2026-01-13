@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane minHeight="700" minWidth="1024" styleClass="root" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25" fx:controller="com.sajid._207017_chashi_bhai.controllers.BuyerHistoryController">
+<BorderPane minHeight="600" minWidth="1024" prefHeight="600" styleClass="root" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25" fx:controller="com.sajid._207017_chashi_bhai.controllers.BuyerHistoryController">
     
     <!-- Top Navigation -->
     <top>

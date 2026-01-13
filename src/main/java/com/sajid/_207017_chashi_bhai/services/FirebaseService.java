@@ -1,42 +1,51 @@
 package com.sajid._207017_chashi_bhai.services;
 
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.firestore.*;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseOptions;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.cloud.FirestoreClient;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.*;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 /**
- * FirebaseService - Cloud database service using Firestore
- * Mirrors the SQLite schema for cloud synchronization
+ * FirebaseService - Firestore REST API Service
+ * Handles storing and retrieving data from Firestore using REST API
  * 
- * Collections structure:
+ * This is a lightweight approach that:
+ * - Uses Java's built-in HttpClient (no external dependencies)
+ * - Stores images as Base64 strings
+ * - Syncs with local SQLite database
+ * 
+ * Collections:
  * - users
  * - crops
- * - crop_photos
- * - farm_photos
+ * - crop_photos (with Base64 images)
+ * - farm_photos (with Base64 images)
  * - orders
  * - reviews
  * - conversations
  * - messages
  * - notifications
- * - market_prices
  */
 public class FirebaseService {
     private static FirebaseService instance;
-    private Firestore firestore;
-    private FirebaseAuth auth;
-    private boolean initialized = false;
+    private static final String PROJECT_ID = FirebaseConfig.getProjectId();
+    private static final String BASE_URL = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID + "/databases/(default)/documents";
+    
+    private final HttpClient httpClient;
+    private final Gson gson;
+    
+    // Current auth token (set after login)
+    private String currentIdToken;
     
     // Executor for async operations
     private static final ExecutorService executor = Executors.newFixedThreadPool(4, r -> {
@@ -46,7 +55,7 @@ public class FirebaseService {
         return thread;
     });
 
-    // Collection names matching SQLite tables
+    // Collection names
     public static final String COLLECTION_USERS = "users";
     public static final String COLLECTION_CROPS = "crops";
     public static final String COLLECTION_CROP_PHOTOS = "crop_photos";
@@ -56,10 +65,12 @@ public class FirebaseService {
     public static final String COLLECTION_CONVERSATIONS = "conversations";
     public static final String COLLECTION_MESSAGES = "messages";
     public static final String COLLECTION_NOTIFICATIONS = "notifications";
-    public static final String COLLECTION_MARKET_PRICES = "market_prices";
 
     private FirebaseService() {
-        // Private constructor for singleton
+        this.httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(30))
+            .build();
+        this.gson = new Gson();
     }
 
     public static FirebaseService getInstance() {
@@ -70,186 +81,102 @@ public class FirebaseService {
     }
 
     /**
-     * Initialize Firebase with credentials file
-     * 
-     * @param credentialsPath Path to firebase-credentials.json
-     * @throws IOException if credentials file not found or invalid
+     * Set authentication token for API calls
      */
-    public void initialize(String credentialsPath) throws IOException {
-        if (initialized) {
-            System.out.println("✅ Firebase already initialized.");
-            return;
-        }
-
-        try {
-            InputStream serviceAccount;
-            
-            // Try to load from file system first
-            try {
-                serviceAccount = new FileInputStream(credentialsPath);
-                System.out.println("📂 Loading Firebase credentials from: " + credentialsPath);
-            } catch (IOException e) {
-                // Try to load from resources
-                serviceAccount = getClass().getClassLoader().getResourceAsStream(credentialsPath);
-                if (serviceAccount == null) {
-                    throw new IOException("❌ Firebase credentials file not found: " + credentialsPath);
-                }
-                System.out.println("📂 Loading Firebase credentials from resources");
-            }
-
-            FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .build();
-
-            FirebaseApp.initializeApp(options);
-            
-            this.firestore = FirestoreClient.getFirestore();
-            this.auth = FirebaseAuth.getInstance();
-            this.initialized = true;
-            
-            System.out.println("✅ Firebase initialized successfully with Firestore!");
-            
-            // Initialize indexes (one-time setup)
-            initializeIndexes();
-            
-        } catch (Exception e) {
-            System.err.println("❌ Failed to initialize Firebase: " + e.getMessage());
-            e.printStackTrace();
-            throw e;
-        }
+    public void setIdToken(String idToken) {
+        this.currentIdToken = idToken;
     }
 
     /**
-     * Initialize with default credentials path
+     * Check if Firebase is authenticated
      */
-    public void initialize() throws IOException {
-        initialize("firebase-credentials.json");
-    }
-
-    /**
-     * Create composite indexes for efficient queries
-     * Note: These will be created automatically on first query
-     */
-    private void initializeIndexes() {
-        System.out.println("📊 Firestore indexes will be created automatically on first query");
-        // Firestore creates indexes automatically based on query patterns
-        // No manual setup needed for single-field queries
+    public boolean isAuthenticated() {
+        return currentIdToken != null && !currentIdToken.isEmpty();
     }
 
     // ==================== USER OPERATIONS ====================
 
     /**
-     * Create a new user in Firestore
-     * 
-     * @param userId User ID (matches SQLite)
-     * @param userData User data map (name, phone, pin, role, district, etc.)
-     * @param onSuccess Success callback
-     * @param onError Error callback
+     * Save user data to Firestore
+     * @param userId User ID (matches SQLite id)
+     * @param userData Map containing user data
      */
-    public void createUser(String userId, Map<String, Object> userData, 
-                          Runnable onSuccess, Consumer<Exception> onError) {
+    public void saveUser(String userId, Map<String, Object> userData, 
+                        Runnable onSuccess, Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
-                Objects.requireNonNull(userId, "userId");
-                Objects.requireNonNull(userData, "userData");
+                String url = BASE_URL + "/" + COLLECTION_USERS + "?documentId=" + userId;
+                
+                Map<String, Object> document = new HashMap<>();
+                document.put("fields", convertToFirestoreFields(userData));
+                
+                String jsonBody = gson.toJson(document);
 
-                // Add timestamps
-                userData.put("created_at", FieldValue.serverTimestamp());
-                userData.put("updated_at", FieldValue.serverTimestamp());
-                userData.put("is_verified", false);
+                HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
                 
-                firestore.collection(COLLECTION_USERS)
-                        .document(userId)
-                        .set(userData)
-                        .get(); // Wait for completion
-                
-                if (onSuccess != null) {
-                    onSuccess.run();
+                if (currentIdToken != null) {
+                    requestBuilder.header("Authorization", "Bearer " + currentIdToken);
                 }
+                
+                HttpResponse<String> response = httpClient.send(
+                    requestBuilder.build(), 
+                    HttpResponse.BodyHandlers.ofString()
+                );
+                
+                if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                    System.out.println("✓ User data saved to Firestore: " + userId);
+                    if (onSuccess != null) onSuccess.run();
+                } else {
+                    throw new RuntimeException("HTTP " + response.statusCode() + ": " + response.body());
+                }
+                
             } catch (Exception e) {
-                System.err.println("❌ Error creating user: " + e.getMessage());
-                if (onError != null) {
-                    onError.accept(e);
-                }
+                System.err.println("❌ Error saving user to Firestore: " + e.getMessage());
+                if (onError != null) onError.accept(e);
             }
         });
     }
 
     /**
-     * Get user by ID
+     * Load user data from Firestore
      */
-    public void getUser(String userId, Consumer<DocumentSnapshot> onSuccess, 
-                       Consumer<Exception> onError) {
+    public void loadUser(String userId, Consumer<Map<String, Object>> onSuccess, 
+                        Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
-                Objects.requireNonNull(userId, "userId");
-                DocumentSnapshot doc = firestore.collection(COLLECTION_USERS)
-                        .document(userId)
-                        .get()
-                        .get();
+                String url = BASE_URL + "/" + COLLECTION_USERS + "/" + userId;
                 
-                if (onSuccess != null) {
-                    onSuccess.accept(doc);
+                HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .GET();
+                
+                if (currentIdToken != null) {
+                    requestBuilder.header("Authorization", "Bearer " + currentIdToken);
                 }
+                
+                HttpResponse<String> response = httpClient.send(
+                    requestBuilder.build(), 
+                    HttpResponse.BodyHandlers.ofString()
+                );
+                
+                if (response.statusCode() == 200) {
+                    JsonObject document = JsonParser.parseString(response.body()).getAsJsonObject();
+                    Map<String, Object> userData = parseFirestoreDocument(document);
+                    
+                    System.out.println("✓ User data loaded from Firestore: " + userId);
+                    if (onSuccess != null) onSuccess.accept(userData);
+                } else if (response.statusCode() == 404) {
+                    if (onSuccess != null) onSuccess.accept(null); // User not found
+                } else {
+                    throw new RuntimeException("HTTP " + response.statusCode());
+                }
+                
             } catch (Exception e) {
-                System.err.println("❌ Error getting user: " + e.getMessage());
-                if (onError != null) {
-                    onError.accept(e);
-                }
-            }
-        });
-    }
-
-    /**
-     * Get user by phone number
-     */
-    public void getUserByPhone(String phone, Consumer<QuerySnapshot> onSuccess, 
-                               Consumer<Exception> onError) {
-        executor.submit(() -> {
-            try {
-                Objects.requireNonNull(phone, "phone");
-                QuerySnapshot querySnapshot = firestore.collection(COLLECTION_USERS)
-                        .whereEqualTo("phone", phone)
-                        .limit(1)
-                        .get()
-                        .get();
-                
-                if (onSuccess != null) {
-                    onSuccess.accept(querySnapshot);
-                }
-            } catch (Exception e) {
-                System.err.println("❌ Error getting user by phone: " + e.getMessage());
-                if (onError != null) {
-                    onError.accept(e);
-                }
-            }
-        });
-    }
-
-    /**
-     * Update user profile
-     */
-    public void updateUser(String userId, Map<String, Object> updates, 
-                          Runnable onSuccess, Consumer<Exception> onError) {
-        executor.submit(() -> {
-            try {
-                Objects.requireNonNull(userId, "userId");
-                Objects.requireNonNull(updates, "updates");
-                updates.put("updated_at", FieldValue.serverTimestamp());
-                
-                firestore.collection(COLLECTION_USERS)
-                        .document(userId)
-                        .update(updates)
-                        .get();
-                
-                if (onSuccess != null) {
-                    onSuccess.run();
-                }
-            } catch (Exception e) {
-                System.err.println("❌ Error updating user: " + e.getMessage());
-                if (onError != null) {
-                    onError.accept(e);
-                }
+                System.err.println("❌ Error loading user from Firestore: " + e.getMessage());
+                if (onError != null) onError.accept(e);
             }
         });
     }
@@ -257,115 +184,238 @@ public class FirebaseService {
     // ==================== CROP OPERATIONS ====================
 
     /**
-     * Create a new crop listing
+     * Save crop data to Firestore
      */
-    public void createCrop(String cropId, Map<String, Object> cropData, 
-                          Runnable onSuccess, Consumer<Exception> onError) {
+    public void saveCrop(String cropId, Map<String, Object> cropData,
+                        Runnable onSuccess, Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
-                Objects.requireNonNull(cropId, "cropId");
-                Objects.requireNonNull(cropData, "cropData");
-                cropData.put("created_at", FieldValue.serverTimestamp());
-                cropData.put("updated_at", FieldValue.serverTimestamp());
-                cropData.put("status", "active");
+                String url = BASE_URL + "/" + COLLECTION_CROPS + "?documentId=" + cropId;
                 
-                firestore.collection(COLLECTION_CROPS)
-                        .document(cropId)
-                        .set(cropData)
-                        .get();
+                Map<String, Object> document = new HashMap<>();
+                document.put("fields", convertToFirestoreFields(cropData));
                 
-                if (onSuccess != null) {
-                    onSuccess.run();
+                String jsonBody = gson.toJson(document);
+
+                HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+                
+                if (currentIdToken != null) {
+                    requestBuilder.header("Authorization", "Bearer " + currentIdToken);
                 }
+                
+                HttpResponse<String> response = httpClient.send(
+                    requestBuilder.build(), 
+                    HttpResponse.BodyHandlers.ofString()
+                );
+                
+                if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                    System.out.println("✓ Crop saved to Firestore: " + cropId);
+                    if (onSuccess != null) onSuccess.run();
+                } else {
+                    throw new RuntimeException("HTTP " + response.statusCode() + ": " + response.body());
+                }
+                
             } catch (Exception e) {
-                System.err.println("❌ Error creating crop: " + e.getMessage());
-                if (onError != null) {
-                    onError.accept(e);
-                }
+                System.err.println("❌ Error saving crop to Firestore: " + e.getMessage());
+                if (onError != null) onError.accept(e);
             }
         });
     }
 
     /**
-     * Get crops by farmer ID
+     * Save crop photo with Base64 image data
+     * @param cropId Crop ID
+     * @param photoOrder Photo order (1-5)
+     * @param imageBase64 Base64 encoded image data
      */
-    public void getCropsByFarmer(String farmerId, Consumer<QuerySnapshot> onSuccess, 
-                                 Consumer<Exception> onError) {
+    public void saveCropPhoto(String cropId, int photoOrder, String imageBase64,
+                             Runnable onSuccess, Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
-                Objects.requireNonNull(farmerId, "farmerId");
-                QuerySnapshot querySnapshot = firestore.collection(COLLECTION_CROPS)
-                        .whereEqualTo("farmer_id", farmerId)
-                        .whereEqualTo("status", "active")
-                        .orderBy("created_at", Query.Direction.DESCENDING)
-                        .get()
-                        .get();
+                String photoId = cropId + "_" + photoOrder;
+                String url = BASE_URL + "/" + COLLECTION_CROP_PHOTOS + "?documentId=" + photoId;
                 
-                if (onSuccess != null) {
-                    onSuccess.accept(querySnapshot);
+                Map<String, Object> photoData = new HashMap<>();
+                photoData.put("crop_id", cropId);
+                photoData.put("photo_order", photoOrder);
+                photoData.put("image_base64", imageBase64);
+                photoData.put("created_at", System.currentTimeMillis());
+                
+                Map<String, Object> document = new HashMap<>();
+                document.put("fields", convertToFirestoreFields(photoData));
+                
+                String jsonBody = gson.toJson(document);
+
+                HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+                
+                if (currentIdToken != null) {
+                    requestBuilder.header("Authorization", "Bearer " + currentIdToken);
                 }
+                
+                HttpResponse<String> response = httpClient.send(
+                    requestBuilder.build(), 
+                    HttpResponse.BodyHandlers.ofString()
+                );
+                
+                if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                    System.out.println("✓ Crop photo saved to Firestore: " + photoId);
+                    if (onSuccess != null) onSuccess.run();
+                } else {
+                    throw new RuntimeException("HTTP " + response.statusCode() + ": " + response.body());
+                }
+                
             } catch (Exception e) {
-                System.err.println("❌ Error getting crops: " + e.getMessage());
-                if (onError != null) {
-                    onError.accept(e);
-                }
+                System.err.println("❌ Error saving crop photo: " + e.getMessage());
+                if (onError != null) onError.accept(e);
             }
         });
     }
 
     /**
-     * Search crops by name or category
+     * Load crop photo Base64 from Firestore
      */
-    public void searchCrops(String searchQuery, Consumer<QuerySnapshot> onSuccess, 
-                           Consumer<Exception> onError) {
+    public void loadCropPhoto(String cropId, int photoOrder,
+                             Consumer<String> onSuccess, Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
-                Objects.requireNonNull(searchQuery, "searchQuery");
-                // Firestore doesn't support full-text search natively
-                // This is a basic implementation - consider using Algolia for production
-                QuerySnapshot querySnapshot = firestore.collection(COLLECTION_CROPS)
-                        .whereEqualTo("status", "active")
-                        .orderBy("created_at", Query.Direction.DESCENDING)
-                        .limit(100)
-                        .get()
-                        .get();
+                String photoId = cropId + "_" + photoOrder;
+                String url = BASE_URL + "/" + COLLECTION_CROP_PHOTOS + "/" + photoId;
                 
-                if (onSuccess != null) {
-                    onSuccess.accept(querySnapshot);
+                HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .GET();
+                
+                if (currentIdToken != null) {
+                    requestBuilder.header("Authorization", "Bearer " + currentIdToken);
                 }
+                
+                HttpResponse<String> response = httpClient.send(
+                    requestBuilder.build(), 
+                    HttpResponse.BodyHandlers.ofString()
+                );
+                
+                if (response.statusCode() == 200) {
+                    JsonObject document = JsonParser.parseString(response.body()).getAsJsonObject();
+                    Map<String, Object> photoData = parseFirestoreDocument(document);
+                    
+                    String imageBase64 = (String) photoData.get("image_base64");
+                    if (onSuccess != null) onSuccess.accept(imageBase64);
+                } else if (response.statusCode() == 404) {
+                    if (onSuccess != null) onSuccess.accept(null);
+                } else {
+                    throw new RuntimeException("HTTP " + response.statusCode());
+                }
+                
             } catch (Exception e) {
-                System.err.println("❌ Error searching crops: " + e.getMessage());
-                if (onError != null) {
-                    onError.accept(e);
-                }
+                System.err.println("❌ Error loading crop photo: " + e.getMessage());
+                if (onError != null) onError.accept(e);
             }
         });
     }
 
     /**
-     * Update crop details
+     * Load all crop photos for a crop
      */
-    public void updateCrop(String cropId, Map<String, Object> updates, 
-                          Runnable onSuccess, Consumer<Exception> onError) {
+    public void loadAllCropPhotos(String cropId, Consumer<List<String>> onSuccess, 
+                                  Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
-                Objects.requireNonNull(cropId, "cropId");
-                Objects.requireNonNull(updates, "updates");
-                updates.put("updated_at", FieldValue.serverTimestamp());
+                List<String> photoBase64List = new ArrayList<>();
                 
-                firestore.collection(COLLECTION_CROPS)
-                        .document(cropId)
-                        .update(updates)
-                        .get();
-                
-                if (onSuccess != null) {
-                    onSuccess.run();
+                // Load photos 1-5
+                for (int i = 1; i <= 5; i++) {
+                    String photoId = cropId + "_" + i;
+                    String url = BASE_URL + "/" + COLLECTION_CROP_PHOTOS + "/" + photoId;
+                    
+                    try {
+                        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                            .uri(URI.create(url))
+                            .GET();
+                        
+                        if (currentIdToken != null) {
+                            requestBuilder.header("Authorization", "Bearer " + currentIdToken);
+                        }
+                        
+                        HttpResponse<String> response = httpClient.send(
+                            requestBuilder.build(), 
+                            HttpResponse.BodyHandlers.ofString()
+                        );
+                        
+                        if (response.statusCode() == 200) {
+                            JsonObject document = JsonParser.parseString(response.body()).getAsJsonObject();
+                            Map<String, Object> photoData = parseFirestoreDocument(document);
+                            
+                            String imageBase64 = (String) photoData.get("image_base64");
+                            if (imageBase64 != null && !imageBase64.isEmpty()) {
+                                photoBase64List.add(imageBase64);
+                            }
+                        }
+                    } catch (Exception e) {
+                        // Photo doesn't exist, continue
+                    }
                 }
+                
+                if (onSuccess != null) onSuccess.accept(photoBase64List);
+                
             } catch (Exception e) {
-                System.err.println("❌ Error updating crop: " + e.getMessage());
-                if (onError != null) {
-                    onError.accept(e);
+                if (onError != null) onError.accept(e);
+            }
+        });
+    }
+
+    // ==================== PROFILE PHOTO OPERATIONS ====================
+
+    /**
+     * Save user profile photo as Base64
+     */
+    public void saveProfilePhoto(String userId, String imageBase64,
+                                Runnable onSuccess, Consumer<Exception> onError) {
+        executor.submit(() -> {
+            try {
+                String url = BASE_URL + "/" + COLLECTION_USERS + "/" + userId 
+                    + "?updateMask.fieldPaths=profile_photo_base64&updateMask.fieldPaths=updated_at";
+                
+                // Update user document with profile photo
+                Map<String, Object> updateData = new HashMap<>();
+                updateData.put("profile_photo_base64", imageBase64);
+                updateData.put("updated_at", System.currentTimeMillis());
+                
+                Map<String, Object> document = new HashMap<>();
+                document.put("fields", convertToFirestoreFields(updateData));
+                
+                String jsonBody = gson.toJson(document);
+
+                // Use PATCH to update specific fields
+                HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody));
+                
+                if (currentIdToken != null) {
+                    requestBuilder.header("Authorization", "Bearer " + currentIdToken);
                 }
+                
+                HttpResponse<String> response = httpClient.send(
+                    requestBuilder.build(), 
+                    HttpResponse.BodyHandlers.ofString()
+                );
+                
+                if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                    System.out.println("✓ Profile photo saved to Firestore: " + userId);
+                    if (onSuccess != null) onSuccess.run();
+                } else {
+                    throw new RuntimeException("HTTP " + response.statusCode() + ": " + response.body());
+                }
+                
+            } catch (Exception e) {
+                System.err.println("❌ Error saving profile photo: " + e.getMessage());
+                if (onError != null) onError.accept(e);
             }
         });
     }
@@ -373,409 +423,145 @@ public class FirebaseService {
     // ==================== ORDER OPERATIONS ====================
 
     /**
-     * Get a single order document
+     * Save order to Firestore
      */
-    public void getOrder(String orderId, Consumer<DocumentSnapshot> onSuccess,
-                         Consumer<Exception> onError) {
+    public void saveOrder(String orderId, Map<String, Object> orderData,
+                         Runnable onSuccess, Consumer<Exception> onError) {
         executor.submit(() -> {
             try {
-                Objects.requireNonNull(orderId, "orderId");
-                DocumentSnapshot doc = firestore.collection(COLLECTION_ORDERS)
-                        .document(orderId)
-                        .get()
-                        .get();
+                String url = BASE_URL + "/" + COLLECTION_ORDERS + "?documentId=" + orderId;
+                
+                Map<String, Object> document = new HashMap<>();
+                document.put("fields", convertToFirestoreFields(orderData));
+                
+                String jsonBody = gson.toJson(document);
 
-                if (onSuccess != null) {
-                    onSuccess.accept(doc);
+                HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+                
+                if (currentIdToken != null) {
+                    requestBuilder.header("Authorization", "Bearer " + currentIdToken);
                 }
+                
+                HttpResponse<String> response = httpClient.send(
+                    requestBuilder.build(), 
+                    HttpResponse.BodyHandlers.ofString()
+                );
+                
+                if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                    System.out.println("✓ Order saved to Firestore: " + orderId);
+                    if (onSuccess != null) onSuccess.run();
+                } else {
+                    throw new RuntimeException("HTTP " + response.statusCode() + ": " + response.body());
+                }
+                
             } catch (Exception e) {
-                System.err.println("❌ Error getting order: " + e.getMessage());
-                if (onError != null) {
-                    onError.accept(e);
-                }
+                System.err.println("❌ Error saving order: " + e.getMessage());
+                if (onError != null) onError.accept(e);
             }
         });
     }
 
+    // ==================== HELPER METHODS ====================
+
     /**
-     * Upsert (merge) order fields without touching created_at
+     * Convert Java map to Firestore fields format
      */
-    public void upsertOrder(String orderId, Map<String, Object> orderData,
-                            Runnable onSuccess, Consumer<Exception> onError) {
-        executor.submit(() -> {
-            try {
-                Objects.requireNonNull(orderId, "orderId");
-                Objects.requireNonNull(orderData, "orderData");
-                orderData.put("updated_at", FieldValue.serverTimestamp());
-
-                firestore.collection(COLLECTION_ORDERS)
-                        .document(orderId)
-                        .set(orderData, SetOptions.merge())
-                        .get();
-
-                if (onSuccess != null) {
-                    onSuccess.run();
-                }
-            } catch (Exception e) {
-                System.err.println("❌ Error upserting order: " + e.getMessage());
-                if (onError != null) {
-                    onError.accept(e);
-                }
+    private Map<String, Object> convertToFirestoreFields(Map<String, Object> data) {
+        Map<String, Object> fields = new HashMap<>();
+        
+        for (Map.Entry<String, Object> entry : data.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            
+            Map<String, Object> fieldValue = new HashMap<>();
+            
+            if (value == null) {
+                fieldValue.put("nullValue", null);
+            } else if (value instanceof String) {
+                fieldValue.put("stringValue", value);
+            } else if (value instanceof Integer) {
+                fieldValue.put("integerValue", String.valueOf(value));
+            } else if (value instanceof Long) {
+                fieldValue.put("integerValue", String.valueOf(value));
+            } else if (value instanceof Double) {
+                fieldValue.put("doubleValue", value);
+            } else if (value instanceof Float) {
+                fieldValue.put("doubleValue", ((Float) value).doubleValue());
+            } else if (value instanceof Boolean) {
+                fieldValue.put("booleanValue", value);
+            } else {
+                // Convert other types to string
+                fieldValue.put("stringValue", value.toString());
             }
-        });
-    }
-
-    /**
-     * Create a new order
-     */
-    public void createOrder(String orderId, Map<String, Object> orderData, 
-                           Runnable onSuccess, Consumer<Exception> onError) {
-        executor.submit(() -> {
-            try {
-                Objects.requireNonNull(orderId, "orderId");
-                Objects.requireNonNull(orderData, "orderData");
-                orderData.putIfAbsent("created_at", FieldValue.serverTimestamp());
-                orderData.putIfAbsent("status", "new");
-                orderData.putIfAbsent("payment_status", "pending");
-                orderData.put("updated_at", FieldValue.serverTimestamp());
-                
-                firestore.collection(COLLECTION_ORDERS)
-                        .document(orderId)
-                        .set(orderData)
-                        .get();
-                
-                if (onSuccess != null) {
-                    onSuccess.run();
-                }
-            } catch (Exception e) {
-                System.err.println("❌ Error creating order: " + e.getMessage());
-                if (onError != null) {
-                    onError.accept(e);
-                }
-            }
-        });
-    }
-
-    /**
-     * Get orders by farmer ID
-     */
-    public void getOrdersByFarmer(int farmerId, Consumer<QuerySnapshot> onSuccess,
-                                  Consumer<Exception> onError) {
-        executor.submit(() -> {
-            try {
-                QuerySnapshot querySnapshot = firestore.collection(COLLECTION_ORDERS)
-                        .whereEqualTo("farmer_id", farmerId)
-                        .orderBy("created_at", Query.Direction.DESCENDING)
-                        .get()
-                        .get();
-                
-                if (onSuccess != null) {
-                    onSuccess.accept(querySnapshot);
-                }
-            } catch (Exception e) {
-                System.err.println("❌ Error getting farmer orders: " + e.getMessage());
-                if (onError != null) {
-                    onError.accept(e);
-                }
-            }
-        });
-    }
-
-    /**
-     * Get orders by buyer ID
-     */
-    public void getOrdersByBuyer(int buyerId, Consumer<QuerySnapshot> onSuccess,
-                                 Consumer<Exception> onError) {
-        executor.submit(() -> {
-            try {
-                QuerySnapshot querySnapshot = firestore.collection(COLLECTION_ORDERS)
-                        .whereEqualTo("buyer_id", buyerId)
-                        .orderBy("created_at", Query.Direction.DESCENDING)
-                        .get()
-                        .get();
-                
-                if (onSuccess != null) {
-                    onSuccess.accept(querySnapshot);
-                }
-            } catch (Exception e) {
-                System.err.println("❌ Error getting buyer orders: " + e.getMessage());
-                if (onError != null) {
-                    onError.accept(e);
-                }
-            }
-        });
-    }
-
-    /**
-     * Update order status
-     */
-    public void updateOrderStatus(String orderId, String status, 
-                                  Runnable onSuccess, Consumer<Exception> onError) {
-        executor.submit(() -> {
-            try {
-                Objects.requireNonNull(orderId, "orderId");
-                Objects.requireNonNull(status, "status");
-                Map<String, Object> updates = new HashMap<>();
-                updates.put("status", status);
-                updates.put("updated_at", FieldValue.serverTimestamp());
-                
-                // Add timestamp for specific statuses
-                switch (status) {
-                    case "accepted":
-                        updates.put("accepted_at", FieldValue.serverTimestamp());
-                        break;
-                    case "in_transit":
-                        updates.put("in_transit_at", FieldValue.serverTimestamp());
-                        break;
-                    case "delivered":
-                        updates.put("delivered_at", FieldValue.serverTimestamp());
-                        break;
-                    case "completed":
-                        updates.put("completed_at", FieldValue.serverTimestamp());
-                        break;
-                }
-                
-                firestore.collection(COLLECTION_ORDERS)
-                        .document(orderId)
-                        .update(updates)
-                        .get();
-                
-                if (onSuccess != null) {
-                    onSuccess.run();
-                }
-            } catch (Exception e) {
-                System.err.println("❌ Error updating order status: " + e.getMessage());
-                if (onError != null) {
-                    onError.accept(e);
-                }
-            }
-        });
-    }
-
-    // ==================== MESSAGING OPERATIONS ====================
-
-    /**
-     * Create or get conversation between two users
-     */
-    public void getOrCreateConversation(String user1Id, String user2Id, String cropId,
-                                       Consumer<DocumentSnapshot> onSuccess,
-                                       Consumer<Exception> onError) {
-        executor.submit(() -> {
-            try {
-                Objects.requireNonNull(user1Id, "user1Id");
-                Objects.requireNonNull(user2Id, "user2Id");
-                Objects.requireNonNull(cropId, "cropId");
-                // Search for existing conversation
-                QuerySnapshot existing = firestore.collection(COLLECTION_CONVERSATIONS)
-                        .whereEqualTo("user1_id", user1Id)
-                        .whereEqualTo("user2_id", user2Id)
-                        .whereEqualTo("crop_id", cropId)
-                        .limit(1)
-                        .get()
-                        .get();
-                
-                if (!existing.isEmpty()) {
-                    if (onSuccess != null) {
-                        onSuccess.accept(existing.getDocuments().get(0));
-                    }
-                    return;
-                }
-                
-                // Create new conversation
-                Map<String, Object> conversationData = new HashMap<>();
-                conversationData.put("user1_id", user1Id);
-                conversationData.put("user2_id", user2Id);
-                conversationData.put("crop_id", cropId);
-                conversationData.put("unread_count_user1", 0);
-                conversationData.put("unread_count_user2", 0);
-                conversationData.put("created_at", FieldValue.serverTimestamp());
-                conversationData.put("updated_at", FieldValue.serverTimestamp());
-                
-                DocumentReference docRef = firestore.collection(COLLECTION_CONVERSATIONS)
-                        .document();
-                docRef.set(conversationData).get();
-                
-                if (onSuccess != null) {
-                    onSuccess.accept(docRef.get().get());
-                }
-            } catch (Exception e) {
-                System.err.println("❌ Error creating conversation: " + e.getMessage());
-                if (onError != null) {
-                    onError.accept(e);
-                }
-            }
-        });
-    }
-
-    /**
-     * Send a message
-     */
-    public void sendMessage(String conversationId, Map<String, Object> messageData,
-                           Runnable onSuccess, Consumer<Exception> onError) {
-        executor.submit(() -> {
-            try {
-                Objects.requireNonNull(conversationId, "conversationId");
-                Objects.requireNonNull(messageData, "messageData");
-                messageData.put("created_at", FieldValue.serverTimestamp());
-                messageData.put("is_read", false);
-                
-                firestore.collection(COLLECTION_MESSAGES)
-                        .add(messageData)
-                        .get();
-                
-                // Update conversation last message
-                Map<String, Object> conversationUpdate = new HashMap<>();
-                conversationUpdate.put("last_message", messageData.get("message_text"));
-                conversationUpdate.put("last_message_time", FieldValue.serverTimestamp());
-                conversationUpdate.put("updated_at", FieldValue.serverTimestamp());
-                
-                firestore.collection(COLLECTION_CONVERSATIONS)
-                        .document(conversationId)
-                        .update(conversationUpdate)
-                        .get();
-                
-                if (onSuccess != null) {
-                    onSuccess.run();
-                }
-            } catch (Exception e) {
-                System.err.println("❌ Error sending message: " + e.getMessage());
-                if (onError != null) {
-                    onError.accept(e);
-                }
-            }
-        });
-    }
-
-    // ==================== PHOTO OPERATIONS ====================
-
-    /**
-     * Add crop photo reference
-     */
-    public void addCropPhoto(String cropId, String photoPath, int photoOrder,
-                            Runnable onSuccess, Consumer<Exception> onError) {
-        executor.submit(() -> {
-            try {
-                Objects.requireNonNull(cropId, "cropId");
-                Objects.requireNonNull(photoPath, "photoPath");
-                Map<String, Object> photoData = new HashMap<>();
-                photoData.put("crop_id", cropId);
-                photoData.put("photo_path", photoPath);
-                photoData.put("photo_order", photoOrder);
-                photoData.put("created_at", FieldValue.serverTimestamp());
-                
-                firestore.collection(COLLECTION_CROP_PHOTOS)
-                        .add(photoData)
-                        .get();
-                
-                if (onSuccess != null) {
-                    onSuccess.run();
-                }
-            } catch (Exception e) {
-                System.err.println("❌ Error adding crop photo: " + e.getMessage());
-                if (onError != null) {
-                    onError.accept(e);
-                }
-            }
-        });
-    }
-
-    // ==================== UTILITY METHODS ====================
-
-    /**
-     * Check if Firebase is initialized
-     */
-    public boolean isInitialized() {
-        return initialized;
-    }
-
-    /**
-     * Get Firestore instance
-     */
-    public Firestore getFirestore() {
-        if (!initialized) {
-            throw new IllegalStateException("❌ Firebase not initialized. Call initialize() first.");
+            
+            fields.put(key, fieldValue);
         }
-        return firestore;
+        
+        return fields;
     }
 
     /**
-     * Get Firebase Auth instance
+     * Parse Firestore document to Java map
      */
-    public FirebaseAuth getAuth() {
-        if (!initialized) {
-            throw new IllegalStateException("❌ Firebase not initialized. Call initialize() first.");
+    private Map<String, Object> parseFirestoreDocument(JsonObject document) {
+        Map<String, Object> result = new HashMap<>();
+        
+        if (!document.has("fields")) {
+            return result;
         }
-        return auth;
+        
+        JsonObject fields = document.getAsJsonObject("fields");
+        
+        for (String key : fields.keySet()) {
+            JsonObject field = fields.getAsJsonObject(key);
+            Object value = parseFirestoreValue(field);
+            result.put(key, value);
+        }
+        
+        return result;
     }
 
     /**
-     * Batch write operation for bulk updates
+     * Parse a single Firestore field value
      */
-    public void executeBatch(List<Map<String, Object>> operations,
-                            Runnable onSuccess, Consumer<Exception> onError) {
-        executor.submit(() -> {
-            try {
-                Objects.requireNonNull(operations, "operations");
-                WriteBatch batch = firestore.batch();
-                
-                for (Map<String, Object> op : operations) {
-                    if (op == null) continue;
-                    String collection = (String) op.get("collection");
-                    String docId = (String) op.get("docId");
-                    String action = (String) op.get("action");
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> data = (Map<String, Object>) op.get("data");
-
-                    if (collection == null || docId == null || action == null) {
-                        continue;
-                    }
-                    
-                    DocumentReference docRef = firestore.collection(collection).document(docId);
-                    
-                    if ("set".equals(action)) {
-                        if (data != null) {
-                            batch.set(docRef, data);
-                        }
-                    } else if ("update".equals(action)) {
-                        if (data != null) {
-                            batch.update(docRef, data);
-                        }
-                    } else if ("delete".equals(action)) {
-                        batch.delete(docRef);
-                    }
-                }
-                
-                batch.commit().get();
-                
-                if (onSuccess != null) {
-                    onSuccess.run();
-                }
-            } catch (Exception e) {
-                System.err.println("❌ Error executing batch: " + e.getMessage());
-                if (onError != null) {
-                    onError.accept(e);
+    private Object parseFirestoreValue(JsonObject field) {
+        if (field.has("stringValue")) {
+            return field.get("stringValue").getAsString();
+        } else if (field.has("integerValue")) {
+            return Long.parseLong(field.get("integerValue").getAsString());
+        } else if (field.has("doubleValue")) {
+            return field.get("doubleValue").getAsDouble();
+        } else if (field.has("booleanValue")) {
+            return field.get("booleanValue").getAsBoolean();
+        } else if (field.has("nullValue")) {
+            return null;
+        } else if (field.has("arrayValue")) {
+            JsonArray array = field.getAsJsonObject("arrayValue").getAsJsonArray("values");
+            List<Object> list = new ArrayList<>();
+            if (array != null) {
+                for (JsonElement element : array) {
+                    list.add(parseFirestoreValue(element.getAsJsonObject()));
                 }
             }
-        });
+            return list;
+        }
+        return null;
     }
 
     /**
-     * Shutdown Firebase service
+     * Sync local SQLite data to Firestore
+     * Call this after any local database changes
      */
-    public void shutdown() {
-        if (initialized) {
-            try {
-                System.out.println("🔄 Closing Firestore connection...");
-                if (firestore != null) {
-                    firestore.close();
-                }
-                executor.shutdown();
-                initialized = false;
-                System.out.println("✅ Firebase connection closed successfully.");
-            } catch (Exception e) {
-                System.err.println("❌ Error closing Firebase: " + e.getMessage());
-                e.printStackTrace();
-            }
+    public void syncToFirestore() {
+        if (!isAuthenticated()) {
+            System.out.println("⚠️ Cannot sync - not authenticated with Firebase");
+            return;
         }
+        
+        System.out.println("🔄 Syncing local data to Firestore...");
+        // Sync is handled by individual save operations
     }
 }

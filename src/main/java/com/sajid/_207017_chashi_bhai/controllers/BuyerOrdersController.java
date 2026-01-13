@@ -3,7 +3,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
-import com.sajid._207017_chashi_bhai.services.FirebaseSyncService;
+// import com.sajid._207017_chashi_bhai.services.FirebaseSyncService; // Removed - using REST API now
 import com.sajid._207017_chashi_bhai.services.OrderService;
 import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
 import com.sajid._207017_chashi_bhai.utils.StatisticsCalculator;
@@ -115,10 +115,10 @@ public class BuyerOrdersController {
     }
 
     private void refreshOrders() {
-        FirebaseSyncService.getInstance().syncBuyerOrdersFromFirebase(
-            currentUser.getId(),
-            () -> loadOrders(currentFilter)
-        );
+        // TODO: Implement REST API sync for buyer orders
+        // FirebaseSyncService has been removed - using REST API now
+        // For now, just reload from local SQLite
+        loadOrders(currentFilter);
     }
 
     @FXML
@@ -506,7 +506,8 @@ public class BuyerOrdersController {
                         // Update buyer and farmer statistics after completion
                         StatisticsCalculator.updateBuyerStatistics(currentUser.getId());
                         updateFarmerStatsForOrder(orderId);
-                        FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "completed", null);
+                        // TODO: Implement REST API sync for order status
+                        // FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "completed", null);
                     } else {
                         showError("ত্রুটি", r.message);
                     }
@@ -552,7 +553,8 @@ public class BuyerOrdersController {
                     if (r.ok) {
                         showSuccess("সফল", r.message);
                         refreshOrders();
-                        FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "cancelled", null);
+                        // TODO: Implement REST API sync for order status
+                        // FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "cancelled", null);
                     } else {
                         showError("ত্রুটি", r.message);
                     }

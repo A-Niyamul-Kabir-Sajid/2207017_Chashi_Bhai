@@ -7,7 +7,7 @@
 <?import javafx.collections.FXCollections?>
 <?import javafx.scene.image.ImageView?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.PostCropController" styleClass="root" minHeight="700" minWidth="1024">
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.PostCropController" styleClass="root" minHeight="600" minWidth="1024" prefHeight="600">
     
     <!-- Top Navigation -->
     <top>

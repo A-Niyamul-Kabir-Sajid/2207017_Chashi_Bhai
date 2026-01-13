@@ -322,24 +322,56 @@ public class DatabaseService {
                     "FOREIGN KEY (farmer_id) REFERENCES users(id) ON DELETE CASCADE)"
                 );
 
-                // Crop photos table
+                // Crop photos table - now with Base64 support
                 stmt.execute(
                     "CREATE TABLE IF NOT EXISTS crop_photos (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "crop_id INTEGER NOT NULL, " +
-                    "photo_path TEXT NOT NULL, " +
+                    "photo_path TEXT, " +
+                    "image_base64 TEXT, " +
                     "photo_order INTEGER DEFAULT 1, " +
                     "FOREIGN KEY (crop_id) REFERENCES crops(id) ON DELETE CASCADE)"
                 );
+                
+                // Add image_base64 column if not exists (migration)
+                try {
+                    stmt.execute("ALTER TABLE crop_photos ADD COLUMN image_base64 TEXT");
+                    System.out.println("Added column: image_base64 to crop_photos");
+                } catch (SQLException e) {
+                    if (!e.getMessage().contains("duplicate column name")) {
+                        // Column already exists, ignore
+                    }
+                }
 
-                // Farm photos table
+                // Farm photos table - now with Base64 support
                 stmt.execute(
                     "CREATE TABLE IF NOT EXISTS farm_photos (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "farmer_id INTEGER NOT NULL, " +
-                    "photo_path TEXT NOT NULL, " +
+                    "photo_path TEXT, " +
+                    "image_base64 TEXT, " +
                     "FOREIGN KEY (farmer_id) REFERENCES users(id))"
                 );
+                
+                // Add image_base64 column if not exists (migration)
+                try {
+                    stmt.execute("ALTER TABLE farm_photos ADD COLUMN image_base64 TEXT");
+                    System.out.println("Added column: image_base64 to farm_photos");
+                } catch (SQLException e) {
+                    if (!e.getMessage().contains("duplicate column name")) {
+                        // Column already exists, ignore
+                    }
+                }
+                
+                // Add profile_photo_base64 column to users if not exists
+                try {
+                    stmt.execute("ALTER TABLE users ADD COLUMN profile_photo_base64 TEXT");
+                    System.out.println("Added column: profile_photo_base64 to users");
+                } catch (SQLException e) {
+                    if (!e.getMessage().contains("duplicate column name")) {
+                        // Column already exists, ignore
+                    }
+                }
 
                 // Orders table with proper columns
                 stmt.execute(

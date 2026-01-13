@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 
-<BorderPane minHeight="700" minWidth="1024" styleClass="root" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.sajid._207017_chashi_bhai.controllers.CropDetailController">
+<BorderPane minHeight="600" minWidth="1024" prefHeight="600" styleClass="root" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.sajid._207017_chashi_bhai.controllers.CropDetailController">
     
     <!-- Top Navigation -->
     <top>

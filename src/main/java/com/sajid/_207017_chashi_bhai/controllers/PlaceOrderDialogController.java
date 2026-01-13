@@ -3,7 +3,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
-import com.sajid._207017_chashi_bhai.services.FirebaseSyncService;
+// import com.sajid._207017_chashi_bhai.services.FirebaseSyncService; // Removed - using REST API now
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -186,8 +186,17 @@ public class PlaceOrderDialogController {
         }
 
         // Generate order number
-        String orderNumber = generateOrderNumber();
-        double totalAmount = quantity * pricePerKg;
+        final String orderNumber = generateOrderNumber();
+        final double totalAmount = quantity * pricePerKg;
+        
+        // Make variables final for lambda usage
+        final String finalAddress = address;
+        final String finalDistrict = district;
+        final String finalUpazila = upazila;
+        final String finalPaymentMethod = paymentMethod;
+        final String finalNotes = notes;
+        final double finalQuantity = quantity;
+        final String finalCropName = cropName;
 
         // Insert order into database
         String insertSql = "INSERT INTO orders (order_number, crop_id, farmer_id, buyer_id, quantity_kg, " +
@@ -203,13 +212,13 @@ public class PlaceOrderDialogController {
             quantity,
             pricePerKg,
             totalAmount,
-            address,
-            district,
-            upazila.isEmpty() ? null : upazila,
+            finalAddress,
+            finalDistrict,
+            finalUpazila.isEmpty() ? null : finalUpazila,
             currentUser.getPhone(),
             currentUser.getName(),
-            paymentMethod,
-            notes.isEmpty() ? null : notes
+            finalPaymentMethod,
+            finalNotes.isEmpty() ? null : finalNotes
         };
 
         DatabaseService.executeUpdateAsync(insertSql, params,
@@ -220,9 +229,9 @@ public class PlaceOrderDialogController {
                     
                     // Create notification for farmer
                     createNotification(farmerId, "নতুন অর্ডার", 
-                        currentUser.getName() + " " + quantity + " কেজি " + cropName + " অর্ডার করেছেন।");
+                        currentUser.getName() + " " + finalQuantity + " কেজি " + finalCropName + " অর্ডার করেছেন।");
 
-                    // Cloud sync (best-effort): push this order to Firebase
+                    // Sync order to Firebase (REST API)
                     DatabaseService.executeQueryAsync(
                         "SELECT id FROM orders WHERE order_number = ?",
                         new Object[]{orderNumber},
@@ -230,13 +239,41 @@ public class PlaceOrderDialogController {
                             try {
                                 if (rs.next()) {
                                     int orderId = rs.getInt("id");
-                                    FirebaseSyncService.getInstance().syncOrderToFirebase(orderId);
+                                    
+                                    // Prepare order data for Firebase
+                                    java.util.Map<String, Object> orderData = new java.util.HashMap<>();
+                                    orderData.put("order_number", orderNumber);
+                                    orderData.put("crop_id", cropId);
+                                    orderData.put("farmer_id", farmerId);
+                                    orderData.put("buyer_id", currentUser.getId());
+                                    orderData.put("quantity_kg", finalQuantity);
+                                    orderData.put("price_per_kg", pricePerKg);
+                                    orderData.put("total_amount", totalAmount);
+                                    orderData.put("delivery_address", finalAddress);
+                                    orderData.put("delivery_district", finalDistrict);
+                                    orderData.put("delivery_upazila", finalUpazila.isEmpty() ? "" : finalUpazila);
+                                    orderData.put("buyer_phone", currentUser.getPhone());
+                                    orderData.put("buyer_name", currentUser.getName());
+                                    orderData.put("status", "new");
+                                    orderData.put("payment_status", "pending");
+                                    orderData.put("payment_method", finalPaymentMethod);
+                                    orderData.put("notes", finalNotes.isEmpty() ? "" : finalNotes);
+                                    orderData.put("created_at", System.currentTimeMillis());
+                                    
+                                    // Sync to Firebase
+                                    com.sajid._207017_chashi_bhai.services.FirebaseService.getInstance().saveOrder(
+                                        String.valueOf(orderId),
+                                        orderData,
+                                        () -> System.out.println("✅ Order synced to Firebase: " + orderNumber),
+                                        err -> System.err.println("⚠️ Firebase sync failed (order saved locally): " + err.getMessage())
+                                    );
                                 }
-                            } catch (Exception ignored) {
+                            } catch (Exception e) {
+                                System.err.println("⚠️ Failed to sync order to Firebase: " + e.getMessage());
                             }
                         },
                         err -> {
-                            // ignore: cloud sync is optional
+                            System.err.println("⚠️ Could not retrieve order ID for sync: " + err.getMessage());
                         }
                     );
                     

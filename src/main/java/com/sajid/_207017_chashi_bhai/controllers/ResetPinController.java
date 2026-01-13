@@ -69,29 +69,64 @@ public class ResetPinController {
             return;
         }
 
-        // TODO: Update PIN in database for user with phone number
+        // Update PIN in database for user with phone number
         String phone = SessionManager.getTempPhone();
-        System.out.println("================================");
-        System.out.println("PIN Reset Successful!");
-        System.out.println("Phone: " + phone);
-        System.out.println("New PIN: " + newPin);
-        System.out.println("================================");
-
-        // Show success message
-        showSuccess("✅ PIN reset successfully! Redirecting to login...");
-
-        // Clear fields
-        newPinField.clear();
-        confirmPinField.clear();
-
-        // Redirect to login after 2 seconds
-        try {
-            Thread.sleep(2000);
-            App.loadScene("login-view.fxml", "Login - Chashi Bhai");
-            SessionManager.clearTempData();
-        } catch (Exception e) {
-            e.printStackTrace();
+        String tempRole = SessionManager.getTempRole();
+        
+        // Extract role from RESET_PIN_FARMER or RESET_PIN_BUYER
+        String role = "buyer"; // default
+        if (tempRole != null && tempRole.startsWith("RESET_PIN_")) {
+            role = tempRole.replace("RESET_PIN_", "").toLowerCase();
         }
+        
+        System.out.println("================================");
+        System.out.println("Resetting PIN for:");
+        System.out.println("Phone: " + phone);
+        System.out.println("Role: " + role);
+        System.out.println("================================");
+        
+        // Update PIN in database
+        String updateSql = "UPDATE users SET pin = ? WHERE phone = ? AND role = ?";
+        Object[] params = {newPin, phone, role};
+        
+        com.sajid._207017_chashi_bhai.services.DatabaseService.executeUpdateAsync(updateSql, params,
+            rowsAffected -> {
+                if (rowsAffected > 0) {
+                    System.out.println("✅ PIN updated successfully in database");
+                    
+                    javafx.application.Platform.runLater(() -> {
+                        showSuccess("✅ PIN reset successfully! Redirecting to login...");
+                        
+                        // Clear fields
+                        newPinField.clear();
+                        confirmPinField.clear();
+                        
+                        // Redirect to login after 2 seconds
+                        new Thread(() -> {
+                            try {
+                                Thread.sleep(2000);
+                                javafx.application.Platform.runLater(() -> {
+                                    App.loadScene("login-view.fxml", "Login - Chashi Bhai");
+                                    SessionManager.clearTempData();
+                                });
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }).start();
+                    });
+                } else {
+                    javafx.application.Platform.runLater(() -> {
+                        showError("❌ User not found. Please check phone number and role.");
+                    });
+                }
+            },
+            error -> {
+                javafx.application.Platform.runLater(() -> {
+                    showError("❌ Failed to update PIN. Please try again.");
+                    error.printStackTrace();
+                });
+            }
+        );
     }
 
     @FXML

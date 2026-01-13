@@ -2,9 +2,14 @@ package com.sajid._207017_chashi_bhai.controllers;
 
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.services.FirebaseAuthService;
+import com.sajid._207017_chashi_bhai.services.FirebaseService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class SignupController {
 
@@ -33,6 +38,7 @@ public class SignupController {
     private Label errorLabel;
 
     private String selectedRole = "";
+    private FirebaseAuthService firebaseAuth;
     
     // 64 districts of Bangladesh sorted alphabetically
     private static final String[] DISTRICTS = {
@@ -53,6 +59,9 @@ public class SignupController {
     public void initialize() {
         // Populate districts
         districtCombo.getItems().addAll(DISTRICTS);
+        
+        // Initialize Firebase Auth
+        firebaseAuth = new FirebaseAuthService();
     }
 
     @FXML
@@ -130,9 +139,37 @@ public class SignupController {
         errorLabel.setText("Creating your account...");
         errorLabel.setVisible(true);
         
-        // Create user in database with user-provided PIN
+        // Final variables for lambda
+        final String finalName = name;
+        final String finalPhone = phone;
+        final String finalDistrict = district;
+        final String finalPin = pin;
+        
+        // First register with Firebase (in background), then create local user
         new Thread(() -> {
-            int userId = DatabaseService.createUser(phone, pin, name, selectedRole.toLowerCase(), district);
+            // Try to register with Firebase first
+            String firebaseUid = null;
+            FirebaseAuthService.AuthResult firebaseAuthResult = null;
+            try {
+                firebaseAuthResult = firebaseAuth.signUp(finalPhone, finalPin, finalName);
+                firebaseUid = firebaseAuthResult.getFirebaseUserId();
+                System.out.println("✅ Firebase registration successful for: " + finalPhone);
+                
+                // Set Firebase token
+                FirebaseService.getInstance().setIdToken(firebaseAuthResult.getIdToken());
+            } catch (Exception e) {
+                System.err.println("⚠️ Firebase registration failed: " + e.getMessage());
+                System.err.println("   Continuing with local registration only...");
+                System.err.println("   Note: Phone authentication may be disabled in Firebase Console.");
+                System.err.println("   To enable: Firebase Console > Authentication > Sign-in method > Phone");
+                // Continue with local registration even if Firebase fails
+            }
+            
+            // Create user in local SQLite database
+            int userId = DatabaseService.createUser(finalPhone, finalPin, finalName, selectedRole.toLowerCase(), finalDistrict);
+            
+            final String finalFirebaseUid = firebaseUid;
+            final FirebaseAuthService.AuthResult finalAuthResult = firebaseAuthResult;
             
             Platform.runLater(() -> {
                 if (userId == -2) {
@@ -140,6 +177,38 @@ public class SignupController {
                 } else if (userId == -1) {
                     showError("❌ Failed to create account. Please try again.");
                 } else {
+                    // Save session for one-time login (if Firebase auth succeeded)
+                    if (finalAuthResult != null) {
+                        com.sajid._207017_chashi_bhai.services.AuthSessionManager.getInstance().saveSession(
+                            userId,
+                            finalAuthResult.getFirebaseUserId(),
+                            finalAuthResult.getIdToken(),
+                            finalAuthResult.getRefreshToken(),
+                            finalPhone,
+                            selectedRole.toLowerCase()
+                        );
+                        System.out.println("✅ Session saved for one-time login");
+                    }
+                    
+                    // Also sync user to Firebase Firestore
+                    if (finalFirebaseUid != null) {
+                        Map<String, Object> userData = new HashMap<>();
+                        userData.put("name", finalName);
+                        userData.put("phone", finalPhone);
+                        userData.put("district", finalDistrict);
+                        userData.put("role", selectedRole.toLowerCase());
+                        userData.put("local_id", userId);
+                        userData.put("firebase_uid", finalFirebaseUid);
+                        userData.put("created_at", System.currentTimeMillis());
+                        
+                        FirebaseService.getInstance().saveUser(
+                            String.valueOf(userId),
+                            userData,
+                            () -> System.out.println("✓ User synced to Firestore"),
+                            err -> System.err.println("❌ Firestore sync failed: " + err.getMessage())
+                        );
+                    }
+                    
                     // Success - show popup and go to welcome
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Signup Successful");
@@ -147,7 +216,7 @@ public class SignupController {
                     alert.setContentText(
                         "Your account has been created successfully!\n\n" +
                         "User ID: USR" + String.format("%06d", userId) + "\n" +
-                        "Phone: " + phone + "\n" +
+                        "Phone: " + finalPhone + "\n" +
                         "Role: " + selectedRole + "\n\n" +
                         "You can now login with your phone number and PIN."
                     );

@@ -3,7 +3,9 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.services.FirebaseService;
 import com.sajid._207017_chashi_bhai.utils.BangladeshData;
+import com.sajid._207017_chashi_bhai.utils.ImageBase64Util;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -19,7 +21,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * PostCropController - Create new crop listing with photo uploads
@@ -123,6 +127,20 @@ public class PostCropController {
         if (!validateFields()) {
             return;
         }
+        
+        // Validate at least one photo is selected
+        boolean hasPhoto = false;
+        for (File photo : selectedPhotos) {
+            if (photo != null) {
+                hasPhoto = true;
+                break;
+            }
+        }
+        
+        if (!hasPhoto) {
+            lblError.setText("⚠️ অন্তত একটি ছবি যোগ করুন / Please add at least one photo");
+            return;
+        }
 
         btnPostCrop.setDisable(true);
         lblError.setText("আপলোড হচ্ছে...");
@@ -159,7 +177,31 @@ public class PostCropController {
                             try {
                                 if (resultSet.next()) {
                                     int cropId = resultSet.getInt("crop_id");
-                                    // Save photos
+                                    System.out.println("✓ Crop created with ID: " + cropId);
+                                    
+                                    // Sync crop to Firebase
+                                    Map<String, Object> cropData = new HashMap<>();
+                                    cropData.put("product_code", productCode);
+                                    cropData.put("farmer_id", currentUser.getId());
+                                    cropData.put("name", cropName);
+                                    cropData.put("category", category);
+                                    cropData.put("price_per_kg", price);
+                                    cropData.put("quantity_kg", quantity);
+                                    cropData.put("description", description);
+                                    cropData.put("district", district);
+                                    cropData.put("harvest_date", harvestDate != null ? harvestDate.toString() : "");
+                                    cropData.put("transport_info", transport);
+                                    cropData.put("status", "active");
+                                    cropData.put("created_at", System.currentTimeMillis());
+                                    
+                                    FirebaseService.getInstance().saveCrop(
+                                        String.valueOf(cropId),
+                                        cropData,
+                                        () -> System.out.println("✓ Crop synced to Firebase: " + cropId),
+                                        err -> System.err.println("❌ Firebase sync error: " + err.getMessage())
+                                    );
+                                    
+                                    // Save photos with correct cropId
                                     savePhotos(cropId);
                                 }
                             } catch (Exception e) {
@@ -195,7 +237,7 @@ public class PostCropController {
     }
 
     private void savePhotos(int cropId) {
-        // Create directory for crop photos
+        // Create directory for crop photos (keeping for backward compatibility)
         Path photosDir = Paths.get("data/crop_photos/" + cropId);
         try {
             Files.createDirectories(photosDir);
@@ -207,17 +249,32 @@ public class PostCropController {
             File photo = selectedPhotos.get(i);
             if (photo != null) {
                 try {
-                    // Copy file to app directory
+                    // Convert image to Base64
+                    String imageBase64 = ImageBase64Util.fileToBase64(photo);
+                    
+                    // Copy file to app directory (backward compatibility)
                     String fileName = "photo_" + (i + 1) + "_" + System.currentTimeMillis() + getFileExtension(photo);
                     Path destination = photosDir.resolve(fileName);
                     Files.copy(photo.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);
                     
-                    // Save to database
+                    final int photoOrder = i + 1;
+                    final String cropIdStr = String.valueOf(cropId);
+                    
+                    // Save to SQLite database with Base64
                     DatabaseService.executeUpdateAsync(
-                        "INSERT INTO crop_photos (crop_id, photo_path, photo_order) VALUES (?, ?, ?)",
-                        new Object[]{cropId, destination.toString(), i + 1},
+                        "INSERT INTO crop_photos (crop_id, photo_path, image_base64, photo_order) VALUES (?, ?, ?, ?)",
+                        new Object[]{cropId, destination.toString(), imageBase64, photoOrder},
                         rows -> {
-                            // Success
+                            System.out.println("✓ Photo " + photoOrder + " saved to SQLite for crop " + cropIdStr);
+                            
+                            // Also save to Firebase
+                            FirebaseService.getInstance().saveCropPhoto(
+                                cropIdStr, 
+                                photoOrder, 
+                                imageBase64,
+                                () -> System.out.println("✓ Photo " + photoOrder + " synced to Firebase"),
+                                err -> System.err.println("❌ Firebase sync error for photo " + photoOrder + ": " + err.getMessage())
+                            );
                         },
                         error -> error.printStackTrace()
                     );

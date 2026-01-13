@@ -3,7 +3,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
-import com.sajid._207017_chashi_bhai.services.FirebaseSyncService;
+// import com.sajid._207017_chashi_bhai.services.FirebaseSyncService; // Removed - using REST API now
 import com.sajid._207017_chashi_bhai.services.OrderService;
 import com.sajid._207017_chashi_bhai.utils.StatisticsCalculator;
 import javafx.application.Platform;
@@ -676,7 +676,8 @@ public class OrderDetailController {
                     r -> {
                         if (r.ok) {
                             showInfo("সফল", r.message);
-                            FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "accepted", null);
+                            // TODO: Implement REST API sync for order status
+                            // FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "accepted", null);
                             loadOrderDetails();
                         } else {
                             showError("ত্রুটি", r.message);
@@ -704,7 +705,8 @@ public class OrderDetailController {
                     r -> {
                         if (r.ok) {
                             showInfo("সফল", r.message);
-                            FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "rejected", null);
+                            // TODO: Implement REST API sync for order status
+                            // FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "rejected", null);
                             loadOrderDetails();
                         } else {
                             showError("ত্রুটি", r.message);
@@ -727,7 +729,8 @@ public class OrderDetailController {
             r -> {
                 if (r.ok) {
                     showInfo("সফল", r.message);
-                    FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "in_transit", null);
+                    // TODO: Implement REST API sync for order status
+                    // FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "in_transit", null);
                     loadOrderDetails();
                 } else {
                     showError("ত্রুটি", r.message);
@@ -754,7 +757,8 @@ public class OrderDetailController {
                     r -> {
                         if (r.ok) {
                             showInfo("সফল", r.message);
-                            FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "completed", null);
+                            // TODO: Implement REST API sync for order status
+                            // FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "completed", null);
                             StatisticsCalculator.updateBuyerStatistics(currentUser.getId());
                             updateFarmerStats(orderId);
                             loadOrderDetails();
@@ -801,7 +805,8 @@ public class OrderDetailController {
                     r -> {
                         if (r.ok) {
                             showInfo("সফল", r.message);
-                            FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "cancelled", null);
+                            // TODO: Implement REST API sync for order status
+                            // FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "cancelled", null);
                             loadOrderDetails();
                         } else {
                             showError("ত্রুটি", r.message);

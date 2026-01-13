@@ -1,6 +1,7 @@
 package com.sajid._207017_chashi_bhai;
 
 import com.sajid._207017_chashi_bhai.models.User;
+import com.sajid._207017_chashi_bhai.services.AuthSessionManager;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import com.sajid._207017_chashi_bhai.services.FirebaseService;
 import javafx.application.Application;
@@ -36,15 +37,9 @@ public class App extends Application {
         // Initialize SQLite database (local storage)
         DatabaseService.initializeDatabase();
         
-        // Initialize Firebase (cloud storage - optional)
-        try {
-            FirebaseService.getInstance().initialize();
-            System.out.println("✅ Firebase cloud sync enabled");
-        } catch (Exception e) {
-            System.out.println("⚠️ Firebase not configured - running in offline mode");
-            System.out.println("   To enable cloud sync, see FIREBASE_SETUP.md");
-            // Continue without Firebase - app works offline with SQLite
-        }
+        // Firebase now uses REST API - no initialization needed
+        // Authentication happens at login time
+        System.out.println("✅ Firebase REST API ready (authentication required for cloud sync)");
         
         // Set app icon
         try {
@@ -77,12 +72,8 @@ public class App extends Application {
                     System.err.println("Error shutting down DatabaseService: " + e.getMessage());
                 }
                 
-                try {
-                    FirebaseService.getInstance().shutdown();
-                    System.out.println("[App] FirebaseService stopped");
-                } catch (IllegalAccessError | Exception e) {
-                    System.err.println("Error shutting down FirebaseService: " + e.getMessage());
-                }
+                // Firebase REST API doesn't need explicit shutdown
+                System.out.println("[App] FirebaseService (REST API) - no shutdown needed");
                 
                 System.out.println("[App] All services stopped, exiting...");
                 
@@ -115,12 +106,8 @@ public class App extends Application {
             System.err.println("Error in stop() shutting down DatabaseService: " + e.getMessage());
         }
         
-        try {
-            FirebaseService.getInstance().shutdown();
-            System.out.println("[App] FirebaseService stopped");
-        } catch (IllegalAccessError | Exception e) {
-            System.err.println("Error in stop() shutting down FirebaseService: " + e.getMessage());
-        }
+        // Firebase REST API doesn't need explicit shutdown
+        System.out.println("[App] FirebaseService (REST API) - no shutdown needed");
         
         super.stop();
     }
@@ -176,6 +163,9 @@ public class App extends Application {
      * Logout current user
      */
     public static void logout() {
+        // Clear Firebase auth session from SQLite
+        AuthSessionManager.getInstance().logout();
+        
         currentUser = null;
         currentCropId = -1;
         searchQuery = "";
