@@ -1,31 +1,29 @@
 /* ========================================
    CHASHI BHAI - BASE STYLES
-   Global styles, root colors, typography
+   Modern Elegant Theme - No Hover Effects
    ======================================== */
 
-/* Color Palette Reference:
-   Primary Green: #2E7D32 (darker), #4CAF50 (main), #81C784 (light)
-   Secondary Blue: #1565C0 (darker), #2196F3 (main), #64B5F6 (light)
-   Accent Orange: #E64A19 (darker), #FF7043 (main), #FFAB91 (light)
-   Accent Gold: #F9A825 (darker), #FFB300 (main), #FFD54F (light)
+/* Color Palette:
+   Primary Teal: #00897B (dark), #26A69A (main), #80CBC4 (light)
+   Secondary Indigo: #3949AB (dark), #5C6BC0 (main), #9FA8DA (light)
+   Accent Amber: #FF8F00 (dark), #FFB74D (main), #FFE082 (light)
+   Success: #43A047 (dark), #66BB6A (main), #A5D6A7 (light)
    
-   Background: #0D1117 (darkest), #161B22 (dark), #21262D (card), #30363D (border)
-   Text: #F0F6FC (primary), #C9D1D9 (secondary), #8B949E (muted)
+   Background: #0F1419 (darkest), #1A2332 (dark), #243447 (card), #344861 (border)
+   Text: #ECF0F1 (primary), #B4BCC2 (secondary), #8899A6 (muted)
 */
 
-/* Root Styles */
 .root {
-    -fx-background-color: linear-gradient(to bottom, #0D1117 0%, #161B22 50%, #0D1117 100%);
+    -fx-background-color: linear-gradient(to bottom, #0F1419 0%, #1A2332 50%, #0F1419 100%);
     -fx-font-family: "Segoe UI", "Noto Sans Bengali", Arial, sans-serif;
     -fx-font-size: 14px;
 }
 
-/* Disable focus traversal globally */
 * {
     -fx-focus-traversable: false;
 }
 
-/* ScrollPane Styles */
+/* ScrollPane */
 .scroll-pane {
     -fx-background-color: transparent;
     -fx-border-width: 0;
@@ -39,12 +37,12 @@
 
 .scroll-pane .scroll-bar:vertical,
 .scroll-pane .scroll-bar:horizontal {
-    -fx-background-color: rgba(48, 54, 61, 0.3);
+    -fx-background-color: rgba(52, 72, 97, 0.3);
     -fx-background-radius: 4;
 }
 
 .scroll-pane .scroll-bar .thumb {
-    -fx-background-color: #4CAF50;
+    -fx-background-color: #26A69A;
     -fx-background-radius: 4;
 }
 
@@ -62,8 +60,8 @@
 
 /* Navigation Bar */
 .nav-bar {
-    -fx-background-color: linear-gradient(to right, #161B22, #21262D);
-    -fx-border-color: #30363D;
+    -fx-background-color: linear-gradient(to right, #1A2332, #243447);
+    -fx-border-color: #344861;
     -fx-border-width: 0 0 1 0;
     -fx-padding: 10 20;
 }
@@ -71,74 +69,73 @@
 .app-title {
     -fx-font-size: 24px;
     -fx-font-weight: bold;
-    -fx-text-fill: #4CAF50;
+    -fx-text-fill: #26A69A;
 }
 
 .page-title {
     -fx-font-size: 20px;
     -fx-font-weight: bold;
-    -fx-text-fill: #F0F6FC;
+    -fx-text-fill: #ECF0F1;
 }
 
 .back-button {
     -fx-background-color: transparent;
-    -fx-text-fill: #4CAF50;
+    -fx-text-fill: #26A69A;
     -fx-font-size: 18px;
     -fx-cursor: hand;
     -fx-padding: 8 16;
 }
 
-/* ===== TYPOGRAPHY ===== */
-
+/* Typography */
 .label {
-    -fx-text-fill: #C9D1D9;
+    -fx-text-fill: #B4BCC2;
 }
 
 .label-title {
     -fx-font-size: 28px;
     -fx-font-weight: bold;
-    -fx-text-fill: #F0F6FC;
+    -fx-text-fill: #ECF0F1;
 }
 
 .label-subtitle {
     -fx-font-size: 16px;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
 }
 
 .label-description {
     -fx-font-size: 14px;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
     -fx-wrap-text: true;
 }
 
 .label-error {
-    -fx-text-fill: #F85149;
+    -fx-text-fill: #EF5350;
     -fx-font-size: 13px;
     -fx-font-weight: bold;
 }
 
 .label-success {
-    -fx-text-fill: #4CAF50;
+    -fx-text-fill: #66BB6A;
     -fx-font-size: 13px;
     -fx-font-weight: bold;
 }
 
 .label-info {
-    -fx-text-fill: #58A6FF;
+    -fx-text-fill: #5C6BC0;
     -fx-font-size: 13px;
 }
 
 .label-warning {
-    -fx-text-fill: #FFB300;
+    -fx-text-fill: #FFB74D;
     -fx-font-size: 13px;
 }
 
 .label-footer {
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
     -fx-font-size: 12px;
 }
 
-/* Icon Styles */
+/* Icons */
 .icon-small {
     -fx-font-size: 16px;
 }
@@ -153,7 +150,7 @@
 
 /* Separator */
 .separator {
-    -fx-background-color: #30363D;
+    -fx-background-color: #344861;
 }
 
 /* Form Container */
@@ -165,25 +162,25 @@
 /* Timer Label */
 .timer-label {
     -fx-font-size: 16px;
-    -fx-text-fill: #FFB300;
+    -fx-text-fill: #FFB74D;
     -fx-font-weight: bold;
 }
 
 /* Debug Label */
 .debug-label {
-    -fx-text-fill: #FFB300;
+    -fx-text-fill: #FFB74D;
     -fx-font-size: 11px;
-    -fx-background-color: rgba(255, 179, 0, 0.15);
+    -fx-background-color: rgba(255, 183, 77, 0.15);
     -fx-padding: 4 8;
     -fx-background-radius: 4;
 }
 
-/* Progress Indicator */
+/* Progress */
 .progress-indicator {
-    -fx-progress-color: #4CAF50;
+    -fx-progress-color: #26A69A;
 }
 
-/* Transparent containers */
+/* Containers */
 .transparent-container {
     -fx-background-color: transparent;
 }

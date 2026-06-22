@@ -322,24 +322,56 @@ public class DatabaseService {
                     "FOREIGN KEY (farmer_id) REFERENCES users(id) ON DELETE CASCADE)"
                 );
 
-                // Crop photos table
+                // Crop photos table - now with Base64 support
                 stmt.execute(
                     "CREATE TABLE IF NOT EXISTS crop_photos (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "crop_id INTEGER NOT NULL, " +
-                    "photo_path TEXT NOT NULL, " +
+                    "photo_path TEXT, " +
+                    "image_base64 TEXT, " +
                     "photo_order INTEGER DEFAULT 1, " +
                     "FOREIGN KEY (crop_id) REFERENCES crops(id) ON DELETE CASCADE)"
                 );
+                
+                // Add image_base64 column if not exists (migration)
+                try {
+                    stmt.execute("ALTER TABLE crop_photos ADD COLUMN image_base64 TEXT");
+                    System.out.println("Added column: image_base64 to crop_photos");
+                } catch (SQLException e) {
+                    if (!e.getMessage().contains("duplicate column name")) {
+                        // Column already exists, ignore
+                    }
+                }
 
-                // Farm photos table
+                // Farm photos table - now with Base64 support
                 stmt.execute(
                     "CREATE TABLE IF NOT EXISTS farm_photos (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "farmer_id INTEGER NOT NULL, " +
-                    "photo_path TEXT NOT NULL, " +
+                    "photo_path TEXT, " +
+                    "image_base64 TEXT, " +
                     "FOREIGN KEY (farmer_id) REFERENCES users(id))"
                 );
+                
+                // Add image_base64 column if not exists (migration)
+                try {
+                    stmt.execute("ALTER TABLE farm_photos ADD COLUMN image_base64 TEXT");
+                    System.out.println("Added column: image_base64 to farm_photos");
+                } catch (SQLException e) {
+                    if (!e.getMessage().contains("duplicate column name")) {
+                        // Column already exists, ignore
+                    }
+                }
+                
+                // Add profile_photo_base64 column to users if not exists
+                try {
+                    stmt.execute("ALTER TABLE users ADD COLUMN profile_photo_base64 TEXT");
+                    System.out.println("Added column: profile_photo_base64 to users");
+                } catch (SQLException e) {
+                    if (!e.getMessage().contains("duplicate column name")) {
+                        // Column already exists, ignore
+                    }
+                }
 
                 // Orders table with proper columns
                 stmt.execute(
@@ -400,6 +432,14 @@ public class DatabaseService {
                     System.out.println("Initialized updated_at for existing orders");
                 } catch (SQLException e) {
                     // Ignore - column might not exist yet or no rows to update
+                }
+                
+                // Clean up old notifications without related_id (from before notification system update)
+                try {
+                    stmt.execute("DELETE FROM notifications WHERE related_id IS NULL");
+                    System.out.println("Cleaned up old notifications without related_id");
+                } catch (SQLException e) {
+                    // Ignore - notifications table might not exist yet
                 }
 
                 // Reviews table (replaces old ratings table)
@@ -537,6 +577,8 @@ public class DatabaseService {
      * @param phone User phone number (unique)
      * @param pin User PIN (should be hashed with BCrypt in production)
      * @param name User full name
+     * @param pin User PIN (stored as backup for offline/fallback auth)
+     * @param name User name
      * @param role User role (farmer/buyer)
      * @param district User district
      * @return userId if successful, -1 if failed, -2 if phone already exists
@@ -559,14 +601,14 @@ public class DatabaseService {
             return -1;
         }
         
-        // Insert new user
+        // Insert new user (PIN stored as backup for fallback auth if Firebase fails)
         String sql = "INSERT INTO users (phone, pin, name, role, district) VALUES (?, ?, ?, ?, ?)";
         
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             stmt.setString(1, phone);
-            stmt.setString(2, pin); // TODO: Hash with BCrypt before storing
+            stmt.setString(2, pin); // Backup for offline/fallback auth
             stmt.setString(3, name);
             stmt.setString(4, role.toLowerCase());
             stmt.setString(5, district);
@@ -578,7 +620,7 @@ public class DatabaseService {
                 ResultSet keys = stmt.getGeneratedKeys();
                 if (keys.next()) {
                     int userId = keys.getInt(1);
-                    System.out.println("User created successfully with ID: " + userId);
+                    System.out.println("User created successfully with ID: " + userId + " (Firebase primary + SQLite backup)");
                     return userId;
                 }
             }

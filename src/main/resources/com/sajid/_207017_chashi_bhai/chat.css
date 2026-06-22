@@ -1,55 +1,49 @@
 /* ========================================
    CHASHI BHAI - CHAT STYLES
    Chat List, Messages, Bubbles
+   No Hover Effects
    ======================================== */
 
-/* ===== CHAT LIST ===== */
-
+/* Chat List */
 .chat-list-item {
-    -fx-background-color: #0D1117;
+    -fx-background-color: #0F1419;
     -fx-background-radius: 8;
-    -fx-border-color: #30363D;
+    -fx-border-color: #344861;
     -fx-border-width: 1;
     -fx-border-radius: 8;
-}
-
-.chat-list-item:hover {
-    -fx-background-color: #161B22;
-    -fx-border-color: #4CAF50;
-    -fx-cursor: hand;
 }
 
 .chat-user-name {
     -fx-font-size: 16px;
     -fx-font-weight: bold;
-    -fx-text-fill: #E6EDF3;
+    -fx-text-fill: #ECF0F1;
 }
 
 .chat-user-role {
     -fx-font-size: 12px;
-    -fx-text-fill: #7D8590;
-    -fx-background-color: #21262D;
+    -fx-text-fill: #8899A6;
+    -fx-background-color: #243447;
     -fx-padding: 2 8;
     -fx-background-radius: 4;
 }
 
 .chat-last-message {
     -fx-font-size: 14px;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
 }
 
 .chat-crop-name {
     -fx-font-size: 12px;
-    -fx-text-fill: #4CAF50;
+    -fx-text-fill: #26A69A;
 }
 
 .chat-time {
     -fx-font-size: 12px;
-    -fx-text-fill: #7D8590;
+    -fx-text-fill: #8899A6;
 }
 
 .unread-badge {
-    -fx-background-color: #4CAF50;
+    -fx-background-color: #26A69A;
     -fx-background-radius: 12;
     -fx-min-width: 24px;
     -fx-min-height: 24px;
@@ -63,43 +57,41 @@
 
 .verified-badge {
     -fx-font-size: 14px;
-    -fx-text-fill: #4CAF50;
+    -fx-text-fill: #26A69A;
     -fx-font-weight: bold;
 }
 
 .online-indicator {
-    -fx-background-color: #4CAF50;
+    -fx-background-color: #66BB6A;
     -fx-background-radius: 6;
-    -fx-border-color: #0D1117;
+    -fx-border-color: #0F1419;
     -fx-border-width: 2;
     -fx-border-radius: 6;
 }
 
-/* ===== CHAT CONVERSATION ===== */
-
+/* Chat Conversation */
 .messages-container {
-    -fx-background-color: #0D1117;
+    -fx-background-color: #0F1419;
     -fx-padding: 20;
 }
 
 .date-separator {
     -fx-font-size: 12px;
-    -fx-text-fill: #7D8590;
-    -fx-background-color: #161B22;
+    -fx-text-fill: #8899A6;
+    -fx-background-color: #1A2332;
     -fx-padding: 4 12;
     -fx-background-radius: 12;
 }
 
-/* ===== MESSAGE BUBBLES ===== */
-
+/* Message Bubbles */
 .message-bubble {
     -fx-background-radius: 12;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 4, 0, 0, 1);
 }
 
-/* Sent Messages (Right Side - Green) */
+/* Sent Messages (Right - Teal) */
 .message-sent {
-    -fx-background-color: linear-gradient(to bottom, #2E7D32, #1B5E20);
+    -fx-background-color: linear-gradient(to bottom, #00897B, #00695C);
 }
 
 .message-sent .message-text {
@@ -110,17 +102,17 @@
     -fx-text-fill: rgba(255, 255, 255, 0.7);
 }
 
-/* Received Messages (Left Side - Dark) */
+/* Received Messages (Left - Dark) */
 .message-received {
-    -fx-background-color: #21262D;
+    -fx-background-color: #243447;
 }
 
 .message-received .message-text {
-    -fx-text-fill: #E6EDF3;
+    -fx-text-fill: #ECF0F1;
 }
 
 .message-received .message-time {
-    -fx-text-fill: #7D8590;
+    -fx-text-fill: #8899A6;
 }
 
 .message-text {
@@ -134,7 +126,7 @@
 
 .message-status {
     -fx-font-size: 11px;
-    -fx-text-fill: #7D8590;
+    -fx-text-fill: #8899A6;
 }
 
 .message-image {
@@ -142,172 +134,149 @@
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 4, 0, 0, 1);
 }
 
-/* ===== MESSAGE INPUT ===== */
-
+/* Message Input */
 .message-input-bar {
-    -fx-background-color: #161B22;
-    -fx-border-color: #30363D;
+    -fx-background-color: #1A2332;
+    -fx-border-color: #344861;
     -fx-border-width: 1 0 0 0;
 }
 
 .message-input {
-    -fx-background-color: #0D1117;
-    -fx-text-fill: #E6EDF3;
+    -fx-background-color: #0F1419;
+    -fx-text-fill: #ECF0F1;
     -fx-font-size: 14px;
     -fx-padding: 10;
     -fx-background-radius: 8;
-    -fx-border-color: #30363D;
+    -fx-border-color: #344861;
     -fx-border-width: 1;
     -fx-border-radius: 8;
     -fx-wrap-text: true;
 }
 
 .message-input:focused {
-    -fx-border-color: #4CAF50;
+    -fx-border-color: #26A69A;
     -fx-border-width: 2;
 }
 
 .button-icon {
     -fx-background-color: transparent;
-    -fx-text-fill: #7D8590;
+    -fx-text-fill: #8899A6;
     -fx-font-size: 20px;
     -fx-padding: 8;
     -fx-cursor: hand;
 }
 
-.button-icon:hover {
-    -fx-background-color: #21262D;
-    -fx-background-radius: 50%;
-    -fx-text-fill: #4CAF50;
-}
-
-/* ===== CROP CONTEXT BAR ===== */
-
+/* Crop Context Bar */
 .crop-context-bar {
-    -fx-background-color: #161B22;
-    -fx-border-color: #30363D;
+    -fx-background-color: #1A2332;
+    -fx-border-color: #344861;
     -fx-border-width: 0 0 1 0;
 }
 
 .crop-context-name {
     -fx-font-size: 14px;
     -fx-font-weight: bold;
-    -fx-text-fill: #E6EDF3;
+    -fx-text-fill: #ECF0F1;
 }
 
 .crop-context-price {
     -fx-font-size: 12px;
-    -fx-text-fill: #4CAF50;
+    -fx-text-fill: #26A69A;
 }
 
 .crop-image-small {
     -fx-background-radius: 6;
 }
 
-/* ===== TYPING INDICATOR ===== */
-
+/* Typing Indicator */
 .typing-indicator {
-    -fx-background-color: #161B22;
-    -fx-border-color: #30363D;
+    -fx-background-color: #1A2332;
+    -fx-border-color: #344861;
     -fx-border-width: 1 0 0 0;
 }
 
 .typing-dots {
     -fx-font-size: 16px;
-    -fx-text-fill: #7D8590;
+    -fx-text-fill: #8899A6;
 }
 
 .typing-text {
     -fx-font-size: 12px;
-    -fx-text-fill: #7D8590;
+    -fx-text-fill: #8899A6;
     -fx-font-style: italic;
 }
 
-/* ===== CHAT HEADER ===== */
-
+/* Chat Header */
 .chat-header-name {
     -fx-font-size: 16px;
     -fx-font-weight: bold;
-    -fx-text-fill: #E6EDF3;
+    -fx-text-fill: #ECF0F1;
 }
 
 .chat-header-status {
     -fx-font-size: 12px;
-    -fx-text-fill: #7D8590;
+    -fx-text-fill: #8899A6;
 }
 
-/* ===== AVATAR STYLES ===== */
-
+/* Avatar Styles */
 .avatar-small {
     -fx-background-radius: 16;
     -fx-border-radius: 16;
-    -fx-border-color: #30363D;
+    -fx-border-color: #344861;
     -fx-border-width: 1;
 }
 
 .avatar-medium {
     -fx-background-radius: 27.5;
     -fx-border-radius: 27.5;
-    -fx-border-color: #30363D;
+    -fx-border-color: #344861;
     -fx-border-width: 2;
 }
 
-/* ===== EMPTY STATE ===== */
-
+/* Empty State */
 .empty-icon {
     -fx-font-size: 48px;
-    -fx-text-fill: #7D8590;
+    -fx-text-fill: #8899A6;
 }
 
 .empty-text {
     -fx-font-size: 18px;
     -fx-font-weight: bold;
-    -fx-text-fill: #8B949E;
+    -fx-text-fill: #8899A6;
 }
 
 .empty-subtext {
     -fx-font-size: 14px;
-    -fx-text-fill: #7D8590;
+    -fx-text-fill: #8899A6;
 }
 
-/* ===== FILTER TABS ===== */
-
+/* Filter Tabs */
 .filter-tab {
     -fx-background-color: transparent;
-    -fx-text-fill: #7D8590;
+    -fx-text-fill: #8899A6;
     -fx-font-size: 14px;
     -fx-padding: 8 16;
     -fx-background-radius: 6;
     -fx-cursor: hand;
 }
 
-.filter-tab:hover {
-    -fx-background-color: #21262D;
-    -fx-text-fill: #C9D1D9;
-}
-
 .filter-active {
-    -fx-background-color: #4CAF50;
+    -fx-background-color: #26A69A;
     -fx-text-fill: white;
 }
 
-.filter-active:hover {
-    -fx-background-color: #2E7D32;
-}
-
-/* ===== SEARCH BAR ===== */
-
+/* Search Bar */
 .search-bar {
-    -fx-background-color: #0D1117;
+    -fx-background-color: #0F1419;
     -fx-background-radius: 8;
-    -fx-border-color: #30363D;
+    -fx-border-color: #344861;
     -fx-border-width: 1;
     -fx-border-radius: 8;
 }
 
 .search-input {
     -fx-background-color: transparent;
-    -fx-text-fill: #E6EDF3;
+    -fx-text-fill: #ECF0F1;
     -fx-font-size: 14px;
     -fx-border-width: 0;
 }
@@ -324,9 +293,8 @@
     -fx-font-size: 18px;
 }
 
-/* ===== LOADING ===== */
-
+/* Loading */
 .loading-text {
     -fx-font-size: 14px;
-    -fx-text-fill: #7D8590;
+    -fx-text-fill: #8899A6;
 }

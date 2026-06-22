@@ -59,16 +59,55 @@ public class OtpVerificationController {
     }
 
     private void generateOtp() {
-        Random random = new Random();
-        generatedOtp = String.format("%06d", random.nextInt(1000000));
+        // Generate OTP and store in Firestore for admin to view
+        final String phone = SessionManager.getTempPhone();
+        final String tempRole = SessionManager.getTempRole();
         
-        // Display OTP in debug label (for development)
-        debugOtpLabel.setText("Your OTP: " + generatedOtp);
+        // Extract role
+        String role = "buyer";
+        if (tempRole != null && tempRole.startsWith("RESET_PIN_")) {
+            role = tempRole.replace("RESET_PIN_", "").toLowerCase();
+        }
+        final String finalRole = role;
         
-        // In production, this would be sent via SMS
-        System.out.println("=============================");
-        System.out.println("OTP for " + SessionManager.getTempPhone() + ": " + generatedOtp);
-        System.out.println("=============================");
+        // Store OTP in Firestore
+        new Thread(() -> {
+            try {
+                com.sajid._207017_chashi_bhai.services.FirebaseService firebaseService = 
+                    com.sajid._207017_chashi_bhai.services.FirebaseService.getInstance();
+                
+                String otp = firebaseService.requestPinReset(phone, finalRole);
+                
+                javafx.application.Platform.runLater(() -> {
+                    // Store OTP for verification
+                    generatedOtp = otp;
+                    
+                    // Display OTP in debug label (for development/testing)
+                    debugOtpLabel.setText("OTP requested - Check Firebase Console");
+                    
+                    System.out.println("=============================");
+                    System.out.println("📋 OTP Generated for PIN Reset");
+                    System.out.println("Phone: " + phone + " | Role: " + finalRole);
+                    System.out.println("🔑 OTP: " + otp);
+                    System.out.println("📍 View in Firebase Console:");
+                    System.out.println("   Firestore > password_reset_otps > " + phone + "_" + finalRole);
+                    System.out.println("⏰ Expires in 15 minutes");
+                    System.out.println("=============================");
+                    System.out.println("⚠️ In production: Admin views OTP in Firebase Console");
+                    System.out.println("   and manually provides to user via phone call.");
+                    System.out.println("=============================");
+                });
+                
+            } catch (Exception e) {
+                System.err.println("❌ Failed to generate OTP: " + e.getMessage());
+                e.printStackTrace();
+                
+                javafx.application.Platform.runLater(() -> {
+                    errorLabel.setText("Failed to generate OTP. Please try again.");
+                    errorLabel.setVisible(true);
+                });
+            }
+        }).start();
     }
 
     private void startTimer() {

@@ -1,14 +1,18 @@
 package com.sajid._207017_chashi_bhai;
 
 import com.sajid._207017_chashi_bhai.models.User;
+import com.sajid._207017_chashi_bhai.services.AuthSessionManager;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import com.sajid._207017_chashi_bhai.services.FirebaseService;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.io.IOException;
 
 /**
@@ -25,6 +29,7 @@ public class App extends Application {
     private static String currentOrderNumber = ""; // For searching orders by number
     private static String searchQuery = "";
     private static String previousScene = ""; // Track previous scene for back navigation
+    private static String orderFilterState = ""; // For filtering orders by state when navigating from notifications
 
     @Override
     public void start(Stage stage) {
@@ -36,15 +41,9 @@ public class App extends Application {
         // Initialize SQLite database (local storage)
         DatabaseService.initializeDatabase();
         
-        // Initialize Firebase (cloud storage - optional)
-        try {
-            FirebaseService.getInstance().initialize();
-            System.out.println("✅ Firebase cloud sync enabled");
-        } catch (Exception e) {
-            System.out.println("⚠️ Firebase not configured - running in offline mode");
-            System.out.println("   To enable cloud sync, see FIREBASE_SETUP.md");
-            // Continue without Firebase - app works offline with SQLite
-        }
+        // Firebase now uses REST API - no initialization needed
+        // Authentication happens at login time
+        System.out.println("✅ Firebase REST API ready (authentication required for cloud sync)");
         
         // Set app icon
         try {
@@ -77,12 +76,8 @@ public class App extends Application {
                     System.err.println("Error shutting down DatabaseService: " + e.getMessage());
                 }
                 
-                try {
-                    FirebaseService.getInstance().shutdown();
-                    System.out.println("[App] FirebaseService stopped");
-                } catch (IllegalAccessError | Exception e) {
-                    System.err.println("Error shutting down FirebaseService: " + e.getMessage());
-                }
+                // Firebase REST API doesn't need explicit shutdown
+                System.out.println("[App] FirebaseService (REST API) - no shutdown needed");
                 
                 System.out.println("[App] All services stopped, exiting...");
                 
@@ -115,12 +110,8 @@ public class App extends Application {
             System.err.println("Error in stop() shutting down DatabaseService: " + e.getMessage());
         }
         
-        try {
-            FirebaseService.getInstance().shutdown();
-            System.out.println("[App] FirebaseService stopped");
-        } catch (IllegalAccessError | Exception e) {
-            System.err.println("Error in stop() shutting down FirebaseService: " + e.getMessage());
-        }
+        // Firebase REST API doesn't need explicit shutdown
+        System.out.println("[App] FirebaseService (REST API) - no shutdown needed");
         
         super.stop();
     }
@@ -134,8 +125,31 @@ public class App extends Application {
     public static void loadScene(String fxmlFile, String title) {
         System.out.println("[DEBUG] Loading scene: " + fxmlFile);
         try {
+            // Get screen dimensions
+            Toolkit toolkit = Toolkit.getDefaultToolkit();
+            Dimension screenSize = toolkit.getScreenSize();
+            int screenWidth = screenSize.width;
+            int screenHeight = screenSize.height;
+            
+            System.out.println("[DEBUG] Screen resolution: " + screenWidth + " x " + screenHeight);
+            
+            // Load FXML
             FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxmlFile));
-            Scene scene = new Scene(fxmlLoader.load());
+            Parent root = fxmlLoader.load();
+            
+            // Calculate scene dimensions based on screen size
+            // Use 95% of screen width and 90% of screen height as maximum
+            double sceneWidth = Math.min(screenWidth * 0.95, 1920);
+            double sceneHeight = Math.min(screenHeight * 0.90, 1080);
+            
+            // Enforce minimum dimensions for usability
+            sceneWidth = Math.max(sceneWidth, 1024);
+            sceneHeight = Math.max(sceneHeight, 600);
+            
+            System.out.println("[DEBUG] Scene dimensions: " + sceneWidth + " x " + sceneHeight);
+            
+            // Create scene with calculated dimensions
+            Scene scene = new Scene(root, sceneWidth, sceneHeight);
             
             // Load complete original CSS file (all styles included)
             scene.getStylesheets().add(App.class.getResource("styles.css").toExternalForm());
@@ -150,6 +164,14 @@ public class App extends Application {
             
             primaryStage.setScene(scene);
             primaryStage.setTitle(title);
+            
+            // Set stage max dimensions to prevent window from exceeding screen
+            primaryStage.setMaxWidth(screenWidth * 0.98);
+            primaryStage.setMaxHeight(screenHeight * 0.95);
+            
+            // Allow window to be resizable
+            primaryStage.setResizable(true);
+            
             primaryStage.centerOnScreen();
             
         } catch (IOException e) {
@@ -176,6 +198,9 @@ public class App extends Application {
      * Logout current user
      */
     public static void logout() {
+        // Clear Firebase auth session from SQLite
+        AuthSessionManager.getInstance().logout();
+        
         currentUser = null;
         currentCropId = -1;
         searchQuery = "";
@@ -278,6 +303,20 @@ public class App extends Application {
      */
     public static void setCurrentOrderNumber(String orderNumber) {
         currentOrderNumber = orderNumber;
+    }
+    
+    /**
+     * Get order filter state
+     */
+    public static String getOrderFilterState() {
+        return orderFilterState;
+    }
+    
+    /**
+     * Set order filter state (for navigating from notifications to orders view with specific filter)
+     */
+    public static void setOrderFilterState(String filterState) {
+        orderFilterState = filterState;
     }
 
     /**

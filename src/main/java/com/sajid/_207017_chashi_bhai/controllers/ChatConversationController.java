@@ -14,7 +14,7 @@ import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 
 import java.io.File;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -52,13 +52,28 @@ public class ChatConversationController {
     private int otherUserId;
     private String otherUserName;
     private Integer cropId;
+    private String previousScene;
+
+    private static final class ConversationResolution {
+        final int conversationId;
+        final int user1Id;
+        final int user2Id;
+
+        private ConversationResolution(int conversationId, int user1Id, int user2Id) {
+            this.conversationId = conversationId;
+            this.user1Id = user1Id;
+            this.user2Id = user2Id;
+        }
+    }
     private int user1Id;
     private int user2Id;
     private final List<MessageItem> loadedMessages = new ArrayList<>();
 
     private static class MessageItem {
+        @SuppressWarnings("unused")
         int id;
         int senderId;
+        @SuppressWarnings("unused")
         int receiverId;
         String messageText;
         String messageType;
@@ -88,12 +103,42 @@ public class ChatConversationController {
         this.conversationId = convId;
         this.otherUserId = otherUser;
         this.otherUserName = userName;
-        this.cropId = crop;
+        this.cropId = (crop != null && crop > 0) ? crop : null;
+
+        this.previousScene = App.getPreviousScene();
 
         validateAndLoadConversation();
     }
 
     private void validateAndLoadConversation() {
+        if (currentUser == null) {
+            Platform.runLater(() -> showError("Error", "User not logged in"));
+            return;
+        }
+
+        if (otherUserId <= 0) {
+            Platform.runLater(() -> {
+                showError("Error", "Invalid chat user");
+                onBack();
+            });
+            return;
+        }
+
+        // Self-chat is not allowed
+        if (otherUserId == currentUser.getId()) {
+            Platform.runLater(() -> {
+                showInfo("Not Allowed", "You cannot chat with yourself.");
+                onBack();
+            });
+            return;
+        }
+
+        // If no conversation ID provided, find existing or create a new one
+        if (conversationId <= 0) {
+            findOrCreateConversation();
+            return;
+        }
+
         String sql = "SELECT id, user1_id, user2_id, crop_id FROM conversations WHERE id = ?";
         DatabaseService.executeQueryAsync(
             sql,
@@ -127,7 +172,7 @@ public class ChatConversationController {
                     otherUserId = (currentUser.getId() == user1Id) ? user2Id : user1Id;
 
                     Platform.runLater(() -> {
-                        lblUserName.setText(otherUserName != null ? otherUserName : "User " + otherUserId);
+                        lblUserName.setText(otherUserName != null && !otherUserName.isBlank() ? otherUserName : ("User " + otherUserId));
                         lblUserStatus.setText("অফলাইন");
 
                         loadOtherUserDetails();
@@ -154,6 +199,81 @@ public class ChatConversationController {
         );
     }
 
+    private void findOrCreateConversation() {
+        final int currentUserId = currentUser.getId();
+        final int u1 = Math.min(currentUserId, otherUserId);
+        final int u2 = Math.max(currentUserId, otherUserId);
+        final Integer crop = cropId;
+
+        DatabaseService.executeTransactionAsync(conn -> {
+            // 1) Try to find existing conversation
+            try (PreparedStatement stmt = conn.prepareStatement(
+                    crop != null
+                            ? "SELECT id FROM conversations WHERE user1_id = ? AND user2_id = ? AND crop_id = ? LIMIT 1"
+                            : "SELECT id FROM conversations WHERE user1_id = ? AND user2_id = ? AND crop_id IS NULL ORDER BY updated_at DESC LIMIT 1")) {
+                stmt.setInt(1, u1);
+                stmt.setInt(2, u2);
+                if (crop != null) {
+                    stmt.setInt(3, crop);
+                }
+
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return new ConversationResolution(rs.getInt("id"), u1, u2);
+                    }
+                }
+            }
+
+            // 2) Create new conversation
+            String insertSql = "INSERT INTO conversations (user1_id, user2_id, crop_id, created_at, updated_at) " +
+                    "VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
+            try (PreparedStatement insert = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
+                insert.setInt(1, u1);
+                insert.setInt(2, u2);
+                if (crop != null) {
+                    insert.setInt(3, crop);
+                } else {
+                    insert.setNull(3, Types.INTEGER);
+                }
+
+                insert.executeUpdate();
+
+                int newId = -1;
+                try (ResultSet keys = insert.getGeneratedKeys()) {
+                    if (keys.next()) {
+                        newId = keys.getInt(1);
+                    }
+                }
+                if (newId <= 0) {
+                    try (Statement st = conn.createStatement();
+                         ResultSet rs = st.executeQuery("SELECT last_insert_rowid()")) {
+                        if (rs.next()) {
+                            newId = rs.getInt(1);
+                        }
+                    }
+                }
+
+                return new ConversationResolution(newId, u1, u2);
+            }
+        },
+        resolved -> {
+            if (resolved == null || resolved.conversationId <= 0) {
+                showError("Error", "Failed to create conversation");
+                onBack();
+                return;
+            }
+            this.conversationId = resolved.conversationId;
+            this.user1Id = resolved.user1Id;
+            this.user2Id = resolved.user2Id;
+            // Now validate and load UI using the conversation row
+            validateAndLoadConversation();
+        },
+        err -> {
+            showError("Database Error", "Could not create conversation");
+            onBack();
+        });
+    }
+
     private void setupEventHandlers() {
         btnBack.setOnAction(e -> onBack());
         btnCall.setOnAction(e -> onCall());
@@ -174,15 +294,20 @@ public class ChatConversationController {
     }
 
     private void loadOtherUserDetails() {
-        String sql = "SELECT * FROM users WHERE id = ?";
+        String sql = "SELECT name, role, is_verified FROM users WHERE id = ?";
         DatabaseService.executeQueryAsync(sql, new Object[]{otherUserId},
             rs -> {
                 try {
                     if (rs.next()) {
+                        String name = rs.getString("name");
                         String role = rs.getString("role");
                         boolean verified = rs.getBoolean("is_verified");
                         
                         Platform.runLater(() -> {
+                            if ((otherUserName == null || otherUserName.isBlank()) && name != null && !name.isBlank()) {
+                                otherUserName = name;
+                                lblUserName.setText(name);
+                            }
                             String roleText = role.equals("farmer") ? "কৃষক" : "ক্রেতা";
                             if (verified) roleText += " ✓";
                             lblUserStatus.setText(roleText);
@@ -429,7 +554,11 @@ public class ChatConversationController {
     @FXML
     private void onBack() {
         try {
-            App.loadScene("chat-list-view.fxml", "Chats");
+            if (previousScene != null && !previousScene.isBlank()) {
+                App.loadScene(previousScene, "Chashi Bhai");
+            } else {
+                App.loadScene("chat-list-view.fxml", "Chats");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

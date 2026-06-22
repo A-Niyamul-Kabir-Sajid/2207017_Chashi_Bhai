@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.NotificationController" styleClass="root" minWidth="1024">
+    
+    <!-- Top Navigation -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20" styleClass="nav-bar">
+            <padding>
+                <Insets top="15" bottom="15" left="20" right="20"/>
+            </padding>
+            <Button text="←" styleClass="back-button" fx:id="btnBack" onAction="#onBack"/>
+            <Label text="🔔 নোটিফিকেশন / Notifications" styleClass="page-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="btnRefresh" text="🔄 রিফ্রেশ" styleClass="button-secondary" onAction="#onRefresh"/>
+            <Button fx:id="btnMarkAllRead" text="✓ সব পঠিত করুন" styleClass="button-secondary" onAction="#onMarkAllRead"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+            <VBox spacing="15" styleClass="notification-container">
+                <padding>
+                    <Insets top="20" bottom="30" left="30" right="30"/>
+                </padding>
+                
+                <!-- Notification Stats -->
+                <HBox alignment="CENTER" spacing="20" styleClass="notification-stats">
+                    <VBox alignment="CENTER" spacing="5" styleClass="stat-mini">
+                        <Label fx:id="lblUnreadCount" text="0" styleClass="stat-value-small"/>
+                        <Label text="অপঠিত" styleClass="stat-label-small"/>
+                    </VBox>
+                    <Separator orientation="VERTICAL"/>
+                    <VBox alignment="CENTER" spacing="5" styleClass="stat-mini">
+                        <Label fx:id="lblTotalCount" text="0" styleClass="stat-value-small"/>
+                        <Label text="মোট" styleClass="stat-label-small"/>
+                    </VBox>
+                </HBox>
+                
+                <!-- Notification List -->
+                <VBox fx:id="vboxNotifications" spacing="12">
+                    <!-- Notifications will be loaded dynamically -->
+                </VBox>
+                
+                <!-- Empty State -->
+                <VBox fx:id="vboxEmpty" alignment="CENTER" spacing="15" visible="false">
+                    <padding>
+                        <Insets top="60" bottom="60"/>
+                    </padding>
+                    <Label text="🔔" styleClass="empty-icon"/>
+                    <Label text="কোনো নোটিফিকেশন নেই" styleClass="empty-text"/>
+                    <Label text="আপনার সকল নোটিফিকেশন এখানে দেখা যাবে" styleClass="empty-subtext"/>
+                </VBox>
+                
+                <!-- Loading Indicator -->
+                <VBox fx:id="vboxLoading" alignment="CENTER" spacing="10" visible="false">
+                    <padding>
+                        <Insets top="60" bottom="60"/>
+                    </padding>
+                    <ProgressIndicator prefWidth="50" prefHeight="50"/>
+                    <Label text="লোড হচ্ছে..." styleClass="loading-text"/>
+                </VBox>
+                
+            </VBox>
+        </ScrollPane>
+    </center>
+    
+</BorderPane>

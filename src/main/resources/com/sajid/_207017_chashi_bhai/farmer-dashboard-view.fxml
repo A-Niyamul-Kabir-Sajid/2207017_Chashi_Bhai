@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.ScrollPane?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.FarmerDashboardController" styleClass="root" minHeight="700" minWidth="1024">
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.sajid._207017_chashi_bhai.controllers.FarmerDashboardController" styleClass="root" minWidth="1024">
     
     <!-- Top Navigation Bar -->
     <top>
@@ -20,6 +20,18 @@
             <Label text="🌾 চাষী ভাই" styleClass="app-title"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Button fx:id="btnFeed" text="📋 ফিড" styleClass="button-primary" onAction="#onGoToFeed"/>
+            
+            <!-- Notification Bell -->
+            <StackPane>
+                <Button fx:id="btnNotifications" styleClass="notification-bell-button" onAction="#onNotifications">
+                    <graphic>
+                        <Label text="🔔" styleClass="notification-bell"/>
+                    </graphic>
+                </Button>
+                <Label fx:id="lblNotificationBadge" text="0" styleClass="notification-badge" visible="false" 
+                       StackPane.alignment="TOP_RIGHT" translateX="-5" translateY="3"/>
+            </StackPane>
+            
             <MenuButton text="⋮" styleClass="icon-button" fx:id="btnMenu">
                 <items>
                     <MenuItem text="🔄 রিফ্রেশ / Refresh" onAction="#onRefresh"/>

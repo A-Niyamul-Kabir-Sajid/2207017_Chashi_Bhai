@@ -2,8 +2,11 @@ package com.sajid._207017_chashi_bhai.controllers;
 
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
+import com.sajid._207017_chashi_bhai.services.AuthSessionManager;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.services.FirebaseService;
 import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
+import com.sajid._207017_chashi_bhai.utils.ImageBase64Util;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -55,8 +58,10 @@ public class FarmerProfileController {
         syncManager = DataSyncManager.getInstance();
         
         if (currentUser == null || !"farmer".equals(currentUser.getRole())) {
-            showError("অ্যাক্সেস অস্বীকার", "শুধুমাত্র কৃষকরা এই পেজ দেখতে পারবেন।");
-            App.loadScene("login-view.fxml", "Login");
+            Platform.runLater(() -> {
+                showError("অ্যাক্সেস অস্বীকার", "শুধুমাত্র কৃষকরা এই পেজ দেখতে পারবেন।");
+                App.loadScene("login-view.fxml", "Login");
+            });
             return;
         }
 
@@ -73,6 +78,78 @@ public class FarmerProfileController {
     private void onRefresh() {
         loadProfileData();
         loadFarmPhotos();
+    }
+
+    @FXML
+    private void onChangeProfilePhoto() {
+        if (imgProfilePhoto == null || imgProfilePhoto.getScene() == null) {
+            showError("ত্রুটি", "ছবি পরিবর্তন করা যাচ্ছে না (UI প্রস্তুত নয়)।");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("প্রোফাইল ছবি নির্বাচন করুন");
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
+        );
+
+        File file = fileChooser.showOpenDialog(imgProfilePhoto.getScene().getWindow());
+        if (file == null) {
+            return;
+        }
+
+        try {
+            // Convert image to Base64
+            String imageBase64 = ImageBase64Util.fileToBase64(file);
+            
+            Path photosDir = Paths.get("data/profile_photos/" + currentUser.getId());
+            Files.createDirectories(photosDir);
+
+            String fileName = "profile_" + System.currentTimeMillis() + getFileExtension(file);
+            Path destination = photosDir.resolve(fileName);
+            Files.copy(file.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);
+
+            if (progressIndicator != null) {
+                progressIndicator.setVisible(true);
+            }
+
+            // Save to SQLite with both path and Base64
+            DatabaseService.executeUpdateAsync(
+                "UPDATE users SET profile_photo = ?, profile_photo_base64 = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                new Object[]{destination.toString(), imageBase64, currentUser.getId()},
+                rows -> Platform.runLater(() -> {
+                    if (progressIndicator != null) {
+                        progressIndicator.setVisible(false);
+                    }
+                    if (rows > 0) {
+                        currentUser.setProfilePhoto(destination.toString());
+                        imgProfilePhoto.setImage(new Image(destination.toUri().toString()));
+                        
+                        // Also sync to Firebase
+                        FirebaseService.getInstance().saveProfilePhoto(
+                            String.valueOf(currentUser.getId()),
+                            imageBase64,
+                            () -> System.out.println("✓ Profile photo synced to Firebase"),
+                            err -> System.err.println("❌ Firebase sync error: " + err.getMessage())
+                        );
+                        
+                        showSuccess("সফল!", "প্রোফাইল ছবি আপডেট হয়েছে।");
+                    } else {
+                        showError("ত্রুটি", "প্রোফাইল ছবি আপডেট করা যায়নি।");
+                    }
+                }),
+                error -> Platform.runLater(() -> {
+                    if (progressIndicator != null) {
+                        progressIndicator.setVisible(false);
+                    }
+                    showError("ডাটাবেস ত্রুটি", "প্রোফাইল ছবি সংরক্ষণে সমস্যা হয়েছে।");
+                    error.printStackTrace();
+                })
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("ত্রুটি", "ছবি আপলোড করতে ব্যর্থ হয়েছে।");
+        }
     }
 
     /**
@@ -379,8 +456,8 @@ public class FarmerProfileController {
         confirm.setHeaderText("আপনি কি লগআউট করতে চান?");
         confirm.setContentText("আপনাকে পুনরায় লগইন করতে হবে।");
         confirm.showAndWait().ifPresent(response -> {
-            if (response == javafx.scene.control.ButtonType.OK) {
-                // Clear current user
+            if (response == javafx.scene.control.ButtonType.OK) {                // Clear auth session cache
+                AuthSessionManager.getInstance().logout();                // Clear current user
                 App.setCurrentUser(null);
                 // Navigate to login screen
                 App.loadScene("login-view.fxml", "Login");

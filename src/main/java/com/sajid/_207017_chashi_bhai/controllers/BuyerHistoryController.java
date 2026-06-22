@@ -3,17 +3,19 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
-import com.sajid._207017_chashi_bhai.services.FirebaseSyncService;
+// import com.sajid._207017_chashi_bhai.services.FirebaseSyncService; // Removed - using REST API now
 import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.util.Callback;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.sql.ResultSet;
+import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +45,7 @@ public class BuyerHistoryController {
     @FXML private TableColumn<HistoryRow, String> colUnitPrice;
     @FXML private TableColumn<HistoryRow, String> colTotalPrice;
     @FXML private TableColumn<HistoryRow, String> colRating;
+    @FXML private TableColumn<HistoryRow, Void> colAction;
 
     private User currentUser;
     private DataSyncManager syncManager;
@@ -86,6 +89,9 @@ public class BuyerHistoryController {
             btnExport.setOnAction(e -> onExport());
         }
 
+        // Ensure schema pieces exist (older DBs may miss these)
+        ensureReviewsTableExists();
+
         // Set up table columns (new UI)
         if (tableHistory != null) {
             if (colDate != null) colDate.setCellValueFactory(new PropertyValueFactory<>("date"));
@@ -95,6 +101,57 @@ public class BuyerHistoryController {
             if (colUnitPrice != null) colUnitPrice.setCellValueFactory(new PropertyValueFactory<>("unitPrice"));
             if (colTotalPrice != null) colTotalPrice.setCellValueFactory(new PropertyValueFactory<>("totalPrice"));
             if (colRating != null) colRating.setCellValueFactory(new PropertyValueFactory<>("rating"));
+
+            if (colAction != null) {
+                colAction.setCellFactory(new Callback<>() {
+                    @Override
+                    public TableCell<HistoryRow, Void> call(TableColumn<HistoryRow, Void> param) {
+                        return new TableCell<>() {
+                            private final Button btn = new Button("👁");
+
+                            {
+                                btn.getStyleClass().add("button-secondary");
+                                btn.setMaxWidth(Double.MAX_VALUE);
+                                btn.setTooltip(new Tooltip("বিস্তারিত দেখুন"));
+                                btn.setOnAction(e -> {
+                                    HistoryRow row = getTableView().getItems().get(getIndex());
+                                    if (row != null) {
+                                        showOrderDetails(row.getOrderId());
+                                    }
+                                });
+                            }
+
+                            @Override
+                            protected void updateItem(Void item, boolean empty) {
+                                super.updateItem(item, empty);
+                                setGraphic(empty ? null : btn);
+                            }
+                        };
+                    }
+                });
+            }
+
+            tableHistory.setRowFactory(tv -> {
+                TableRow<HistoryRow> row = new TableRow<>();
+                row.setOnMouseClicked(event -> {
+                    if (event.getClickCount() == 2 && !row.isEmpty()) {
+                        HistoryRow item = row.getItem();
+                        if (item != null) {
+                            showOrderDetails(item.getOrderId());
+                        }
+                    }
+                });
+                return row;
+            });
+
+            tableHistory.setOnKeyPressed(event -> {
+                if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                    HistoryRow selected = tableHistory.getSelectionModel().getSelectedItem();
+                    if (selected != null) {
+                        showOrderDetails(selected.getOrderId());
+                    }
+                }
+            });
         }
 
         loadSummaryStats();
@@ -109,67 +166,107 @@ public class BuyerHistoryController {
     }
 
     private void refreshHistory() {
-        FirebaseSyncService.getInstance().syncBuyerOrdersFromFirebase(
-            currentUser.getId(),
-            () -> {
-                loadSummaryStats();
-                loadHistory();
-            }
-        );
+        // TODO: Implement REST API sync for buyer orders
+        // FirebaseSyncService has been removed - using REST API now
+        // For now, just reload from local SQLite
+        loadSummaryStats();
+        loadHistory();
     }
 
     private void loadSummaryStats() {
-        // Load total expense and total orders from user statistics
+        // Compute from live orders/reviews so UI always reflects DB state.
+
+        // (1) Total expense + most bought crop (exclude cancelled/rejected)
         DatabaseService.executeQueryAsync(
-            "SELECT total_expense, total_buyer_orders, most_bought_crop FROM users WHERE id = ?",
-            new Object[]{currentUser.getId()},
+            "SELECT " +
+                "COALESCE(SUM(o.total_amount), 0) as total_expense, " +
+                "(SELECT c.name " +
+                    "FROM orders o2 " +
+                    "JOIN crops c ON o2.crop_id = c.id " +
+                    "WHERE o2.buyer_id = ? AND o2.status NOT IN ('cancelled','rejected') " +
+                    "GROUP BY c.id " +
+                    "ORDER BY COUNT(*) DESC " +
+                    "LIMIT 1) as most_bought_crop " +
+            "FROM orders o " +
+            "WHERE o.buyer_id = ? AND o.status NOT IN ('cancelled','rejected')",
+            new Object[]{currentUser.getId(), currentUser.getId()},
             resultSet -> {
+                double totalExpense = 0.0;
+                String mostBought = "N/A";
                 try {
                     if (resultSet.next()) {
-                        // Read data BEFORE Platform.runLater
-                        double expense = resultSet.getDouble("total_expense");
-                        int totalOrders = resultSet.getInt("total_buyer_orders");
-                        String mostBought = resultSet.getString("most_bought_crop");
-                        
-                        Platform.runLater(() -> {
-                            if (lblTotalExpense != null) {
-                                lblTotalExpense.setText(String.format("৳%.2f", expense));
-                            }
-                            if (lblTotalAcceptedOrders != null) {
-                                lblTotalAcceptedOrders.setText(String.valueOf(totalOrders));
-                            }
-                            if (lblMostBought != null) {
-                                lblMostBought.setText(mostBought != null ? mostBought : "N/A");
-                            }
-                        });
+                        totalExpense = resultSet.getDouble("total_expense");
+                        String value = resultSet.getString("most_bought_crop");
+                        if (value != null && !value.isBlank()) {
+                            mostBought = value;
+                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
+                final double finalTotalExpense = totalExpense;
+                final String finalMostBought = mostBought;
+                Platform.runLater(() -> {
+                    if (lblTotalExpense != null) {
+                        lblTotalExpense.setText(String.format("৳%.2f", finalTotalExpense));
+                    }
+                    if (lblMostBought != null) {
+                        lblMostBought.setText(finalMostBought);
+                    }
+                });
             },
             error -> error.printStackTrace()
         );
-        
-        // Load favorite farmers count
+
+        // (2) Total orders (all except cancelled/rejected)
         DatabaseService.executeQueryAsync(
-            "SELECT COUNT(DISTINCT c.farmer_id) as favorite_farmers FROM orders o " +
-            "JOIN crops c ON o.crop_id = c.id " +
-            "WHERE o.buyer_id = ? AND o.status IN ('delivered', 'completed')",
+            "SELECT COUNT(*) as total_orders " +
+                "FROM orders o " +
+                "WHERE o.buyer_id = ? " +
+                "AND o.status NOT IN ('cancelled','rejected')",
             new Object[]{currentUser.getId()},
             resultSet -> {
+                int totalOrders = 0;
                 try {
                     if (resultSet.next()) {
-                        int favoriteFarmers = resultSet.getInt("favorite_farmers");
-                        
-                        Platform.runLater(() -> {
-                            if (lblFavoriteFarmers != null) {
-                                lblFavoriteFarmers.setText(String.valueOf(favoriteFarmers));
-                            }
-                        });
+                        totalOrders = resultSet.getInt("total_orders");
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                final int finalTotalOrders = totalOrders;
+                Platform.runLater(() -> {
+                    if (lblTotalAcceptedOrders != null) {
+                        lblTotalAcceptedOrders.setText(String.valueOf(finalTotalOrders));
+                    }
+                });
+            },
+            error -> error.printStackTrace()
+        );
+
+        // (3) Favorite farmers count (optional label; not in all FXML versions)
+        DatabaseService.executeQueryAsync(
+            "SELECT COUNT(DISTINCT o.farmer_id) as favorite_farmers " +
+                "FROM orders o " +
+                "WHERE o.buyer_id = ? AND o.status NOT IN ('cancelled','rejected')",
+            new Object[]{currentUser.getId()},
+            resultSet -> {
+                int favoriteFarmers = 0;
+                try {
+                    if (resultSet.next()) {
+                        favoriteFarmers = resultSet.getInt("favorite_farmers");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                final int finalFavoriteFarmers = favoriteFarmers;
+                Platform.runLater(() -> {
+                    if (lblFavoriteFarmers != null) {
+                        lblFavoriteFarmers.setText(String.valueOf(finalFavoriteFarmers));
+                    }
+                });
             },
             error -> error.printStackTrace()
         );
@@ -179,30 +276,40 @@ public class BuyerHistoryController {
         DatabaseService.executeQueryAsync(
             "SELECT DISTINCT c.name FROM orders o " +
             "JOIN crops c ON o.crop_id = c.id " +
-            "WHERE o.buyer_id = ? AND o.status IN ('delivered', 'completed') " +
+            "WHERE o.buyer_id = ? AND o.status NOT IN ('cancelled','rejected') " +
             "ORDER BY c.name",
             new Object[]{currentUser.getId()},
             resultSet -> {
-                Platform.runLater(() -> {
-                    try {
-                        if (cbFilterCrop != null) {
-                            String selected = cbFilterCrop.getValue();
-                            cbFilterCrop.getItems().clear();
-                            cbFilterCrop.getItems().add("সব ফসল (All Crops)");
-                            cbFilterCrop.getSelectionModel().select(0);
-                            if (selected != null && !selected.contains("All") && !selected.contains("সব")) {
-                                // selection will be restored if it exists in the new list
-                            }
+                try {
+                    List<String> crops = new ArrayList<>();
+                    while (resultSet.next()) {
+                        String name = resultSet.getString("name");
+                        if (name != null && !name.isBlank()) {
+                            crops.add(name);
                         }
-                        while (resultSet.next()) {
-                            if (cbFilterCrop != null) {
-                                cbFilterCrop.getItems().add(resultSet.getString("name"));
-                            }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
-                });
+
+                    Platform.runLater(() -> {
+                        try {
+                            if (cbFilterCrop != null) {
+                                String selected = cbFilterCrop.getValue();
+                                cbFilterCrop.getItems().clear();
+                                cbFilterCrop.getItems().add("সব ফসল (All Crops)");
+                                cbFilterCrop.getItems().addAll(crops);
+
+                                if (selected != null && cbFilterCrop.getItems().contains(selected)) {
+                                    cbFilterCrop.getSelectionModel().select(selected);
+                                } else {
+                                    cbFilterCrop.getSelectionModel().select(0);
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             },
             error -> error.printStackTrace()
         );
@@ -222,15 +329,15 @@ public class BuyerHistoryController {
 
         String effectiveDateExpr = "COALESCE(o.completed_at, o.delivered_at, o.updated_at, o.created_at)";
 
-        String query = "SELECT o.id, o.crop_id, o.quantity_kg, o.updated_at, " +
-                  effectiveDateExpr + " as effective_date, " +
-                      "c.name as crop_name, c.price_per_kg as price, " +
+        String query = "SELECT o.id, o.crop_id, o.quantity_kg, o.price_per_kg, o.total_amount, " +
+                      effectiveDateExpr + " as effective_date, " +
+                      "c.name as crop_name, " +
                       "u.name as farmer_name, u.is_verified, " +
                       "(SELECT rating FROM reviews WHERE order_id = o.id AND reviewer_id = ? LIMIT 1) as my_review_rating " +
                       "FROM orders o " +
                       "JOIN crops c ON o.crop_id = c.id " +
-                      "JOIN users u ON c.farmer_id = u.id " +
-                      "WHERE o.buyer_id = ? AND o.status IN ('delivered', 'completed') ";
+                      "JOIN users u ON o.farmer_id = u.id " +
+                      "WHERE o.buyer_id = ? ";
 
         List<Object> params = new ArrayList<>();
         params.add(currentUser.getId()); // reviewer_id
@@ -262,9 +369,9 @@ public class BuyerHistoryController {
         String sortOption = cbSortBy != null ? cbSortBy.getSelectionModel().getSelectedItem() : null;
         if (sortOption != null) {
             if (sortOption.contains("High to Low") || sortOption.contains("বেশি থেকে কম")) {
-                query += " ORDER BY (o.quantity_kg * c.price_per_kg) DESC";
+                query += " ORDER BY o.total_amount DESC";
             } else if (sortOption.contains("Low to High") || sortOption.contains("কম থেকে বেশি")) {
-                query += " ORDER BY (o.quantity_kg * c.price_per_kg) ASC";
+                query += " ORDER BY o.total_amount ASC";
             } else {
                 query += " ORDER BY " + effectiveDateExpr + " DESC";
             }
@@ -338,8 +445,8 @@ public class BuyerHistoryController {
 
         String cropName = rs.getString("crop_name");
         double quantity = rs.getDouble("quantity_kg");
-        double unitPrice = rs.getDouble("price");
-        double total = quantity * unitPrice;
+        double unitPrice = rs.getDouble("price_per_kg");
+        double total = rs.getDouble("total_amount");
 
         Object ratingObj = rs.getObject("my_review_rating");
         String rating = "-";
@@ -347,7 +454,10 @@ public class BuyerHistoryController {
             rating = String.valueOf(((Number) ratingObj).intValue());
         }
 
+        int orderId = rs.getInt("id");
+
         return new HistoryRow(
+            orderId,
             date,
             cropName != null ? cropName : "",
             farmer,
@@ -359,6 +469,7 @@ public class BuyerHistoryController {
     }
 
     public static class HistoryRow {
+        private final int orderId;
         private final String date;
         private final String crop;
         private final String farmer;
@@ -367,7 +478,8 @@ public class BuyerHistoryController {
         private final String totalPrice;
         private final String rating;
 
-        public HistoryRow(String date, String crop, String farmer, String quantity, String unitPrice, String totalPrice, String rating) {
+        public HistoryRow(int orderId, String date, String crop, String farmer, String quantity, String unitPrice, String totalPrice, String rating) {
+            this.orderId = orderId;
             this.date = date;
             this.crop = crop;
             this.farmer = farmer;
@@ -377,6 +489,7 @@ public class BuyerHistoryController {
             this.rating = rating;
         }
 
+        public int getOrderId() { return orderId; }
         public String getDate() { return date; }
         public String getCrop() { return crop; }
         public String getFarmer() { return farmer; }
@@ -417,7 +530,7 @@ public class BuyerHistoryController {
         boolean isVerified = rs.getBoolean("is_verified");
         String cropName = rs.getString("crop_name");
         double quantity = rs.getDouble("quantity_kg");
-        double price = rs.getDouble("price");
+        double price = rs.getDouble("price_per_kg");
         Object myRatingObj = rs.getObject("my_review_rating");
         Integer myRating = myRatingObj != null ? ((Number) myRatingObj).intValue() : null;
 
@@ -539,44 +652,111 @@ public class BuyerHistoryController {
 
     private void showOrderDetails(int orderId) {
         DatabaseService.executeQueryAsync(
-            "SELECT o.*, c.name as crop_name, c.price_per_kg as price, c.farmer_id, " +
-            "u.name as farmer_name, u.phone as farmer_phone " +
+            "SELECT o.id, o.quantity_kg, o.price_per_kg, o.total_amount, o.created_at, " +
+                "COALESCE(o.completed_at, o.delivered_at, o.updated_at, o.created_at) as effective_date, " +
+                "c.name as crop_name, " +
+                "u.name as farmer_name, u.phone as farmer_phone " +
             "FROM orders o " +
             "JOIN crops c ON o.crop_id = c.id " +
-            "JOIN users u ON c.farmer_id = u.id " +
-            "WHERE o.id = ?",
-            new Object[]{orderId},
+            "JOIN users u ON o.farmer_id = u.id " +
+            "WHERE o.id = ? AND o.buyer_id = ?",
+            new Object[]{orderId, currentUser.getId()},
             resultSet -> {
-                Platform.runLater(() -> {
-                    try {
-                        if (resultSet.next()) {
-                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                            alert.setTitle("অর্ডার বিস্তারিত");
-                            alert.setHeaderText("অর্ডার #" + orderId);
-                            
-                            double quantity = resultSet.getDouble("quantity");
-                            double price = resultSet.getDouble("price");
-                            String unit = "কেজি"; // All crops measured in kg
-                            
-                            alert.setContentText(
-                                "ফসল: " + resultSet.getString("crop_name") + "\n" +
-                                "কৃষক: " + resultSet.getString("farmer_name") + "\n" +
-                                "ফোন: " + resultSet.getString("farmer_phone") + "\n" +
-                                "পরিমাণ: " + quantity + " " + unit + "\n" +
-                                "দাম: ৳" + String.format("%.2f", price) + "/" + unit + "\n" +
-                                "মোট খরচ: ৳" + String.format("%.2f", quantity * price) + "\n" +
-                                "অর্ডারের তারিখ: " + resultSet.getString("created_at") + "\n" +
-                                "ডেলিভারির তারিখ: " + resultSet.getString("updated_at")
-                            );
-                            alert.showAndWait();
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                boolean found = false;
+                String cropName = null;
+                String farmerName = null;
+                String farmerPhone = null;
+                String createdAt = null;
+                String effectiveDate = null;
+                double quantity = 0.0;
+                double unitPrice = 0.0;
+                double totalAmount = 0.0;
+                try {
+                    if (resultSet.next()) {
+                        found = true;
+                        cropName = resultSet.getString("crop_name");
+                        farmerName = resultSet.getString("farmer_name");
+                        farmerPhone = resultSet.getString("farmer_phone");
+                        createdAt = resultSet.getString("created_at");
+                        effectiveDate = resultSet.getString("effective_date");
+                        quantity = resultSet.getDouble("quantity_kg");
+                        unitPrice = resultSet.getDouble("price_per_kg");
+                        totalAmount = resultSet.getDouble("total_amount");
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                final boolean finalFound = found;
+                final String finalCropName = cropName;
+                final String finalFarmerName = farmerName;
+                final String finalFarmerPhone = farmerPhone;
+                final String finalCreatedAt = createdAt;
+                final String finalEffectiveDate = effectiveDate;
+                final double finalQuantity = quantity;
+                final double finalUnitPrice = unitPrice;
+                final double finalTotalAmount = totalAmount;
+                Platform.runLater(() -> {
+                    if (!finalFound) {
+                        showError("পাওয়া যায়নি", "অর্ডারটি পাওয়া যায়নি।");
+                        return;
+                    }
+
+                    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                    alert.setTitle("অর্ডার বিস্তারিত");
+                    alert.setHeaderText("অর্ডার #" + orderId);
+                    String unit = "কেজি";
+                    alert.setContentText(
+                        "ফসল: " + (finalCropName != null ? finalCropName : "") + "\n" +
+                        "কৃষক: " + (finalFarmerName != null ? finalFarmerName : "") + "\n" +
+                        "ফোন: " + (finalFarmerPhone != null ? finalFarmerPhone : "") + "\n" +
+                        "পরিমাণ: " + String.format("%.1f", finalQuantity) + " " + unit + "\n" +
+                        "দাম: ৳" + String.format("%.2f", finalUnitPrice) + "/" + unit + "\n" +
+                        "মোট খরচ: ৳" + String.format("%.2f", finalTotalAmount) + "\n" +
+                        "অর্ডারের তারিখ: " + (finalCreatedAt != null ? finalCreatedAt : "") + "\n" +
+                        "ডেলিভারির/সম্পন্নের তারিখ: " + (finalEffectiveDate != null ? finalEffectiveDate : "")
+                    );
+
+                    ButtonType viewDetails = new ButtonType("👁 বিস্তারিত দেখুন", ButtonBar.ButtonData.OK_DONE);
+                    ButtonType close = new ButtonType("বন্ধ", ButtonBar.ButtonData.CANCEL_CLOSE);
+                    alert.getButtonTypes().setAll(viewDetails, close);
+
+                    alert.showAndWait().ifPresent(choice -> {
+                        if (choice == viewDetails) {
+                            App.setCurrentOrderId(orderId);
+                            App.setPreviousScene("buyer-history-view.fxml");
+                            App.loadScene("order-detail-view.fxml", "অর্ডার বিস্তারিত");
+                        }
+                    });
                 });
             },
             error -> error.printStackTrace()
         );
+    }
+
+    private void ensureReviewsTableExists() {
+        // Older local DBs may be missing the reviews table (was previously called ratings in some code).
+        String createTable =
+            "CREATE TABLE IF NOT EXISTS reviews (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "order_id INTEGER NOT NULL, " +
+                "reviewer_id INTEGER NOT NULL, " +
+                "reviewee_id INTEGER NOT NULL, " +
+                "rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5), " +
+                "comment TEXT, " +
+                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                "FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE, " +
+                "FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE CASCADE, " +
+                "FOREIGN KEY (reviewee_id) REFERENCES users(id) ON DELETE CASCADE, " +
+                "UNIQUE(order_id, reviewer_id)" +
+            ")";
+
+        DatabaseService.executeUpdateAsync(createTable, new Object[]{}, rows -> {
+            // no-op
+        }, err -> {
+            // If this fails, history will still work, just without rating info.
+            err.printStackTrace();
+        });
     }
 
     private void showRatingDialog(int orderId) {
@@ -626,36 +806,40 @@ public class BuyerHistoryController {
     }
 
     private void submitRating(int orderId, int rating, String comment) {
-        // Get farmer_id from order
+        // Store ratings in the schema-supported `reviews` table.
         DatabaseService.executeQueryAsync(
-            "SELECT c.farmer_id FROM orders o JOIN crops c ON o.crop_id = c.id WHERE o.id = ?",
-            new Object[]{orderId},
+            "SELECT farmer_id FROM orders WHERE id = ? AND buyer_id = ?",
+            new Object[]{orderId, currentUser.getId()},
             resultSet -> {
+                int farmerId = 0;
+                boolean found = false;
                 try {
                     if (resultSet.next()) {
-                        int farmerId = resultSet.getInt("farmer_id");
-                        
-                        DatabaseService.executeUpdateAsync(
-                            "INSERT INTO ratings (order_id, buyer_id, farmer_id, rating, comment, created_at) " +
-                            "VALUES (?, ?, ?, ?, ?, datetime('now'))",
-                            new Object[]{orderId, currentUser.getId(), farmerId, rating, comment},
-                            rows -> {
-                                Platform.runLater(() -> {
-                                    showSuccess("সফল!", "আপনার রেটিং জমা দেওয়া হয়েছে।");
-                                    loadHistory();
-                                });
-                            },
-                            error -> {
-                                Platform.runLater(() -> {
-                                    showError("ত্রুটি", "রেটিং জমা দিতে সমস্যা হয়েছে।");
-                                    error.printStackTrace();
-                                });
-                            }
-                        );
+                        farmerId = resultSet.getInt("farmer_id");
+                        found = true;
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
+                if (!found) {
+                    Platform.runLater(() -> showError("ত্রুটি", "অর্ডারটি পাওয়া যায়নি।"));
+                    return;
+                }
+
+                DatabaseService.executeUpdateAsync(
+                    "INSERT OR REPLACE INTO reviews (order_id, reviewer_id, reviewee_id, rating, comment, created_at) " +
+                        "VALUES (?, ?, ?, ?, ?, datetime('now'))",
+                    new Object[]{orderId, currentUser.getId(), farmerId, rating, comment},
+                    rows -> Platform.runLater(() -> {
+                        showSuccess("সফল!", "আপনার রেটিং জমা দেওয়া হয়েছে।");
+                        loadHistory();
+                    }),
+                    error -> Platform.runLater(() -> {
+                        showError("ত্রুটি", "রেটিং জমা দিতে সমস্যা হয়েছে।");
+                        error.printStackTrace();
+                    })
+                );
             },
             error -> error.printStackTrace()
         );
@@ -666,17 +850,29 @@ public class BuyerHistoryController {
             "SELECT crop_id, quantity_kg FROM orders WHERE id = ?",
             new Object[]{orderId},
             resultSet -> {
-                Platform.runLater(() -> {
-                    try {
-                        if (resultSet.next()) {
-                            int cropId = resultSet.getInt("crop_id");
-                            App.setCurrentCropId(cropId);
-                            App.setPreviousScene("buyer-history-view.fxml");
-                            App.loadScene("crop-detail-view.fxml", "ফসলের বিস্তারিত");
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                int cropId = 0;
+                boolean found = false;
+                try {
+                    if (resultSet.next()) {
+                        cropId = resultSet.getInt("crop_id");
+                        found = true;
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                final int finalCropId = cropId;
+                final int finalOrderId = orderId;
+                final boolean finalFound = found;
+                Platform.runLater(() -> {
+                    if (!finalFound) {
+                        showError("ত্রুটি", "অর্ডারটি পাওয়া যায়নি।");
+                        return;
+                    }
+                    App.setCurrentCropId(finalCropId);
+                    App.setCurrentOrderId(finalOrderId); // Pass order context to show ordered quantity
+                    App.setPreviousScene("buyer-history-view.fxml");
+                    App.loadScene("crop-detail-view.fxml", "ফসলের বিস্তারিত");
                 });
             },
             error -> error.printStackTrace()

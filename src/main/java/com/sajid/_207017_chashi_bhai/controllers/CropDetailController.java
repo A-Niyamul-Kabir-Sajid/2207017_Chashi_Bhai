@@ -3,12 +3,14 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.utils.ImageBase64Util;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 import java.awt.Desktop;
 import java.io.File;
@@ -23,6 +25,8 @@ public class CropDetailController {
 
     @FXML private ImageView imgMainPhoto;
     @FXML private HBox hboxThumbnails;
+    @FXML private Button btnPrevPhoto;
+    @FXML private Button btnNextPhoto;
     @FXML private Label lblCropName;
     @FXML private Label lblCropPrice;
     @FXML private Label lblProductCode;
@@ -44,6 +48,8 @@ public class CropDetailController {
     @FXML private Button btnChat;
     @FXML private Button btnOrder;
     @FXML private Button btnFavorite;
+    @FXML private VBox vboxFarmPhotos;
+    @FXML private Label lblNoFarmPhotos;
 
     private User currentUser;
     private int cropId;
@@ -52,9 +58,36 @@ public class CropDetailController {
     private String farmerPhone;
     private double cropPrice;
     private String cropUnit;
-    private String[] photoPaths;
+    private List<CropPhoto> cropPhotos = new ArrayList<>(); // Store photo data
     private int currentPhotoIndex = 0;
     private Double orderedQuantity = null; // Set when viewing from order context
+    
+    // Inner class to hold photo data
+    private static class CropPhoto {
+        String path;
+        String base64;
+        
+        CropPhoto(String path, String base64) {
+            this.path = path;
+            this.base64 = base64;
+        }
+        
+        Image toImage() {
+            // Try Base64 first
+            if (base64 != null && !base64.isEmpty()) {
+                Image img = ImageBase64Util.base64ToImage(base64);
+                if (img != null) return img;
+            }
+            // Fall back to file path
+            if (path != null && !path.isEmpty()) {
+                File file = new File(path);
+                if (file.exists()) {
+                    return new Image(file.toURI().toString());
+                }
+            }
+            return null;
+        }
+    }
 
     @FXML
     public void initialize() {
@@ -118,7 +151,6 @@ public class CropDetailController {
                         double unitPrice = rs.getDouble("unit_price");
                         String unit = "কেজি"; // All crops measured in kg
                         double quantity = rs.getDouble("available_qty");
-                        String harvestDate = rs.getString("harvest_date");
                         String district = rs.getString("district");
                         String transport = rs.getString("transport_info");
                         String description = rs.getString("description");
@@ -175,6 +207,9 @@ public class CropDetailController {
                                         imgFarmerPhoto.setImage(new Image(photoFile.toURI().toString()));
                                     }
                                 }
+                                
+                                // Load farm photos for this farmer
+                                loadFarmPhotos(fId);
                             } catch (Exception e) {
                                 e.printStackTrace();
                                 showError("ত্রুটি", "ফসলের তথ্য প্রদর্শন করতে ব্যর্থ হয়েছে।");
@@ -196,18 +231,26 @@ public class CropDetailController {
     }
 
     private void loadCropPhotos() {
-        String sql = "SELECT photo_path FROM crop_photos WHERE crop_id = ? ORDER BY photo_order";
+        // Updated query to include image_base64 and order by photo_order
+        String sql = "SELECT id, crop_id, photo_path, image_base64, photo_order FROM crop_photos WHERE crop_id = ? ORDER BY photo_order ASC";
         
         DatabaseService.executeQueryAsync(sql, new Object[]{cropId},
             rs -> {
                 // CRITICAL: Read ResultSet data BEFORE Platform.runLater to avoid closed ResultSet
-                List<String> paths = new ArrayList<>();
+                List<CropPhoto> photos = new ArrayList<>();
                 try {
                     while (rs.next()) {
                         String path = rs.getString("photo_path");
-                        if (path != null && new File(path).exists()) {
-                            paths.add(path);
-                        }
+                        String base64 = rs.getString("image_base64");
+                        int photoOrder = rs.getInt("photo_order");
+                        
+                        // Create photo object with both path and base64
+                        CropPhoto photo = new CropPhoto(path, base64);
+                        photos.add(photo);
+                        
+                        System.out.println("✓ Loaded photo " + photoOrder + " for crop " + cropId + 
+                                         " (Base64: " + (base64 != null && !base64.isEmpty() ? "yes" : "no") + 
+                                         ", Path: " + (path != null ? path : "none") + ")");
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -216,11 +259,16 @@ public class CropDetailController {
                 // Now update UI on JavaFX thread with pre-loaded data
                 Platform.runLater(() -> {
                     try {
-                        photoPaths = paths.toArray(new String[0]);
+                        cropPhotos = photos;
                         
-                        if (photoPaths.length > 0) {
+                        if (!cropPhotos.isEmpty()) {
                             loadPhoto(0);
                             loadThumbnails();
+                            updateNavigationButtons();
+                        } else {
+                            System.out.println("⚠️ No photos found for crop " + cropId);
+                            if (btnPrevPhoto != null) btnPrevPhoto.setVisible(false);
+                            if (btnNextPhoto != null) btnNextPhoto.setVisible(false);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -232,22 +280,52 @@ public class CropDetailController {
     }
 
     private void loadPhoto(int index) {
-        if (photoPaths != null && index >= 0 && index < photoPaths.length) {
+        if (cropPhotos != null && index >= 0 && index < cropPhotos.size()) {
             currentPhotoIndex = index;
-            File photoFile = new File(photoPaths[index]);
-            if (photoFile.exists()) {
-                imgMainPhoto.setImage(new Image(photoFile.toURI().toString()));
+            CropPhoto photo = cropPhotos.get(index);
+            Image image = photo.toImage();
+            if (image != null) {
+                imgMainPhoto.setImage(image);
             }
+            updateNavigationButtons();
+        }
+    }
+
+    @FXML
+    private void onPreviousPhoto() {
+        if (currentPhotoIndex > 0) {
+            loadPhoto(currentPhotoIndex - 1);
+            loadThumbnails();
+        }
+    }
+
+    @FXML
+    private void onNextPhoto() {
+        if (currentPhotoIndex < cropPhotos.size() - 1) {
+            loadPhoto(currentPhotoIndex + 1);
+            loadThumbnails();
+        }
+    }
+
+    private void updateNavigationButtons() {
+        if (btnPrevPhoto != null) {
+            btnPrevPhoto.setDisable(currentPhotoIndex == 0);
+            btnPrevPhoto.setVisible(cropPhotos.size() > 1);
+        }
+        if (btnNextPhoto != null) {
+            btnNextPhoto.setDisable(currentPhotoIndex >= cropPhotos.size() - 1);
+            btnNextPhoto.setVisible(cropPhotos.size() > 1);
         }
     }
 
     private void loadThumbnails() {
         hboxThumbnails.getChildren().clear();
-        for (int i = 0; i < photoPaths.length; i++) {
+        for (int i = 0; i < cropPhotos.size(); i++) {
             final int photoIndex = i;
-            File photoFile = new File(photoPaths[i]);
-            if (photoFile.exists()) {
-                ImageView thumbnail = new ImageView(new Image(photoFile.toURI().toString()));
+            CropPhoto photo = cropPhotos.get(i);
+            Image image = photo.toImage();
+            if (image != null) {
+                ImageView thumbnail = new ImageView(image);
                 thumbnail.setFitWidth(80);
                 thumbnail.setFitHeight(80);
                 thumbnail.setPreserveRatio(true);
@@ -255,20 +333,6 @@ public class CropDetailController {
                 thumbnail.setOnMouseClicked(e -> loadPhoto(photoIndex));
                 hboxThumbnails.getChildren().add(thumbnail);
             }
-        }
-    }
-
-    @FXML
-    private void onPrevPhoto() {
-        if (currentPhotoIndex > 0) {
-            loadPhoto(currentPhotoIndex - 1);
-        }
-    }
-
-    @FXML
-    private void onNextPhoto() {
-        if (photoPaths != null && currentPhotoIndex < photoPaths.length - 1) {
-            loadPhoto(currentPhotoIndex + 1);
         }
     }
 
@@ -305,11 +369,22 @@ public class CropDetailController {
     private void onChat() {
         // Navigate to chat conversation with farmer
         try {
+            if (App.getCurrentUser() != null && farmerId == App.getCurrentUser().getId()) {
+                showInfo("Not Allowed", "You cannot chat with yourself.");
+                return;
+            }
+
+            if (farmerId <= 0) {
+                showError("ত্রুটি", "কৃষকের তথ্য পাওয়া যায়নি।");
+                return;
+            }
+
+            App.setPreviousScene("crop-detail-view.fxml");
             App.showView("chat-conversation-view.fxml", controller -> {
                 if (controller instanceof ChatConversationController) {
                     ChatConversationController chatController = (ChatConversationController) controller;
                     // Get or create conversation with farmer
-                    chatController.loadConversation(0, farmerId, lblFarmerName.getText(), cropId);
+                    chatController.loadConversation(0, farmerId, lblFarmerName.getText(), (cropId > 0 ? cropId : null));
                 }
             });
         } catch (Exception e) {
@@ -410,15 +485,19 @@ public class CropDetailController {
 
     @FXML
     private void onBack() {
-        // Clear order context when going back
-        App.setCurrentOrderId(-1);
-        
         // Navigate back to previous scene
         String previousScene = App.getPreviousScene();
         if (previousScene != null && !previousScene.isEmpty()) {
+            // Only clear order context if NOT going back to order detail view
+            if (!"order-detail-view.fxml".equals(previousScene)) {
+                App.setCurrentOrderId(-1);
+            }
+            
             String title = getSceneTitle(previousScene);
             App.loadScene(previousScene, title);
         } else {
+            // Clear order context when going to default fallback
+            App.setCurrentOrderId(-1);
             // Default fallback to crop feed
             App.loadScene("crop-feed-view.fxml", "সকল ফসল");
         }
@@ -436,16 +515,79 @@ public class CropDetailController {
         }
     }
 
-    private void showError(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+    private void loadFarmPhotos(int farmerId) {
+        if (vboxFarmPhotos == null) return;
+        
+        String sql = "SELECT id, photo_path, image_base64 FROM farm_photos WHERE farmer_id = ? ORDER BY id LIMIT 4";
+        
+        DatabaseService.executeQueryAsync(sql, new Object[]{farmerId},
+            rs -> {
+                java.util.List<java.util.Map<String, Object>> photos = new java.util.ArrayList<>();
+                try {
+                    while (rs.next()) {
+                        java.util.Map<String, Object> photo = new java.util.HashMap<>();
+                        photo.put("photoPath", rs.getString("photo_path"));
+                        photo.put("imageBase64", rs.getString("image_base64"));
+                        photos.add(photo);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                
+                Platform.runLater(() -> {
+                    try {
+                        vboxFarmPhotos.getChildren().clear();
+                        boolean hasPhotos = !photos.isEmpty();
+                        
+                        for (java.util.Map<String, Object> photo : photos) {
+                            ImageView imageView = new ImageView();
+                            imageView.setFitWidth(300);
+                            imageView.setFitHeight(180);
+                            imageView.setPreserveRatio(true);
+                            imageView.setStyle("-fx-background-radius: 8; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 4, 0, 0, 2);");
+                            
+                            // Try loading from Base64 first, then file path
+                            String base64 = (String) photo.get("imageBase64");
+                            String photoPath = (String) photo.get("photoPath");
+                            
+                            Image image = null;
+                            if (base64 != null && !base64.isEmpty()) {
+                                image = ImageBase64Util.base64ToImage(base64);
+                            }
+                            if (image == null && photoPath != null && !photoPath.isEmpty()) {
+                                File photoFile = new File(photoPath);
+                                if (photoFile.exists()) {
+                                    image = new Image(photoFile.toURI().toString());
+                                }
+                            }
+                            
+                            if (image != null) {
+                                imageView.setImage(image);
+                                vboxFarmPhotos.getChildren().add(imageView);
+                            }
+                        }
+                        
+                        if (lblNoFarmPhotos != null) {
+                            lblNoFarmPhotos.setVisible(!hasPhotos);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            },
+            error -> {
+                Platform.runLater(() -> {
+                    if (lblNoFarmPhotos != null) {
+                        lblNoFarmPhotos.setVisible(true);
+                    }
+                });
+                error.printStackTrace();
+            }
+        );
     }
 
-    private void showSuccess(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    private void showError(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);

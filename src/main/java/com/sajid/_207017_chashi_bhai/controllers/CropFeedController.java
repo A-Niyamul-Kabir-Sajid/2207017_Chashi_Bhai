@@ -84,6 +84,7 @@ public class CropFeedController {
         String district;
         String availableDate; // created_at or date string
         String photoPath;
+        String photoBase64;
     }
 
     private final List<CropItem> loadedCrops = new ArrayList<>();
@@ -340,7 +341,7 @@ public class CropFeedController {
                             info.setTitle("ইউজার পাওয়া গেছে / User Found");
                             info.setHeaderText(finalUserName + (finalIsVerified ? " ✓" : ""));
                             info.setContentText(
-                                "Role: " + (finalUserRole.equals("farmer") ? "কৃষক / Farmer" : "ক্রেতা / Buyer") + "\n" +
+                                "Role: " + ("farmer".equals(finalUserRole) ? "কৃষক / Farmer" : "ক্রেতা / Buyer") + "\n" +
                                 "Phone: " + finalPhone + "\n" +
                                 "District: " + finalDistrict + "\n\n" +
                                 "প্রোফাইল দেখতে চান?"
@@ -349,7 +350,7 @@ public class CropFeedController {
                             info.showAndWait().ifPresent(response -> {
                                 if (response == ButtonType.OK) {
                                     App.setCurrentViewedUserId(userId);
-                                    if (finalUserRole.equals("farmer")) {
+                                    if ("farmer".equals(finalUserRole)) {
                                         App.loadScene("public-farmer-profile-view.fxml", "কৃষকের প্রোফাইল");
                                     } else {
                                         App.loadScene("public-buyer-profile-view.fxml", "ক্রেতার প্রোফাইল");
@@ -463,7 +464,8 @@ public class CropFeedController {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT c.*, u.name as farmer_name, u.phone as farmer_phone, u.is_verified, ")
            .append("c.price_per_kg as price, c.available_quantity_kg as quantity, 'কেজি' as unit, ")
-           .append(" (SELECT photo_path FROM crop_photos WHERE crop_id = c.id ORDER BY photo_order LIMIT 1) as photo")
+           .append(" (SELECT photo_path FROM crop_photos WHERE crop_id = c.id ORDER BY photo_order LIMIT 1) as photo,")
+           .append(" (SELECT image_base64 FROM crop_photos WHERE crop_id = c.id ORDER BY photo_order LIMIT 1) as photo_base64")
            .append(" FROM crops c JOIN users u ON c.farmer_id = u.id WHERE c.status = 'active'");
 
         List<Object> params = new ArrayList<>();
@@ -611,6 +613,7 @@ public class CropFeedController {
         item.district = safeString(rs, "district");
         item.availableDate = safeString(rs, "created_at");
         item.photoPath = safeString(rs, "photo");
+        item.photoBase64 = safeString(rs, "photo_base64");
         return item;
     }
 
@@ -618,6 +621,7 @@ public class CropFeedController {
         try { return rs.getString(col); } catch (Exception e) { return ""; }
     }
 
+    @SuppressWarnings("unused")
     private void addMyCropPreview(CropItem item, int index) {
         // Note: myCropsGrid is not available in current FXML, skipping preview
         // This method is kept for future use when the FXML is updated
@@ -642,7 +646,8 @@ public class CropFeedController {
                 item.quantity,
                 item.unit,
                 item.price,
-                item.photoPath
+                item.photoPath,
+                item.photoBase64
             );
             
             return cardRoot;
@@ -845,35 +850,23 @@ public class CropFeedController {
     }
 
     private void contactFarmer(CropItem item) {
-        // Get or create conversation with farmer
-        String sql = "SELECT id FROM conversations WHERE " +
-                    "(user1_id = ? AND user2_id = ? AND (crop_id = ? OR crop_id IS NULL)) OR " +
-                    "(user1_id = ? AND user2_id = ? AND (crop_id = ? OR crop_id IS NULL))";
-        Object[] params = {currentUser.getId(), item.farmerId, item.id, 
-                          item.farmerId, currentUser.getId(), item.id};
-        
-        DatabaseService.executeQueryAsync(sql, params,
-            rs -> {
-                try {
-                    if (rs.next()) {
-                        // Conversation exists
-                        int convId = rs.getInt("id");
-                        Platform.runLater(() -> openConversation(convId, item.farmerId, item.farmerName, item.id));
-                    } else {
-                        // Create new conversation
-                        createAndOpenConversation(item);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Platform.runLater(() -> showError("Error", "Failed to open chat"));
-                }
-            },
-            err -> {
-                Platform.runLater(() -> showError("Error", "Database error: " + err.getMessage()));
-            }
-        );
+        if (item == null || currentUser == null) {
+            return;
+        }
+        if (item.farmerId <= 0) {
+            showError("Error", "Invalid farmer");
+            return;
+        }
+        if (item.farmerId == currentUser.getId()) {
+            showInfo("Not Allowed", "You cannot chat with yourself.");
+            return;
+        }
+
+        // Let ChatConversationController find/create the conversation
+        openConversation(0, item.farmerId, item.farmerName, item.id);
     }
     
+    @SuppressWarnings("unused")
     private void createAndOpenConversation(CropItem item) {
         String insertSql = "INSERT INTO conversations (user1_id, user2_id, crop_id) VALUES (?, ?, ?)";
         Object[] params = {currentUser.getId(), item.farmerId, item.id};
@@ -904,6 +897,7 @@ public class CropFeedController {
     
     private void openConversation(int convId, int userId, String userName, int cropId) {
         try {
+            App.setPreviousScene("crop-feed-view.fxml");
             App.showView("chat-conversation-view.fxml", controller -> {
                 if (controller instanceof ChatConversationController) {
                     ChatConversationController chatController = (ChatConversationController) controller;

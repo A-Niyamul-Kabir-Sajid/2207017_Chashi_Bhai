@@ -1,0 +1,173 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      // Anyone can read user profiles (for public viewing)
+      allow read: if true;
+      
+      // Users can create their own profile during signup
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Users can only update their own profile
+      allow update: if isOwner(userId);
+      
+      // Users can delete their own profile
+      allow delete: if isOwner(userId);
+    }
+    
+    // Crops collection
+    match /crops/{cropId} {
+      // Anyone can read crops (public marketplace)
+      allow read: if true;
+      
+      // Only authenticated farmers can create crops
+      allow create: if isAuthenticated();
+      
+      // Only the farmer who owns the crop can update it
+      allow update: if isAuthenticated() && 
+                       resource.data.farmer_id == request.auth.uid;
+      
+      // Only the farmer who owns the crop can delete it
+      allow delete: if isAuthenticated() && 
+                       resource.data.farmer_id == request.auth.uid;
+    }
+    
+    // Crop photos collection
+    match /crop_photos/{photoId} {
+      // Anyone can read crop photos
+      allow read: if true;
+      
+      // Only authenticated users can create crop photos
+      allow create: if isAuthenticated();
+      
+      // Only the crop owner can update/delete photos
+      // Note: This requires checking the parent crop document
+      allow update, delete: if isAuthenticated();
+    }
+    
+    // Orders collection
+    match /orders/{orderId} {
+      // Users can read their own orders (as buyer or farmer)
+      allow read: if isAuthenticated() && 
+                     (resource.data.buyer_id == request.auth.uid || 
+                      resource.data.farmer_id == request.auth.uid);
+      
+      // Only authenticated buyers can create orders
+      allow create: if isAuthenticated() && 
+                       request.resource.data.buyer_id == request.auth.uid;
+      
+      // Both buyer and farmer can update order status
+      allow update: if isAuthenticated() && 
+                       (resource.data.buyer_id == request.auth.uid || 
+                        resource.data.farmer_id == request.auth.uid);
+      
+      // Only the buyer who created the order can delete it
+      allow delete: if isAuthenticated() && 
+                       resource.data.buyer_id == request.auth.uid;
+    }
+    
+    // Conversations collection
+    match /conversations/{conversationId} {
+      // Users can read conversations they're part of
+      allow read: if isAuthenticated() && 
+                     (resource.data.user1_id == request.auth.uid || 
+                      resource.data.user2_id == request.auth.uid);
+      
+      // Users can create conversations they're part of
+      allow create: if isAuthenticated() && 
+                       (request.resource.data.user1_id == request.auth.uid || 
+                        request.resource.data.user2_id == request.auth.uid);
+      
+      // Users can update conversations they're part of
+      allow update: if isAuthenticated() && 
+                       (resource.data.user1_id == request.auth.uid || 
+                        resource.data.user2_id == request.auth.uid);
+      
+      // Users can delete conversations they're part of
+      allow delete: if isAuthenticated() && 
+                       (resource.data.user1_id == request.auth.uid || 
+                        resource.data.user2_id == request.auth.uid);
+    }
+    
+    // Messages collection
+    match /messages/{messageId} {
+      // Users can read messages in their conversations
+      // Note: This is simplified. In production, you'd check conversation membership
+      allow read: if isAuthenticated();
+      
+      // Users can send messages (create)
+      allow create: if isAuthenticated() && 
+                       request.resource.data.sender_id == request.auth.uid;
+      
+      // Users can update their own messages
+      allow update: if isAuthenticated() && 
+                       resource.data.sender_id == request.auth.uid;
+      
+      // Users can delete their own messages
+      allow delete: if isAuthenticated() && 
+                       resource.data.sender_id == request.auth.uid;
+    }
+    
+    // Auth sessions (if stored in Firestore)
+    match /auth_sessions/{sessionId} {
+      // Users can read their own sessions
+      allow read: if isAuthenticated() && 
+                     resource.data.user_id == request.auth.uid;
+      
+      // Users can create their own sessions
+      allow create: if isAuthenticated() && 
+                       request.resource.data.user_id == request.auth.uid;
+      
+      // Users can update their own sessions
+      allow update: if isAuthenticated() && 
+                       resource.data.user_id == request.auth.uid;
+      
+      // Users can delete their own sessions
+      allow delete: if isAuthenticated() && 
+                       resource.data.user_id == request.auth.uid;
+    }
+    
+    // Statistics collection (if used)
+    match /statistics/{statId} {
+      // Anyone can read statistics
+      allow read: if true;
+      
+      // Only authenticated users can update statistics
+      allow write: if isAuthenticated();
+    }
+    
+    // Notifications collection
+    match /notifications/{notificationId} {
+      // Users can read their own notifications
+      allow read: if isAuthenticated() && 
+                     resource.data.user_id == request.auth.uid;
+      
+      // System or users can create notifications
+      allow create: if isAuthenticated();
+      
+      // Users can update their own notifications (mark as read)
+      allow update: if isAuthenticated() && 
+                       resource.data.user_id == request.auth.uid;
+      
+      // Users can delete their own notifications
+      allow delete: if isAuthenticated() && 
+                       resource.data.user_id == request.auth.uid;
+    }
+    
+    // Default deny all other paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

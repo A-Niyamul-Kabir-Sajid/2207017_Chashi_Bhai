@@ -3,7 +3,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
-import com.sajid._207017_chashi_bhai.services.FirebaseSyncService;
+// import com.sajid._207017_chashi_bhai.services.FirebaseSyncService; // Removed - using REST API now
 import com.sajid._207017_chashi_bhai.services.OrderService;
 import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
 import com.sajid._207017_chashi_bhai.utils.StatisticsCalculator;
@@ -91,9 +91,6 @@ public class BuyerOrdersController {
             return;
         }
         
-        setActiveFilter(btnFilterAll);
-        currentFilter = "all";
-        
         // Initialize sort dropdown with default selection
         if (cbSortBy != null) {
             cbSortBy.getSelectionModel().select(0); // Default: Newest First
@@ -108,17 +105,54 @@ public class BuyerOrdersController {
             btnRefresh.setOnAction(e -> onRefresh());
         }
         
+        // Check if navigating from notification with specific filter
+        String filterState = App.getOrderFilterState();
+        if (filterState != null && !filterState.isEmpty()) {
+            currentFilter = filterState;
+            applyFilterFromState(filterState);
+            App.setOrderFilterState(""); // Clear after using
+        } else {
+            setActiveFilter(btnFilterAll);
+            currentFilter = "all";
+        }
+        
         loadOrders(currentFilter);
         
         // Start real-time sync polling for orders (every 15 seconds)
         syncManager.startOrdersSync(currentUser.getId(), this::refreshOrders);
     }
+    
+    /**
+     * Apply filter button styling based on state from notification navigation
+     */
+    private void applyFilterFromState(String filterState) {
+        switch (filterState) {
+            case "pending":
+                setActiveFilter(btnFilterPending);
+                currentFilter = "new";
+                break;
+            case "confirmed":
+                setActiveFilter(btnFilterConfirmed);
+                currentFilter = "accepted";
+                break;
+            case "in_transit":
+                setActiveFilter(btnFilterInTransit);
+                break;
+            case "delivered":
+                setActiveFilter(btnFilterDelivered);
+                currentFilter = "completed";
+                break;
+            default:
+                setActiveFilter(btnFilterAll);
+                currentFilter = "all";
+                break;
+        }
+    }
 
     private void refreshOrders() {
-        FirebaseSyncService.getInstance().syncBuyerOrdersFromFirebase(
-            currentUser.getId(),
-            () -> loadOrders(currentFilter)
-        );
+        // Sync orders from REST API if needed
+        // For now, just reload from local SQLite
+        loadOrders(currentFilter);
     }
 
     @FXML
@@ -245,8 +279,21 @@ public class BuyerOrdersController {
                     Platform.runLater(() -> {
                         try {
                             boolean hasResults = !rows.isEmpty();
+                            int targetOrderId = App.getCurrentOrderId();
+                            
                             for (OrderRow row : rows) {
                                 VBox orderCard = createOrderCardFromRow(row);
+                                
+                                // Highlight the target order if navigating from notification
+                                if (targetOrderId > 0 && row.orderId == targetOrderId) {
+                                    orderCard.setStyle(orderCard.getStyle() + "; -fx-border-color: #4CAF50; -fx-border-width: 3px; -fx-background-color: #E8F5E9;");
+                                    // Scroll to this order after a brief delay
+                                    Platform.runLater(() -> {
+                                        orderCard.requestFocus();
+                                    });
+                                    App.setCurrentOrderId(-1); // Clear after highlighting
+                                }
+                                
                                 vboxOrdersList.getChildren().add(orderCard);
                             }
                             vboxEmptyState.setVisible(!hasResults);
@@ -506,7 +553,8 @@ public class BuyerOrdersController {
                         // Update buyer and farmer statistics after completion
                         StatisticsCalculator.updateBuyerStatistics(currentUser.getId());
                         updateFarmerStatsForOrder(orderId);
-                        FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "completed", null);
+                        // TODO: Implement REST API sync for order status
+                        // FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "completed", null);
                     } else {
                         showError("ত্রুটি", r.message);
                     }
@@ -552,7 +600,8 @@ public class BuyerOrdersController {
                     if (r.ok) {
                         showSuccess("সফল", r.message);
                         refreshOrders();
-                        FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "cancelled", null);
+                        // TODO: Implement REST API sync for order status
+                        // FirebaseSyncService.getInstance().syncOrderStatusToFirebase(orderId, "cancelled", null);
                     } else {
                         showError("ত্রুটি", r.message);
                     }

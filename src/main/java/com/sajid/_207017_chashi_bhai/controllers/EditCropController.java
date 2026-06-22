@@ -3,6 +3,8 @@ package com.sajid._207017_chashi_bhai.controllers;
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
+import com.sajid._207017_chashi_bhai.services.FirebaseService;
+import com.sajid._207017_chashi_bhai.utils.ImageBase64Util;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -262,26 +264,55 @@ public class EditCropController {
             File newPhoto = newPhotos.get(i);
             if (newPhoto != null) {
                 try {
+                    // Convert image to Base64
+                    String imageBase64 = ImageBase64Util.fileToBase64(newPhoto);
+                    
+                    // Copy file to app directory (backward compatibility)
                     String fileName = "photo_" + (i + 1) + "_" + System.currentTimeMillis() + getFileExtension(newPhoto);
                     Path destination = photosDir.resolve(fileName);
                     Files.copy(newPhoto.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);
                     
                     String existingPath = existingPhotoPaths.get(i);
                     int finalI = i;
+                    final String cropIdStr = String.valueOf(cropId);
+                    final int photoOrder = finalI + 1;
+                    
                     if (existingPath != null) {
-                        // Update existing photo
+                        // Update existing photo with Base64
                         DatabaseService.executeUpdateAsync(
-                            "UPDATE crop_photos SET photo_path = ? WHERE crop_id = ? AND photo_order = ?",
-                            new Object[]{destination.toString(), cropId, finalI + 1},
-                            rows -> {},
+                            "UPDATE crop_photos SET photo_path = ?, image_base64 = ? WHERE crop_id = ? AND photo_order = ?",
+                            new Object[]{destination.toString(), imageBase64, cropId, photoOrder},
+                            rows -> {
+                                System.out.println("✓ Photo " + photoOrder + " updated with Base64 for crop " + cropIdStr);
+                                
+                                // Also sync to Firebase
+                                FirebaseService.getInstance().saveCropPhoto(
+                                    cropIdStr,
+                                    photoOrder,
+                                    imageBase64,
+                                    () -> System.out.println("✓ Photo " + photoOrder + " synced to Firebase"),
+                                    err -> System.err.println("❌ Firebase sync error for photo " + photoOrder + ": " + err.getMessage())
+                                );
+                            },
                             error -> error.printStackTrace()
                         );
                     } else {
-                        // Insert new photo
+                        // Insert new photo with Base64
                         DatabaseService.executeUpdateAsync(
-                            "INSERT INTO crop_photos (crop_id, photo_path, photo_order) VALUES (?, ?, ?)",
-                            new Object[]{cropId, destination.toString(), finalI + 1},
-                            rows -> {},
+                            "INSERT INTO crop_photos (crop_id, photo_path, image_base64, photo_order) VALUES (?, ?, ?, ?)",
+                            new Object[]{cropId, destination.toString(), imageBase64, photoOrder},
+                            rows -> {
+                                System.out.println("✓ Photo " + photoOrder + " inserted with Base64 for crop " + cropIdStr);
+                                
+                                // Also sync to Firebase
+                                FirebaseService.getInstance().saveCropPhoto(
+                                    cropIdStr,
+                                    photoOrder,
+                                    imageBase64,
+                                    () -> System.out.println("✓ Photo " + photoOrder + " synced to Firebase"),
+                                    err -> System.err.println("❌ Firebase sync error for photo " + photoOrder + ": " + err.getMessage())
+                                );
+                            },
                             error -> error.printStackTrace()
                         );
                     }

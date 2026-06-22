@@ -2,6 +2,7 @@ package com.sajid._207017_chashi_bhai.controllers;
 
 import com.sajid._207017_chashi_bhai.App;
 import com.sajid._207017_chashi_bhai.models.User;
+import com.sajid._207017_chashi_bhai.services.AuthSessionManager;
 import com.sajid._207017_chashi_bhai.services.DatabaseService;
 import com.sajid._207017_chashi_bhai.utils.DataSyncManager;
 import javafx.application.Platform;
@@ -12,8 +13,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.FileChooser;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 /**
  * BuyerProfileController - Display buyer profile with purchase history stats
@@ -27,7 +33,7 @@ public class BuyerProfileController {
     @FXML private Label lblPhone;
     @FXML private Label lblDistrict;
     @FXML private Label lblUpazila;
-    @FXML private Label lblTotalPurchases;
+    @FXML private Label lblTotalOrders;
     @FXML private Label lblTotalSpent;
     @FXML private Label lblMemberSince;
     @FXML private Button btnEditProfile;
@@ -43,8 +49,10 @@ public class BuyerProfileController {
         syncManager = DataSyncManager.getInstance();
         
         if (currentUser == null || !"buyer".equals(currentUser.getRole())) {
-            showError("অ্যাক্সেস অস্বীকার", "শুধুমাত্র ক্রেতারা এই পেজ দেখতে পারবেন।");
-            App.loadScene("login-view.fxml", "Login");
+            Platform.runLater(() -> {
+                showError("অ্যাক্সেস অস্বীকার", "শুধুমাত্র ক্রেতারা এই পেজ দেখতে পারবেন।");
+                App.loadScene("login-view.fxml", "Login");
+            });
             return;
         }
 
@@ -60,6 +68,65 @@ public class BuyerProfileController {
     @FXML
     private void onRefresh() {
         loadProfileData();
+    }
+
+    @FXML
+    private void onChangeProfilePhoto() {
+        if (imgProfilePhoto == null || imgProfilePhoto.getScene() == null) {
+            showError("ত্রুটি", "ছবি পরিবর্তন করা যাচ্ছে না (UI প্রস্তুত নয়)।");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("প্রোফাইল ছবি নির্বাচন করুন");
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
+        );
+
+        File file = fileChooser.showOpenDialog(imgProfilePhoto.getScene().getWindow());
+        if (file == null) {
+            return;
+        }
+
+        try {
+            Path photosDir = Paths.get("data/profile_photos/" + currentUser.getId());
+            Files.createDirectories(photosDir);
+
+            String fileName = "profile_" + System.currentTimeMillis() + getFileExtension(file);
+            Path destination = photosDir.resolve(fileName);
+            Files.copy(file.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);
+
+            if (progressIndicator != null) {
+                progressIndicator.setVisible(true);
+            }
+
+            DatabaseService.executeUpdateAsync(
+                "UPDATE users SET profile_photo = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                new Object[]{destination.toString(), currentUser.getId()},
+                rows -> Platform.runLater(() -> {
+                    if (progressIndicator != null) {
+                        progressIndicator.setVisible(false);
+                    }
+                    if (rows > 0) {
+                        currentUser.setProfilePhoto(destination.toString());
+                        imgProfilePhoto.setImage(new Image(destination.toUri().toString()));
+                        showSuccess("সফল!", "প্রোফাইল ছবি আপডেট হয়েছে।");
+                    } else {
+                        showError("ত্রুটি", "প্রোফাইল ছবি আপডেট করা যায়নি।");
+                    }
+                }),
+                error -> Platform.runLater(() -> {
+                    if (progressIndicator != null) {
+                        progressIndicator.setVisible(false);
+                    }
+                    showError("ডাটাবেস ত্রুটি", "প্রোফাইল ছবি সংরক্ষণে সমস্যা হয়েছে।");
+                    error.printStackTrace();
+                })
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("ত্রুটি", "ছবি আপলোড করতে ব্যর্থ হয়েছে।");
+        }
     }
 
     /**
@@ -94,14 +161,16 @@ public class BuyerProfileController {
                             lblBuyerName.setText(name);
                             lblUserId.setText("ID: " + currentUser.getId());
                             lblPhone.setText(phone != null ? phone : "N/A");
-                            lblDistrict.setText(district != null ? district : "N/A");
-                            lblUpazila.setText(upazila != null ? upazila : "N/A");
-                            lblTotalPurchases.setText(String.valueOf(totalPurchases));
+                            if (lblDistrict != null) lblDistrict.setText(district != null ? district : "N/A");
+                            if (lblUpazila != null) lblUpazila.setText(upazila != null ? upazila : "N/A");
+                            lblTotalOrders.setText(String.valueOf(totalPurchases));
                             lblTotalSpent.setText(String.format("৳%.2f", totalSpent));
                             
-                            // Member since
-                            if (createdAt != null) {
-                                lblMemberSince.setText(createdAt.substring(0, 10));
+                            // Member since - show year only
+                            if (createdAt != null && createdAt.length() >= 4) {
+                                lblMemberSince.setText(createdAt.substring(0, 4));
+                            } else {
+                                lblMemberSince.setText("--");
                             }
 
                             // Load profile photo
@@ -167,6 +236,8 @@ public class BuyerProfileController {
         confirm.setContentText("আপনাকে পুনরায় লগইন করতে হবে।");
         confirm.showAndWait().ifPresent(response -> {
             if (response == javafx.scene.control.ButtonType.OK) {
+                // Clear auth session cache
+                AuthSessionManager.getInstance().logout();
                 // Clear current user
                 App.setCurrentUser(null);
                 // Navigate to login screen
@@ -195,6 +266,12 @@ public class BuyerProfileController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    private String getFileExtension(File file) {
+        String name = file.getName();
+        int lastDot = name.lastIndexOf('.');
+        return lastDot > 0 ? name.substring(lastDot) : "";
     }
 
     private void showError(String title, String message) {
